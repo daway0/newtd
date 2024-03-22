@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "new tehran darman"
+version = "0.1.0"
+description = "Home Care Nursing Services CRM"
+authors = ["daway0 <rezaee.erfan.2000@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+Django = "^5.0.3"
+django-crispy-forms = "^2.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

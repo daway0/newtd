@@ -1,0 +1,95 @@
+{% extends "base/half_pane.html" %}
+
+{% block title %}پرونده کارفرما{% endblock title %}
+{% block content %}
+    
+<div class="bg-white rounded-md shadow-sm basis-2/2 p-4 mt-2" dir="rtl">
+    <div class="flex flex-row gap-2 text-primarytext font-semibold">
+        {% include "svg/location.html" with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
+        <span>
+            سوابق خدمات
+        </span>
+    </div>
+    <hr class="my-2 border-seperatorline">
+    <table id="ClientServicesTable" class="display text-black">
+        <thead>
+            <tr>
+                <th>آدرس</th>
+                <th></th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <input class="w-full bg-transparent" type="text" value="شب کوچه اقاقیا">
+                </td>
+                <td class="justify-start">
+                    {% include "svg/trashcan.html" with fillcolor="fill-failed" width="w-6" height="h-6" %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="bg-white rounded-md shadow-sm basis-2/2 p-4 mt-2" dir="rtl">
+    <div class="flex flex-row gap-2 text-primarytext font-semibold">
+        {% include "svg/location.html" with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
+        <span>
+            سوابق مالی
+        </span>
+    </div>
+    <hr class="my-2 border-seperatorline">
+    <table id="ClientPaymentsTable" class="display text-black">
+        <thead>
+            <tr>
+                <th>آدرس</th>
+                <th></th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <input class="w-full bg-transparent" type="text" value="شب کوچه اقاقیا">
+                </td>
+                <td class="justify-start">
+                    {% include "svg/trashcan.html" with fillcolor="fill-failed" width="w-6" height="h-6" %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="bg-white rounded-md shadow-sm basis-2/2 p-4 mt-2" dir="rtl">
+    <div class="flex flex-row gap-2 text-primarytext font-semibold">
+        {% include "svg/location.html" with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
+        <span>
+            سوابق تماس
+        </span>
+    </div>
+    <hr class="my-2 border-seperatorline">
+    <table id="ClientCallsTable" class="display text-black">
+        <thead>
+            <tr>
+                <th>آدرس</th>
+                <th></th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <input class="w-full bg-transparent" type="text" value="شب کوچه اقاقیا">
+                </td>
+                <td class="justify-start">
+                    {% include "svg/trashcan.html" with fillcolor="fill-failed" width="w-6" height="h-6" %}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+
+{% endblock content %}

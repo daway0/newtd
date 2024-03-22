@@ -1,0 +1,131 @@
+{% extends "base/half_pane.html" %}
+
+{% block title %}اطلاعات کارفرما جدید{% endblock title %}
+
+{% block content %}
+
+<form action="" method="post">
+    {% csrf_token %}
+    {{ form.media }}
+    {% for non_field_error in form.non_field_errors %}
+        <p class="errornote">
+            {{ non_field_error }}
+        </p>
+        {% endfor %}
+    <div class="flex flex-wrap">
+        {% for field in form %}
+
+        <div class="basis-1/2 p-2 flex flex-col gap-2">
+            <span class="text-black">{{ field.label }}</span>
+            <div>
+                {{ field }}
+                {% for error in field.errors %}
+                <ul class="help errorlist">
+                    <li>{{ error }}</li>
+                </ul>
+                {% endfor %}
+
+            </div>
+        </div>
+
+
+        {# <div class="field">#}
+            {# <label for="{{ field.id_for_label }}" class="label">{{ field.label }}</label>#}
+            {# {{ field }}#}
+            {# </div>#}
+        {% endfor %}
+    
+        
+
+    </div>
+    <div class="bg-white rounded-md shadow-sm basis-2/2 p-4 mt-2" dir="rtl">
+        <div class="flex flex-row gap-2 text-primarytext font-semibold">
+            {% include "svg/telephone.html" with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
+            <span>
+                شماره های تماس
+            </span>
+        </div>
+        <hr class="my-2 border-seperatorline">
+        <table id="PhoneNumbersTable" class="display text-black">
+            <thead>
+                <tr>
+                    <th>شماره تماس</th>
+                    <th>یادداشت</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input class="w-full bg-transparent" type="text" placeholder= "شماره تماس" value="09128395773">
+                    </td>
+                    <td>
+                        <input class="w-full bg-transparent" type="text" placeholder="یادداشت" value="شب ها تماس ">
+                    </td>
+                    <td>
+                        {% include "svg/trashcan.html" with fillcolor="fill-failed" width="w-6" height="h-6" %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <input class="w-full bg-transparent" type="text" value="09128395773">
+                    </td>
+                    <td>
+                        <input class="w-full bg-transparent" type="text" value="شب ها تماس بگیرید">
+                    </td>
+                    <td>
+                        {% include "svg/trashcan.html" with fillcolor="fill-failed" width="w-6" height="h-6" %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="flex flex-row gap-2 mt-2">
+            <input class="p-2 bg-searchbox rounded-md text-black w-full border border-seperatorline" type="text" placeholder="شماره تماس" name="" id="">
+            <input class="p-2 bg-searchbox rounded-md text-black w-full border border-seperatorline" type="text" placeholder="یادداشت" name="" id="">
+            <input class="p-2 bg-successbg text-successtext rounded-md font-semibold cursor-pointer" type="submit" value="اضافه کردن">
+        </div>
+    </div>
+    <div class="bg-white rounded-md shadow-sm basis-2/2 p-4 mt-2" dir="rtl">
+        <div class="flex flex-row gap-2 text-primarytext font-semibold">
+            {% include "svg/location.html" with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
+            <span>
+                آدرس ها
+            </span>
+        </div>
+        <hr class="my-2 border-seperatorline">
+        <table id="AddressesTable" class="display text-black">
+            <thead>
+                <tr>
+                    <th>آدرس</th>
+                    <th></th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <input class="w-full bg-transparent" type="text" value="شب کوچه اقاقیا">
+                    </td>
+                    <td class="justify-start">
+                        {% include "svg/trashcan.html" with fillcolor="fill-failed" width="w-6" height="h-6" %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="flex flex-row gap-2 mt-2">
+            <input class="p-2 bg-searchbox rounded-md text-black w-full border border-seperatorline" type="text" placeholder="آدرس" name="" id="">
+            <input class="p-2 bg-successbg text-successtext rounded-md font-semibold cursor-pointer" type="submit" value="اضافه کردن">
+        </div>
+    </div>
+    
+
+<div class="flex flex-row-reverse justify-between gap-2 p-2 rounded-md bg-searchbox">
+    <input class="p-2 bg-successbg text-successtext rounded-md font-semibold cursor-pointer" type="submit" value="ذخیره اطلاعات">
+    <input class="p-2 bg-errorbg text-errortext rounded-md font-semibold cursor-pointer" type="submit" value="حذف کردن">
+</div>
+</form>
+
+
+
+
+{% endblock content %}

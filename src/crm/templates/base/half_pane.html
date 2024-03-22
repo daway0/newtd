@@ -1,0 +1,10 @@
+<div class="bg-white rounded-md shadow-sm p-4 h-fit text-primarytext flex flex-col gap-6 basis-1/2">
+    <div class="flex flex-row gap-2 font-semibold">
+        {% include icon with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
+        <span>
+            {% block title %}{% endblock title %}
+        </span>
+    </div>
+        {% block content %}{% endblock content %}
+</div>
+

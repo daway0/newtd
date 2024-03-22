@@ -1,0 +1,75 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block content %}
+<div class="flex flex-row w-full gap-2">
+
+    {% comment %} right pane, add new people type {% endcomment %}
+    {% with icon="svg/add_user.html" %}
+    {% include "users/right_pane.html" %}
+    {% endwith %}
+
+
+    {% comment %} left pane, list user types {% endcomment %}
+    {% with icon="svg/list.html" %}
+    {% include "users/left_pane.html" %}
+    {% endwith %}
+
+</div>
+
+{% comment %} all people user pane {% endcomment %}
+<div class="bg-white rounded-md shadow-sm p-4 mt-2" dir="rtl">
+    <div class="flex flex-row gap-2 text-primarytext font-semibold">
+        {% include "svg/users.html" with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
+        <span>
+            لیست
+            {%if not view_mode %}
+            تمام افراد
+            {% elif view_mode == "client" %}
+            کارفرمایان
+            {% elif view_mode == "personnel" %}
+            پرسنل مرکز
+            {% endif %}
+        </span>
+    </div>
+    <hr class="my-2 border-seperatorline">
+    <table id="UserTable" class="display compact">
+        <thead>
+            <tr>
+                <th>نام</th>
+                <th>نام خانوادگی</th>
+                <th>شماره ملی</th>
+                <th>جنسیت</th>
+
+                {%if not view_mode %}
+                <th>نوع فرد</th>
+                {% endif %}
+
+                <th>سن</th>
+
+                {%if view_mode == "client" %}
+                <th>سرویس ها</th>
+                <th>قرارداد ها</th>
+                <th>بدهی</th>
+                {% elif view_mode == "personnel" %}
+                <th>سمت پرسنل</th>
+                <th>ویژگی ها</th>
+                {% endif %}
+
+                <th>یادداشت</th>
+                <th>عملیات</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {%if view_mode == "client" %}
+                {% include "users/users_table.html" with people=client %}
+            {% elif view_mode == "personnel" %}
+                {% include "users/users_table.html" with people=personnel %}
+            {% elif not view_mode %}
+                {% include "users/users_table.html" with people=people %}
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+<script src="{% static 'js/data_tabels.js' %}"></script>
+{% endblock content %}

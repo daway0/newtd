@@ -1,0 +1,30 @@
+{% load crm_extras %}
+{% for indi in people %}
+<tr>
+    <td>{{indi.firstname}}</td>
+    <td>{{indi.lastname}}</td>
+    <td>{{indi.national_code|persianize}}</td>
+    <td>{{indi.get_gender_display}}</td>
+
+    {%if not view_mode %}
+    <td>{{indi.get_people_type_display}}</td>
+    {% endif %}
+
+    <td>{{indi.age|persianize}}</td>
+
+    {%if view_mode == "client" %}
+    <td>{{indi.services_number|persianize}}</td>
+    <td>{{indi.contracts_number|persianize}}</td>
+    <td>{{indi.debt_amount|persianize}}</td>
+    {% elif view_mode == "personnel" %}
+    <td>{{indi.get_personnel_role_display}}</td>
+    <td>{{indi.spec_list}}</td>
+    {% endif %}
+
+    <td>{{indi.note|none_to_string}}</td>
+    <td>
+        <a href="{{indi.get_absolute_url}}">ویرایش</a>
+    </td>
+
+</tr>
+{% endfor %}

@@ -1,0 +1,20 @@
+{% if selected %}
+
+{% with icon_color="fill-primary" title_color="text-primary" %}
+<div class="flex flex-row gap-2 px-2 py-4 bg-white rounded-md items-center">
+    <div class="h-6 w-6">{% include path with fillcolor=icon_color %}
+    </div>
+    <span class="{{title_color}} font-bold">{{title}}</span>
+</div>
+{% endwith %}
+{% else %}
+
+{% with icon_color="fill-white" title_color="text-white" %}
+<div class="flex flex-row gap-2 px-2 py-4 rounded-md items-center">
+    <div class="h-6 w-6">{% include path with fillcolor=icon_color %}
+    </div>
+    <span class="{{title_color}} font-bold">{{title}}</span>
+</div>
+
+{% endwith %}
+{% endif %}

@@ -1,0 +1,80 @@
+{% load static %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="{% static 'css/output.css' %}" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/vazir.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.2/css/dataTables.dataTables.css" />
+    <script src="https://cdn.datatables.net/2.0.2/js/dataTables.js"></script>
+    <style>
+        body {
+            font-family: "Vazirmatn", sans-serif;
+        }
+    </style>
+
+    <title>
+        {% block title %}{% endblock title %}
+    </title>
+</head>
+
+<body style="direction:rtl" class=".vazirmatn-<uniquifier>">
+    <div class="flex flex-row h-screen">
+
+        {% comment %} right menu {% endcomment %}
+        <div class="flex flex-col gap-16 basis-1/6 bg-primary p-8">
+
+            {% comment %} logo and title {% endcomment %}
+            {% include "base/logo.html" %}
+
+            {% comment %} menu {% endcomment %}
+            {% include "base/menu.html" %}
+
+        </div>
+
+        {% comment %} left pane {% endcomment %}
+        <div class="bg-secondary flex flex-col items-start w-full overflow-y-auto">
+
+            {% comment %} top menu {% endcomment %}
+            {% include "base/top_menu.html" %}
+
+            <div class="w-full p-8 flex flex-col gap-2">
+
+                {% comment %} backend messgaes block {% endcomment %}
+                {% if messages %}
+                
+                    {% block messages %}
+                    {% for msg in messages %}
+                    {% with msg_level=msg.tags path="svg/msg/"|add:msg.tags|add:".html" %}
+                    <div class="
+                            border
+                            {% if msg_level == 'error' %}bg-errorbg text-errortext border-errortext{% endif %}
+                            {% if msg_level == 'info' %}bg-infobg text-infotext border-infotext{% endif %}
+                            {% if msg_level == 'success' %}bg-successbg text-successtext border-successtext {% endif %}
+                            p-2 flex flex-row gap-2 items-center rounded-r-md"
+                    >
+                        {% include path %}
+                        <span>{{msg}}</span>
+                    </div>
+                    {% endwith %}
+                    {% endfor %}
+                    {% endblock messages %}
+                
+                {% endif %}
+
+                {% comment %} content block {% endcomment %}
+                {% block content %}{% endblock content %}
+
+            </div>
+
+        </div>
+
+
+</body>
+
+</html>

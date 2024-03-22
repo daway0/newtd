@@ -1,0 +1,14 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block content %}
+<div class="flex flex-row w-full gap-2">
+    {% with icon="svg/add_user.html" %}
+        {% include "users/create_change/client_form.html" %}
+    {% endwith %}
+
+    {% with icon="svg/add_user.html" %}
+        {% include "users/create_change/client_file.html" %}
+    {% endwith %}
+</div>
+<script src="{% static 'js/data_tabels.js' %}"></script>
+{% endblock content %}
