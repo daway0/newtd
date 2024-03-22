@@ -24,4 +24,5 @@ urlpatterns = [
     ),
     path("people/case/", views.new_case, name="new_case"),
     path("people/case/<int:id>", views.edit_case, name="edit_case"),
+    path("search/", views.search, name="search"),
 ]

@@ -1,8 +1,13 @@
 from django.contrib import messages as msg
-from django.db.models import Sum
+
+
+from django.db.models import Q, Sum
 from django.shortcuts import render
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from . import models, utils
+from . import serializers as s
 from .forms import TestForm
 
 
@@ -153,4 +158,126 @@ def edit_case(request, id):
     form = TestForm()
     return render(
         request, "users/create_change/client.html", context=dict(form=form)
+    )
+
+
+@api_view(["GET"])
+def search(request):
+    query: str = request.GET.get("q")
+    if not query:
+        return Response()
+
+    if query.isdigit():
+        people_info = []
+        payments = []
+        people = []
+        if len(query) >= 3:
+            people_info = models.PeopleDetailedInfo.objects.filter(
+                Q(phone_number__contains=query)
+                | Q(card_number__contains=query)
+            )
+            payments = models.Payment.objects.filter(amount__contains=query)
+            people = models.People.objects.filter(
+                national_code__contains=query
+            )
+
+        if people:
+            people.union(
+                models.People.objects.filter(
+                    Q(birthdate__contains=query)
+                    | Q(contract_date__contains=query)
+                    | Q(end_contract_date__contains=query)
+                )
+            )
+        else:
+            people = models.People.objects.filter(
+                Q(birthdate__contains=query)
+                | Q(contract_date__contains=query)
+                | Q(end_contract_date__contains=query)
+            )
+
+        orders = models.Order.objects.filter(
+            Q(pk=query) | Q(created_at__contains=query)
+        )
+        contracts = models.Contract.objects.filter(
+            Q(pk=query) | Q(created_at__contains=query)
+        )
+
+        return Response(
+            {
+                "people_info": s.PeopleDetailsSerializer(
+                    people_info, many=True
+                ).data,
+                "people": s.PeopleSerializer(people, many=True).data,
+                "orders": s.OrderSerializer(orders, many=True).data,
+                "contracts": s.ContractSerializer(contracts, many=True).data,
+            }
+        )
+
+    if "/" in query:
+        people = models.People.objects.filter(birthdate__contains=query)
+        orders = models.Order.objects.filter(created_at__contains=query)
+        contracts = models.Contract.objects.filter(created_at__contains=query)
+
+        return Response(
+            {
+                "people": s.PeopleSerializer(people, many=True).data,
+                "orders": s.OrderSerializer(orders, many=True).data,
+                "contract": s.ContractSerializer(contracts, many=True).data,
+            }
+        )
+
+    people = models.People.objects.filter(
+        Q(firstname__contains=query) | Q(lastname__contains=query)
+    )
+
+    services = models.Service.objects.filter(title__contains=query)
+
+    tags = models.TagSpecefication.objects.filter(title__contains=query)
+
+    orders = models.Order.objects.filter(
+        Q(client__firstname__contains=query)
+        | Q(client__lastname__contains=query)
+        | Q(assigned_personnel__firstname__contains=query)
+        | Q(assigned_personnel__lastname__contains=query)
+        | Q(referral_people__firstname__contains=query)
+        | Q(referral_people__lastname__contains=query)
+        | Q(referral_other__title__contains=query)
+    )
+
+    contracts = models.Contract.objects.filter(
+        Q(client__firstname__contains=query)
+        | Q(client__lastname__contains=query)
+        | Q(patients__firstname__contains=query)
+        | Q(patients__lastname__contains=query)
+        | Q(personnel__firstname__contains=query)
+        | Q(personnel__lastname__contains=query)
+        | Q(referral_people__firstname__contains=query)
+        | Q(referral_people__lastname__contains=query)
+        | Q(referral_other__title__contains=query)
+    )
+
+    payments = models.Payment.objects.filter(
+        Q(source__firstname__contains=query)
+        | Q(source__lastname__contains=query)
+        | Q(destination__firstname__contains=query)
+        | Q(destination__lastname__contains=query)
+    )
+
+    json_people = s.PeopleSerializer(people, many=True).data
+    json_services = s.ServiceSerializer(services, many=True).data
+    json_tags = s.SpecificationSerializer(tags, many=True).data
+    json_orders = s.OrderSerializer(orders, many=True).data
+    json_contracts = s.ContractSerializer(contracts, many=True).data
+    json_payments = s.PaymentSerializer(payments, many=True)
+
+    return Response(
+        {
+            "people": json_people,
+            "services": json_services,
+            "tags": json_tags,
+            "orders": json_orders,
+            "contracts": json_contracts,
+            "payments": json_payments,
+        }
     )
