@@ -10,6 +10,7 @@ python = "^3.11"
 Django = "^5.0.3"
 django-crispy-forms = "^2.1"
 jdatetime = "^4.1.1"
+psycopg2-binary = "^2.9.9"
 
 
 [build-system]

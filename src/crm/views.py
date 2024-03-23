@@ -65,13 +65,13 @@ def dashboard_section(request):
         ),
         utils.make_dashboard_card_data(
             "درآمد ناخالص",
-            utils.summarize_tooman_number(income_past_month),
+            utils.summarize_tooman_number(income_past_month or 0),
             "moeny",
             utils.get_diff_in_percentage(
-                income_past_month, income_past_2_month
+                income_past_month or 0, income_past_2_month or 0
             ),
             summarize_tooman_postfix_word=utils.summarize_tooman_postfix_word(
-                income_past_month
+                income_past_month or 0
             ),
         ),
     ]
