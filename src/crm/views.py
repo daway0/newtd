@@ -197,10 +197,10 @@ def search(request):
             )
 
         orders = models.Order.objects.filter(
-            Q(pk=query) | Q(created_at__contains=query)
+            Q(pk=query) | Q(order_at__contains=query)
         )
         contracts = models.Contract.objects.filter(
-            Q(pk=query) | Q(created_at__contains=query)
+            Q(pk=query) | Q(contract_at__contains=query)
         )
 
         return Response(
@@ -209,6 +209,7 @@ def search(request):
                     people_info, many=True
                 ).data,
                 "people": s.PeopleSerializer(people, many=True).data,
+                "payments": s.PaymentSerializer(payments, many=True).data,
                 "orders": s.OrderSerializer(orders, many=True).data,
                 "contracts": s.ContractSerializer(contracts, many=True).data,
             }
@@ -216,8 +217,8 @@ def search(request):
 
     if "/" in query:
         people = models.People.objects.filter(birthdate__contains=query)
-        orders = models.Order.objects.filter(created_at__contains=query)
-        contracts = models.Contract.objects.filter(created_at__contains=query)
+        orders = models.Order.objects.filter(order_at__contains=query)
+        contracts = models.Contract.objects.filter(contract_at__contains=query)
 
         return Response(
             {
@@ -229,6 +230,10 @@ def search(request):
 
     people = models.People.objects.filter(
         Q(firstname__contains=query) | Q(lastname__contains=query)
+    )
+
+    people_info = models.PeopleDetailedInfo.objects.filter(
+        address__contains=query
     )
 
     services = models.Service.objects.filter(title__contains=query)
@@ -265,15 +270,17 @@ def search(request):
     )
 
     json_people = s.PeopleSerializer(people, many=True).data
+    json_people_info = s.PeopleDetailsSerializer(people_info, many=True).data
     json_services = s.ServiceSerializer(services, many=True).data
     json_tags = s.SpecificationSerializer(tags, many=True).data
     json_orders = s.OrderSerializer(orders, many=True).data
     json_contracts = s.ContractSerializer(contracts, many=True).data
-    json_payments = s.PaymentSerializer(payments, many=True)
+    json_payments = s.PaymentSerializer(payments, many=True).data
 
     return Response(
         {
             "people": json_people,
+            "people_info": json_people_info,
             "services": json_services,
             "tags": json_tags,
             "orders": json_orders,

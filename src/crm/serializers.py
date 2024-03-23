@@ -54,6 +54,7 @@ class OrderSerializer(serializers.ModelSerializer):
         model = m.Order
         fields = [
             "id",
+            "created_at",
             "client",
             "service",
             "assigned_personnel",
@@ -75,6 +76,7 @@ class ContractSerializer(serializers.ModelSerializer):
         model = m.Contract
         fields = [
             "id",
+            "created_at",
             "care_for",
             "patients",
             "relationship_with_patient",
