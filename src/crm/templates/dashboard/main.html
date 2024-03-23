@@ -1,0 +1,22 @@
+{% extends "base/base.html" %}
+{% load crm_extras %}
+{% block breadcrumb %}
+{% make_breadcrumb "داشبورد" %}
+{% endblock breadcrumb %}
+
+{% block content %}
+
+
+
+<div class="bg-white rounded-md shadow-sm p-4 h-fit text-primarytext flex flex-row gap-2">
+    
+{% for card in static_cards %}
+    {% include "dashboard/stats_card.html" with title=card.title icon=card.icon number=card.this_month_number growth=card.growth money_word=card.summarize_tooman_postfix_word %}
+{% endfor %}
+   
+
+</div>
+
+
+
+{% endblock content %}

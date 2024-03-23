@@ -1,26 +1,44 @@
+{% load crm_extras %}
 <div class="select-none basis-1/5 border rounded-md border-statcardborder shadow-md h-36 p-4">
     <div class="flex flex-col gap-2">
         <div class="flex flex-row h-20">
             <div class="basis-2/3 flex flex-col gap-2">
                 <div class="font-bold text-xl text-cardtitle">
-                    کارفرما
+                    {{title}}
                 </div>
-                <div class="font-bold text-5xl text-primarytext">
-                    247
+                <div class="font-bold text-5xl flex flex-row items-center justify-between text-primarytext">
+                    {{number|persianize}}
+                    <span class="text-xs">{{money_word}}</span>
+
                 </div>
             </div>
             <div class="basis-1/3 flex items-center justify-center">
                 <div class="rounded-full bg-secondary h-16 w-16 flex items-center justify-center">
                     <div class="h-6 w-6">
-                        {% include "svg/users.html" with fillcolor="fill-cardiconfill" %}
+                        {% include icon with fillcolor="fill-cardiconfill" %}
                     </div>
                 </div>
             </div>
         </div>
         <hr class="border-seperatorline">
-        <div class="h-8 text-primarytext">
-            <span class="text-success">16%</span>
-            <span>رشد در ماه گذشته</span>
+        <div class="h-8 text-primarytext text-sm">
+            {% if growth  %}
+                <span style="direction:ltr" class="{% if growth > 0 %}text-successtext {% elif growth <= 0 %} text-errortext {% endif %}">
+                    {{growth|remove_minus|persianize}}
+                    درصد
+                    {% if growth > 0 %} <span class="font-bold">افزایش</span> {% else %} <span class="font-bold">کاهش</span> {% endif %}
+                </span>
+            {% elif growth is None %}
+                <span>
+                    بدون
+                    {{title}}
+                </span>
+            {% elif growth == 0 %}
+            <span>
+                بدون تغییر
+                
+            </span>
+            {% endif %}
         </div>
     </div>
 </div>

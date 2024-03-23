@@ -5,8 +5,15 @@ from . import views
 app_name = "crm"
 
 urlpatterns = [
-    path("", views.main, name="main"),
+    # main sections
+    path("dashboard/", views.dashboard_section, name="dashboard_section"),
+    path("services/", views.services_section, name="services_section"),
     path("people/", views.people_section, name="people_section"),
+    path("payments/", views.payments_section, name="payments_section"),
+    path("reports/", views.reports_section, name="reports_section"),
+    path("settings/", views.settings_section, name="settings_section"),
+
+
     path("people/client/", views.new_client, name="new_client"),
     path("people/client/<int:id>", views.edit_client, name="edit_client"),
     path("people/personnel/", views.new_personnel, name="new_personnel"),

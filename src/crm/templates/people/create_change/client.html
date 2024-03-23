@@ -1,13 +1,17 @@
 {% extends "base/base.html" %}
 {% load static %}
+{% load crm_extras %}
+{% block breadcrumb %}
+{% make_breadcrumb "پرسنل و کارفرما/افزودن کارفرما جدید" %}
+{% endblock breadcrumb %}
 {% block content %}
 <div class="flex flex-row w-full gap-2">
     {% with icon="svg/add_user.html" %}
-        {% include "users/create_change/client_form.html" %}
+        {% include "people/create_change/client_form.html" %}
     {% endwith %}
 
     {% with icon="svg/add_user.html" %}
-        {% include "users/create_change/client_file.html" %}
+        {% include "people/create_change/client_file.html" %}
     {% endwith %}
 </div>
 <script src="{% static 'js/data_tabels.js' %}"></script>

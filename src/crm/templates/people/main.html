@@ -1,17 +1,23 @@
 {% extends "base/base.html" %}
 {% load static %}
+{% load crm_extras %}
+{% block breadcrumb %}
+{% make_breadcrumb "پرسنل و کارفرما" %}
+{% endblock breadcrumb %}
+
+
 {% block content %}
 <div class="flex flex-row w-full gap-2">
 
     {% comment %} right pane, add new people type {% endcomment %}
     {% with icon="svg/add_user.html" %}
-    {% include "users/right_pane.html" %}
+    {% include "people/right_pane.html" %}
     {% endwith %}
 
 
     {% comment %} left pane, list user types {% endcomment %}
     {% with icon="svg/list.html" %}
-    {% include "users/left_pane.html" %}
+    {% include "people/left_pane.html" %}
     {% endwith %}
 
 </div>
@@ -32,7 +38,7 @@
         </span>
     </div>
     <hr class="my-2 border-seperatorline">
-    <table id="UserTable" class="display compact">
+    <table id="UserTable" class="display">
         <thead>
             <tr>
                 <th>نام</th>
@@ -62,14 +68,15 @@
         </thead>
         <tbody>
             {%if view_mode == "client" %}
-                {% include "users/users_table.html" with people=client %}
+                {% include "people/users_table.html" with people=client %}
             {% elif view_mode == "personnel" %}
-                {% include "users/users_table.html" with people=personnel %}
+                {% include "people/users_table.html" with people=personnel %}
             {% elif not view_mode %}
-                {% include "users/users_table.html" with people=people %}
+                {% include "people/users_table.html" with people=people %}
             {% endif %}
         </tbody>
     </table>
 </div>
+
 <script src="{% static 'js/data_tabels.js' %}"></script>
 {% endblock content %}

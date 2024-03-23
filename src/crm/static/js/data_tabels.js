@@ -45,8 +45,13 @@ $(document).ready( function () {
     $('#ClientServicesTable').DataTable(informTable);
     $('#ClientCallsTable').DataTable(informTable);
 
-    
+    // persianize
     $('.dataTable').find('td, th').css('text-align', 'right');
+
+    // make table flexible (remove static width)
+    $('.dataTable').each(function(){
+        $(this).removeAttr("style", "width")
+    })
 
      
 } );

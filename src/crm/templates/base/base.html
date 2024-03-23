@@ -9,9 +9,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="{% static 'css/output.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/vazir.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.0.2/css/dataTables.dataTables.css" />
-    <script src="https://cdn.datatables.net/2.0.2/js/dataTables.js"></script>
+    <link rel="stylesheet" href="{% static 'css/dataTables.css' %}" />
+    <script src="{% static 'js/jquery-3.7.1.js' %}"></script>
+
     <style>
         body {
             font-family: "Vazirmatn", sans-serif;
@@ -25,9 +25,9 @@
 
 <body style="direction:rtl" class=".vazirmatn-<uniquifier>">
     <div class="flex flex-row h-screen">
-
+        
         {% comment %} right menu {% endcomment %}
-        <div class="flex flex-col gap-16 basis-1/6 bg-primary p-8">
+        <div id="sidemenu" class="flex flex-col gap-16 basis-1/6 bg-primary p-8">
 
             {% comment %} logo and title {% endcomment %}
             {% include "base/logo.html" %}
@@ -37,11 +37,59 @@
 
         </div>
 
+        
+        {% comment %} right menu {% endcomment %}
+        <div id="sidemenu-minimized" class="flex flex-col gap-16 bg-primary p-4 pt-8 hidden">
+
+            {% with minimized=True %}
+                {% comment %} logo and title {% endcomment %}
+                {% include "base/logo.html" %}
+
+                {% comment %} menu {% endcomment %}
+                {% include "base/menu.html" %}
+            {% endwith %}
+
+        </div>
+
+
         {% comment %} left pane {% endcomment %}
         <div class="bg-secondary flex flex-col items-start w-full overflow-y-auto">
 
             {% comment %} top menu {% endcomment %}
-            {% include "base/top_menu.html" %}
+            <div class="flex justify-between p-8 w-full bg-white">
+  
+                {% comment %} breadcrumb {% endcomment %}
+                <div class="flex w-8/12  items-center">
+                  
+                    <ul class="flex flex-wrap gap-2 font-semibold">
+                      {% block breadcrumb %}{% endblock breadcrumb %}
+                    </ul>
+              
+                </div>
+                
+                {% comment %} profile and search bar {% endcomment %}
+                <div class="flex flex-row-reverse w-full items-center gap-5">
+                  <div class="flex flex-row items-center gap-4">
+                    <span class="text-primarytext">
+                      شهرام شقایق
+                      <span>
+                        (مدیرمرکز)
+                      </span>
+                    </span>
+              
+                    <div class="flex items-center justify-center rounded-full bg-secondary w-10 h-10">
+                      {% include "svg/users.html" with fillcolor="fill-primary" width="w-4" height="w-4" %}
+                    </div>
+                  </div>
+                  <div class="border-seperatorline h-full border-l">&nbsp;</div>
+                
+                  <div class="flex flex-row gap-4">
+                    <input class="p-2 px-5 bg-searchbox mr-5 rounded-full w-auto" type="text" placeholder="جستجو..." />
+              
+                    {% include "svg/notif.html" with fillcolor="fill-primarytext" width="w-5" height="w-5" %}
+                  </div>
+                </div>
+              </div>
 
             <div class="w-full p-8 flex flex-col gap-2">
 
@@ -73,7 +121,8 @@
             </div>
 
         </div>
-
+        <script src="{% static 'js/dataTables.js' %}"></script>
+        <script src="{% static 'js/side_bar.js' %}"></script>
 
 </body>
 

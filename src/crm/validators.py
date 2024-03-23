@@ -14,3 +14,6 @@ def blacklist_national_codes(v):
 
 
 def telephone_number(v): ...
+
+
+def jdate_string_validator(v): ...

@@ -49,6 +49,17 @@ files = [
 django = ">=4.2"
 
 [[package]]
+name = "jdatetime"
+version = "4.1.1"
+description = "Jalali datetime binding for python"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "jdatetime-4.1.1-py3-none-any.whl", hash = "sha256:8b56c702406eaf84d2ad673c41180488f8c77f156c3ac0630ce0caabaf6af5b8"},
+    {file = "jdatetime-4.1.1.tar.gz", hash = "sha256:1dd0ee210160c7bd30002803c443e6260ac602ea65b065652a1d567d3bfdca7a"},
+]
+
+[[package]]
 name = "sqlparse"
 version = "0.4.4"
 description = "A non-validating SQL parser."
@@ -78,4 +89,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "3aba85b4814f7d4b7d2ce061446e8599e216eb7154c6a9e9390b50baffef55df"
+content-hash = "e40d9d24a6fb2ffbc9c25bfe2646ec94f15e45e558ea3f52a9e4ca1073988928"

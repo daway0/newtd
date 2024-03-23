@@ -28,3 +28,28 @@ def none_to_string(value):
     if not value:
         return ""
     return value
+
+
+@register.filter(name="remove_slash")
+def remove_slash(value):
+    if value[-1] == "/":
+        return value[:-1]
+    return value
+
+
+@register.filter(name="remove_minus")
+def remove_minus(value):
+    assert isinstance(value, int)
+    if value < 0:
+        return value * -1
+    return value
+
+
+@register.inclusion_tag("base/breadcrumb.html")
+def make_breadcrumb(path: str):
+    assert len(path) > 0, "did you missed me!?"
+    parents = path.split("/") if "/" in path else [path]
+    return dict(parents=parents[:-1], latest=parents[-1])
+
+
+
