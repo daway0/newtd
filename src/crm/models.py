@@ -258,7 +258,9 @@ class Order(Log):
     client = models.ForeignKey(
         People, on_delete=models.CASCADE, related_name="client_orders"
     )
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    services = models.ManyToManyField(
+        Service, through="OrderServices", symmetrical=False
+    )
     assigned_personnel = models.ForeignKey(
         People, on_delete=models.CASCADE, related_name="personnel_orders"
     )
@@ -275,7 +277,6 @@ class Order(Log):
     referral_other = models.ForeignKey(
         Referral, on_delete=models.CASCADE, null=True, blank=True
     )
-    cost = models.BigIntegerField()
     discount = models.BigIntegerField(default=0, blank=True)
 
     def get_orders_in_month_ago(month_count: int = 1) -> models.QuerySet:
@@ -286,6 +287,12 @@ class Order(Log):
 
     def __str__(self) -> str:
         return f"{self.client} / {self.assigned_personnel} / {self.service}"
+
+
+class OrderServices(Log):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    cost = models.PositiveBigIntegerField()
 
 
 class RelationShipChoices(models.TextChoices):
