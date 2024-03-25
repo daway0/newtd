@@ -1,13 +1,12 @@
 from django.contrib import messages as msg
-
-
 from django.db.models import Q, Sum
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from . import models, utils
+from . import models
 from . import serializers as s
+from . import utils
 from .forms import TestForm
 
 
@@ -288,3 +287,28 @@ def search(request):
             "payments": json_payments,
         }
     )
+
+
+@api_view(["GET"])
+def order_preview(request, id):
+    order = models.Order.objects.get(pk=id)
+    payment = models.Payment.objects.filter(order=order)
+
+    data = {
+        "title": "خدمت موردی",
+        "icon": "test icon",
+        "buttons": [
+            {
+                "title": "first button",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            }
+        ],
+        "table": order,
+        "data_tables": [
+            {"title": "payment", "icon": "payment icon", "data": payment}
+        ],
+    }
+    serializer = s.PreviewSerializer(data).data
+
+    return Response(serializer)

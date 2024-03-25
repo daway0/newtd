@@ -286,7 +286,7 @@ class Order(Log):
         )
 
     def __str__(self) -> str:
-        return f"{self.client} / {self.assigned_personnel} / {self.service}"
+        return f"{self.client} / {self.assigned_personnel}"
 
 
 class OrderServices(Log):
@@ -367,9 +367,15 @@ class Contract(Log):
 
     healthcare_franchise_amount = models.IntegerField(default=0)
     referral_people = models.ForeignKey(
-        People, on_delete=models.CASCADE, related_name="referral_contracts"
+        People,
+        on_delete=models.CASCADE,
+        related_name="referral_contracts",
+        null=True,
+        blank=True,
     )
-    referral_other = models.ForeignKey(Referral, on_delete=models.CASCADE)
+    referral_other = models.ForeignKey(
+        Referral, on_delete=models.CASCADE, null=True, blank=True
+    )
 
     def get_contracts_in_month_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)
