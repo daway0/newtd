@@ -3,6 +3,11 @@ from rest_framework import serializers
 from . import models as m
 
 
+class CommonPatternSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    link = serializers.CharField(source="get_absolute_url")
+
+
 class SpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.TagSpecefication
@@ -29,16 +34,8 @@ class PeopleSerializer(serializers.ModelSerializer):
         ]
 
 
-class PeopleMinimalSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = m.People
-        fields = ["id", "full_name", "get_absolute_url"]
-
-
-class ServiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = m.Service
-        fields = ["title", "healthcare_franchise"]
+class PeopleMinimalSerializer(CommonPatternSerializer):
+    title = serializers.CharField(source="full_name")
 
 
 class PeopleDetailsSerializer(serializers.ModelSerializer):
@@ -56,45 +53,35 @@ class PeopleDetailsSerializer(serializers.ModelSerializer):
         ]
 
 
-class ReferralSerializer(serializers.Serializer):
-    people = PeopleMinimalSerializer(source="referral_people")
-    others = serializers.SerializerMethodField()
-
-    def get_others(self, obj):
-        if obj.referral_other is None:
-            return None
-
-        return obj.referral_other.title
+class ServiceLocationSerializer(CommonPatternSerializer):
+    title = serializers.CharField(source="address")
 
 
 class OrderSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    order_at = serializers.CharField(max_length=10)
+    order_at = serializers.CharField()
     client = PeopleMinimalSerializer()
-    services = ServiceSerializer(many=True)
+    services = CommonPatternSerializer(many=True)
     assigned_personnel = PeopleMinimalSerializer()
-    service_location = serializers.CharField(source="service_location.address")
-    referral = serializers.SerializerMethodField()
+    service_location = ServiceLocationSerializer()
+    referral_people = PeopleMinimalSerializer()
+    referral_other = CommonPatternSerializer()
     discount = serializers.IntegerField()
-
-    def get_referral(self, obj):
-        return ReferralSerializer(instance=obj).data
 
 
 class ContractSerializer(serializers.ModelSerializer):
+    care_for = serializers.CharField(source="get_care_for_display")
     patients = PeopleMinimalSerializer(many=True)
+    relationship_with_patient = serializers.CharField(
+        source="get_relationship_with_patient_display"
+    )
     personnel = PeopleMinimalSerializer()
-    service_location = serializers.CharField(source="service_location.address")
-    referral = serializers.SerializerMethodField()
-
-    def to_representation(self, instance):
-        instance = super().to_representation(instance)
-        instance.pop("referral_people")
-        instance.pop("referral_other")
-        return instance
-
-    def get_referral(self, obj):
-        return ReferralSerializer(instance=obj).data
+    service_location = ServiceLocationSerializer()
+    shift = serializers.CharField(source="get_shift_display")
+    personnel_salary_payment_time = serializers.CharField(
+        source="get_personnel_salary_payment_time_display"
+    )
+    referral_people = PeopleMinimalSerializer()
+    referral_other = CommonPatternSerializer()
 
     class Meta:
         model = m.Contract
@@ -124,14 +111,7 @@ class ContractSerializer(serializers.ModelSerializer):
             "healthcare_franchise_amount",
             "referral_people",
             "referral_other",
-            "referral",
         ]
-
-
-class ServiceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = m.Service
-        fields = ["title", "base_price", "healthcare_franchise", "parent"]
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -154,9 +134,11 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 
 class PaymentMinimalSerializer(serializers.ModelSerializer):
+    link = serializers.CharField(source="get_absolute_url")
+
     class Meta:
         model = m.Payment
-        fields = ["amount", "paid_at", "note"]
+        fields = ["amount", "paid_at", "note", "link"]
 
 
 class ButtonSerializer(serializers.Serializer):
@@ -173,7 +155,7 @@ class DataTableSerializer(serializers.Serializer):
 
     def get_headers(self, obj):
         return obj["data"].child.Meta.fields
-    
+
     def get_data(self, obj):
         return obj["data"].data
 

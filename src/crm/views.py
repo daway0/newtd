@@ -1,6 +1,6 @@
 from django.contrib import messages as msg
 from django.db.models import Q, Sum
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -160,6 +160,36 @@ def edit_case(request, id):
     )
 
 
+def get_service(request, id):
+    service = get_object_or_404(models.Service, pk=id)
+    form = TestForm(service)
+    return render(request, "some_template", context={"form": form})
+
+
+def get_person_info(request, id):
+    service = get_object_or_404(models.PeopleDetailedInfo, pk=id)
+    form = TestForm(service)
+    return render(request, "some_template", context={"form": form})
+
+
+def get_referral(request, id):
+    referral = get_object_or_404(models.Referral, pk=id)
+    form = TestForm(referral)
+    return render(request, "some_template", {"form": form})
+
+
+def get_order(request, id):
+    order = get_object_or_404(models.Order, pk=id)
+    form = TestForm(order)
+    return render(request, "some_template", {"form": form})
+
+
+def get_payment(request, id):
+    payment = get_object_or_404(models.Payment, pk=id)
+    form = TestForm(payment)
+    return render(request, "some_template", {"form": form})
+
+
 @api_view(["GET"])
 def search(request):
     query: str = request.GET.get("q")
@@ -305,6 +335,35 @@ def order_preview(request, id):
             }
         ],
         "table": s.OrderSerializer(order),
+        "data_tables": [
+            {
+                "title": "payment",
+                "icon": "payment icon",
+                "data": s.PaymentMinimalSerializer(payment, many=True),
+            }
+        ],
+    }
+    serializer = s.PreviewSerializer(data).data
+
+    return Response(serializer)
+
+
+@api_view(["GET"])
+def contract_preview(request, id):
+    contract = models.Contract.objects.get(pk=id)
+    payment = models.Payment.objects.filter(contract=contract)
+
+    data = {
+        "title": "قرارداد مراقبت",
+        "icon": "test icon",
+        "buttons": [
+            {
+                "title": "first button",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            }
+        ],
+        "table": s.ContractSerializer(contract),
         "data_tables": [
             {
                 "title": "payment",
