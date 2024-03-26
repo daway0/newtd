@@ -124,7 +124,7 @@ class ContractSerializer(serializers.ModelSerializer):
             "healthcare_franchise_amount",
             "referral_people",
             "referral_other",
-            "referral"
+            "referral",
         ]
 
 
@@ -168,23 +168,14 @@ class ButtonSerializer(serializers.Serializer):
 class DataTableSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=250)
     icon = serializers.CharField(max_length=250)
-    headers = serializers.ListField(required=False)
+    headers = serializers.SerializerMethodField(required=False)
     data = serializers.SerializerMethodField()
 
-    def to_representation(self, instance):
-        instance["headers"] = []
-        instance = super().to_representation(instance)
-        instance["headers"] = self._chosen_serializer.Meta.fields
-        return instance
-
+    def get_headers(self, obj):
+        return obj["data"].child.Meta.fields
+    
     def get_data(self, obj):
-        available_titles = {
-            "payment": PaymentMinimalSerializer,
-        }
-        serializer = available_titles[obj["title"].lower()]
-        self._chosen_serializer = serializer
-
-        return serializer(obj["data"], many=True).data
+        return obj["data"].data
 
 
 class PreviewSerializer(serializers.Serializer):
@@ -195,12 +186,4 @@ class PreviewSerializer(serializers.Serializer):
     data_tables = DataTableSerializer(many=True)
 
     def get_table(self, obj):
-        available_preview_serializers = {
-            m.Order: OrderSerializer,
-            m.Contract: ContractSerializer,
-        }
-
-        chosen_serializer = available_preview_serializers[
-            obj["table"]._meta.model
-        ]
-        return chosen_serializer(obj["table"]).data
+        return obj["table"].data

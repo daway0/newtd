@@ -304,9 +304,13 @@ def order_preview(request, id):
                 "link": "https://test.com/",
             }
         ],
-        "table": order,
+        "table": s.OrderSerializer(order),
         "data_tables": [
-            {"title": "payment", "icon": "payment icon", "data": payment}
+            {
+                "title": "payment",
+                "icon": "payment icon",
+                "data": s.PaymentMinimalSerializer(payment, many=True),
+            }
         ],
     }
     serializer = s.PreviewSerializer(data).data
