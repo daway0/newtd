@@ -226,6 +226,9 @@ class PeopleDetailedInfo(Log):
     card_number = models.CharField(max_length=16, null=True, blank=True)
     note = models.TextField(null=True, blank=True)
 
+    def get_absolute_url(self):
+        return reverse("crm:get_person_info", kwargs={"id": self.pk})
+
     def __str__(self) -> str:
         detail = self.address or self.phone_number or self.card_number
         return f"{self.detail_type} {detail}"
@@ -242,12 +245,18 @@ class Service(Log):
         "self", on_delete=models.CASCADE, null=True, blank=True
     )
 
+    def get_absolute_url(self):
+        return reverse("crm:get_service", kwargs={"id": self.pk})
+
     def __str__(self) -> str:
         return f"{self.title}"
 
 
 class Referral(Log):
     title = models.CharField(max_length=150)
+
+    def get_absolute_url(self):
+        return reverse("crm:get_referral", kwargs={"id": self.pk})
 
     def __str__(self) -> str:
         return f"{self.title}"
@@ -284,6 +293,9 @@ class Order(Log):
         return Order.objects.filter(
             Q(order_at__lte=end) & Q(order_at__gte=start)
         )
+
+    def get_absolute_url(self):
+        return reverse("crm:get_order", kwargs={"id": self.pk})
 
     def __str__(self) -> str:
         return f"{self.client} / {self.assigned_personnel}"
@@ -443,6 +455,9 @@ class Payment(Log):
         return Payment.incomes.filter(
             Q(paid_at__lte=end) & Q(paid_at__gte=start)
         )
+
+    def get_absolute_url(self):
+        return reverse("crm:get_payment", kwargs={"id": self.pk})
 
     def __str__(self) -> str:
         return f"from {self.source} to {self.destination} amount {self.amount}"
