@@ -2,7 +2,7 @@ from typing import Any
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import DecimalField, F, Q, Sum
+from django.db.models import F, Q, Sum
 from django.db.models.functions import Round
 from django.urls import reverse
 
@@ -166,8 +166,16 @@ class People(Log):
         return 2
 
     @property
-    def debt_amount(self):
-        return 2530000
+    def total_debt(self):
+        return
+
+    @property
+    def total_orders(self):
+        return Order.objects.filter(client=self).count()
+
+    @property
+    def total_contracts(self):
+        return Contract.objects.filter(client=self).count()
 
     def spec_list(self) -> str:
         specs = []
@@ -449,6 +457,28 @@ class Contract(Log):
     referral_other = models.ForeignKey(
         Referral, on_delete=models.CASCADE, null=True, blank=True
     )
+
+    @property
+    def client_debt(self):
+        healthcare = People.objects.filter(firstname="مرکز").first()
+
+        total_paid_amount = self.payment_set.filter(
+            source=self.client, destination=healthcare
+        ).aggregate(total_paid_amount=Sum("amount"))["total_paid_amount"]
+        if not total_paid_amount:
+            return self.healthcare_franchise_amount
+
+        debt = self.healthcare_franchise_amount - total_paid_amount
+        return debt if debt >= 0 else 0
+    
+    @property
+    def client_payment_status(self):
+        if self.client_debt == 0:
+            return "پرداخت شده"
+        elif self.client_debt == self.healthcare_franchise_amount:
+            return "پرداخت نشده"
+        
+        return "پرداخت جزئی"
 
     def get_contracts_in_month_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)

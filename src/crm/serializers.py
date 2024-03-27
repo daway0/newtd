@@ -8,10 +8,49 @@ class CommonPatternSerializer(serializers.Serializer):
     link = serializers.CharField(source="get_absolute_url")
 
 
+class DynamicFieldSerializer(serializers.Serializer):
+    def __init__(self, *args, **kwargs):
+        fields = kwargs.pop("fields", None)
+        super().__init__(*args, **kwargs)
+
+        if fields:
+            allowed = set(fields)
+            existings = set(self.fields)
+            for field in existings.difference(allowed):
+                self.fields.pop(field)
+
+
 class SpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.TagSpecefication
         fields = ["parent", "title"]
+
+
+class PeopleDetailsSerializer(serializers.ModelSerializer):
+    link = serializers.CharField(source="get_absolute_url")
+
+    class Meta:
+        model = m.PeopleDetailedInfo
+        fields = [
+            "detail_type",
+            "address",
+            "phone_number",
+            "card_number",
+            "note",
+            "link",
+        ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        omitabale_keys = ["address", "phone_number", "card_number"]
+        new_data = dict()
+
+        for key, value in data.items():
+            if key in omitabale_keys and value is None:
+                continue
+            new_data[key] = value
+
+        return new_data
 
 
 class PeopleSerializer(serializers.ModelSerializer):
@@ -25,12 +64,15 @@ class PeopleSerializer(serializers.ModelSerializer):
             "lastname",
             "gender",
             "birthdate",
+            "age",
             "people_type",
             "contract_date",
             "end_contract_date",
             "specifications",
             "personnel_role",
             "note",
+            "total_orders",
+            "total_contracts",
         ]
 
 
@@ -38,26 +80,11 @@ class PeopleMinimalSerializer(CommonPatternSerializer):
     title = serializers.CharField(source="full_name")
 
 
-class PeopleDetailsSerializer(serializers.ModelSerializer):
-    people = PeopleSerializer()
-
-    class Meta:
-        model = m.PeopleDetailedInfo
-        fields = [
-            "detail_type",
-            "people",
-            "address",
-            "phone_number",
-            "card_number",
-            "note",
-        ]
-
-
 class ServiceLocationSerializer(CommonPatternSerializer):
     title = serializers.CharField(source="address")
 
 
-class OrderSerializer(serializers.Serializer):
+class OrderSerializer(DynamicFieldSerializer):
     order_at = serializers.CharField()
     client = PeopleMinimalSerializer()
     services = CommonPatternSerializer(many=True)
@@ -65,26 +92,16 @@ class OrderSerializer(serializers.Serializer):
     service_location = ServiceLocationSerializer()
     referral_people = PeopleMinimalSerializer()
     referral_other = CommonPatternSerializer()
-    client_payment = serializers.SerializerMethodField()
-    personnel_payment = serializers.SerializerMethodField()
+    client_debt = serializers.IntegerField()
+    client_payment_status = serializers.CharField()
+    debt_to_personnel = serializers.IntegerField()
+    personnel_payment_status = serializers.CharField()
     total_cost = serializers.IntegerField()
     total_franchise = serializers.IntegerField()
     discount = serializers.IntegerField()
 
-    def get_client_payment(self, obj):
-        return {
-            "payment_status": obj.client_payment_status,
-            "debt": obj.client_debt,
-        }
 
-    def get_personnel_payment(self, obj):
-        return {
-            "payment_status": obj.personnel_payment_status,
-            "debt": obj.debt_to_personnel,
-        }
-
-
-class ContractSerializer(serializers.ModelSerializer):
+class ContractSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
     care_for = serializers.CharField(source="get_care_for_display")
     patients = PeopleMinimalSerializer(many=True)
     relationship_with_patient = serializers.CharField(
@@ -96,6 +113,8 @@ class ContractSerializer(serializers.ModelSerializer):
     personnel_salary_payment_time = serializers.CharField(
         source="get_personnel_salary_payment_time_display"
     )
+    client_debt = serializers.IntegerField()
+    client_payment_status = serializers.CharField()
     referral_people = PeopleMinimalSerializer()
     referral_other = CommonPatternSerializer()
 
@@ -122,6 +141,8 @@ class ContractSerializer(serializers.ModelSerializer):
             "start",
             "end",
             "include_holidays",
+            "client_debt",
+            "client_payment_status",
             "personnel_monthly_salary",
             "personnel_salary_payment_time",
             "healthcare_franchise_amount",
@@ -130,11 +151,12 @@ class ContractSerializer(serializers.ModelSerializer):
         ]
 
 
-class PaymentSerializer(serializers.ModelSerializer):
+class PaymentSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
     source = PeopleSerializer()
     destination = PeopleSerializer()
     order = OrderSerializer()
     contract = ContractSerializer()
+    link = serializers.CharField(source="get_absolute_url")
 
     class Meta:
         model = m.Payment
@@ -146,15 +168,8 @@ class PaymentSerializer(serializers.ModelSerializer):
             "note",
             "order",
             "contract",
+            "link",
         ]
-
-
-class PaymentMinimalSerializer(serializers.ModelSerializer):
-    link = serializers.CharField(source="get_absolute_url")
-
-    class Meta:
-        model = m.Payment
-        fields = ["amount", "paid_at", "note", "link"]
 
 
 class ButtonSerializer(serializers.Serializer):
@@ -170,7 +185,7 @@ class DataTableSerializer(serializers.Serializer):
     data = serializers.SerializerMethodField()
 
     def get_headers(self, obj):
-        return obj["data"].child.Meta.fields
+        return list(obj["data"].child.fields.keys())
 
     def get_data(self, obj):
         return obj["data"].data

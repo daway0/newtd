@@ -321,7 +321,7 @@ def search(request):
 
 @api_view(["GET"])
 def order_preview(request, id):
-    order = models.Order.objects.get(pk=id)
+    order = get_object_or_404(models.Order, pk=id)
     payment = models.Payment.objects.filter(order=order)
 
     data = {
@@ -339,7 +339,11 @@ def order_preview(request, id):
             {
                 "title": "payment",
                 "icon": "payment icon",
-                "data": s.PaymentMinimalSerializer(payment, many=True),
+                "data": s.PaymentSerializer(
+                    payment,
+                    fields=["amount", "paid_at", "note", "link"],
+                    many=True,
+                ),
             }
         ],
     }
@@ -350,7 +354,7 @@ def order_preview(request, id):
 
 @api_view(["GET"])
 def contract_preview(request, id):
-    contract = models.Contract.objects.get(pk=id)
+    contract = get_object_or_404(models.Contract, pk=id)
     payment = models.Payment.objects.filter(contract=contract)
 
     data = {
@@ -368,10 +372,78 @@ def contract_preview(request, id):
             {
                 "title": "payment",
                 "icon": "payment icon",
-                "data": s.PaymentMinimalSerializer(payment, many=True),
+                "data": s.PaymentSerializer(
+                    payment,
+                    fields=["amount", "paid_at", "note", "link"],
+                    many=True,
+                ),
             }
         ],
     }
     serializer = s.PreviewSerializer(data).data
 
+    return Response(serializer)
+
+
+@api_view(["GET"])
+def client_preview(request, id):
+    client = get_object_or_404(models.People, pk=id)
+    data = {
+        "title": "کارفرما",
+        "icon": "client icon",
+        "buttons": [
+            {
+                "title": "first button",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            }
+        ],
+        "table": s.PeopleSerializer(client),
+        "data_tables": [
+            {
+                "title": "details",
+                "icon": "details icon",
+                "data": s.PeopleDetailsSerializer(client.details, many=True),
+            },
+            {
+                "title": "orders",
+                "icon": "order icon",
+                "data": s.OrderSerializer(
+                    client.client_orders,
+                    fields=[
+                        "order_at",
+                        "services",
+                        "client_debt",
+                        "client_payment_status",
+                    ],
+                    many=True,
+                ),
+            },
+            {
+                "title": "contracts",
+                "icon": "contract icon",
+                "data": s.ContractSerializer(
+                    client.client_contracts,
+                    fields=[
+                        "start",
+                        "end",
+                        "healthcare_franchise_amount",
+                        "client_payment_status",
+                    ],
+                    many=True,
+                ),
+            },
+            {
+                "title": "payment",
+                "icon": "payment icon",
+                "data": s.PaymentSerializer(
+                    client.source_payments.all(),
+                    fields=["amount", "paid_at", "note", "link"],
+                    many=True,
+                ),
+            }
+        ],
+    }
+
+    serializer = s.PreviewSerializer(data).data
     return Response(serializer)

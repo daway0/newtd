@@ -45,4 +45,9 @@ urlpatterns = [
         views.contract_preview,
         name="contract_preview",
     ),
+    path(
+        "api/clients/<int:id>/",
+        views.client_preview,
+        name="client_preview",
+    ),
 ]
