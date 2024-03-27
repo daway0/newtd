@@ -2,7 +2,8 @@ from typing import Any
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import DecimalField, F, Q, Sum
+from django.db.models.functions import Round
 from django.urls import reverse
 
 from . import utils, validators
@@ -287,6 +288,64 @@ class Order(Log):
         Referral, on_delete=models.CASCADE, null=True, blank=True
     )
     discount = models.BigIntegerField(default=0, blank=True)
+
+    @property
+    def total_franchise(self):
+        franchise = OrderServices.objects.annotate(
+            franchise=Round(
+                F("cost") * F("service__healthcare_franchise") / 100, 3
+            )
+        ).aggregate(franchise_sum=Sum("franchise"))["franchise_sum"]
+
+        return franchise if franchise else 0
+
+    @property
+    def client_payment_status(self):
+        if self.client_debt == 0:
+            return "پرداخت شده"
+        elif self.client_debt == self.total_cost:
+            return "پرداخت نشده"
+
+        return "پرداخت جزئی"
+
+    @property
+    def personnel_payment_status(self):
+        if self.debt_to_personnel == 0:
+            return "پرداخت شده"
+        elif self.debt_to_personnel == self.total_cost - self.total_franchise:
+            return "پرداخت نشده"
+
+        return "پرداخت جزئی"
+
+    @property
+    def total_cost(self):
+        cost = OrderServices.objects.filter(order=self).aggregate(
+            total_cost=Sum("cost")
+        )["total_cost"]
+        return cost if cost else 0
+
+    @property
+    def client_debt(self):
+        client_total_payment = Payment.objects.filter(
+            source=self.client, order=self
+        ).aggregate(total_paid_amount=Sum("amount"))["total_paid_amount"]
+        if not client_total_payment:
+            return self.total_cost
+
+        return self.total_cost - client_total_payment
+
+    @property
+    def debt_to_personnel(self):
+        personnel_salary = self.total_cost - self.total_franchise
+        paid_salary = Payment.objects.filter(
+            destination=self.assigned_personnel
+        ).aggregate(total_paid_amount=Sum("amount"))["total_paid_amount"]
+
+        if not paid_salary:
+            return personnel_salary
+
+        debt = personnel_salary - paid_salary
+        return debt if debt >= 0 else 0
 
     def get_orders_in_month_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)

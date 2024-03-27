@@ -65,7 +65,23 @@ class OrderSerializer(serializers.Serializer):
     service_location = ServiceLocationSerializer()
     referral_people = PeopleMinimalSerializer()
     referral_other = CommonPatternSerializer()
+    client_payment = serializers.SerializerMethodField()
+    personnel_payment = serializers.SerializerMethodField()
+    total_cost = serializers.IntegerField()
+    total_franchise = serializers.IntegerField()
     discount = serializers.IntegerField()
+
+    def get_client_payment(self, obj):
+        return {
+            "payment_status": obj.client_payment_status,
+            "debt": obj.client_debt,
+        }
+
+    def get_personnel_payment(self, obj):
+        return {
+            "payment_status": obj.personnel_payment_status,
+            "debt": obj.debt_to_personnel,
+        }
 
 
 class ContractSerializer(serializers.ModelSerializer):
