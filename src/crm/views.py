@@ -4,9 +4,8 @@ from django.shortcuts import get_object_or_404, render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from . import models
+from . import models, utils
 from . import serializers as s
-from . import utils
 from .forms import TestForm
 
 
@@ -83,7 +82,35 @@ def dashboard_section(request):
 
 
 def services_section(request):
-    return render(request, "services/main.html", dict(section="services"))
+    orders = models.Order.objects.filter().order_by("-order_at")
+    contracts = models.Contract.objects.all().order_by("-start")
+    services = models.Service.objects.all()
+    data = {
+        "tabs": [
+            utils.make_section_tab(
+                "خدمات موردی",
+                ["تاریخ", "کارفرما", "کار های انجام شده"],
+                orders,
+                "services/tables/orders.html",
+            ),
+            utils.make_section_tab(
+                "قراردادها",
+                ["تاریخ عقد قرارداد", "کارفرما", "سررسید", "فرانشیز مرکز"],
+                contracts,
+                "services/tables/contracts.html",
+            ),
+            utils.make_section_tab(
+                "سرویس ها",
+                ["عنوان سرویس", "فرانشیز مرکز", "قیمت پیشنهادی پایه"],
+                services,
+                "services/tables/services.html",
+            ),
+        ]
+    }
+
+    return render(
+        request, "services/main.html", dict(section="services", data=data)
+    )
 
 
 def people_section(request):

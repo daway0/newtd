@@ -1,38 +1,19 @@
-let lang = {
-            
-    "decimal":        "",
-    "emptyTable":     "داده یافت نشد",
-    "info":           "نمایش _START_ تا _END_ از _TOTAL_ سطر",
-    "infoEmpty":      "نمایش 0 تا 0 از 0 سطر",
-    "infoFiltered":   "(فیلترشده از تمامی _MAX_ سطر)",
-    "infoPostFix":    "",
-    "thousands":      ",",
-    "lengthMenu":     "نمایش _MENU_ سطر",
-    "loadingRecords": "بارگذاری...",
-    "processing":     "",
-    "search":         "جستجو:",
-    "zeroRecords":    "داده یافت نشد",
-    "paginate": {
-        "first":      "ابتدا",
-        "last":       "انتها",
-        "next":       "بعدی",
-        "previous":   "قبلی"
-    },
-    "aria": {
-        "orderable":  "مرتب سازی بر اساس این ستون",
-        "orderableReverse": "مرتب سازی معکوس بر اساس این ستون"
-    }
-
+function findTabTabels() {
+    tables = $("[id^='tab-table-']")
+    tables.each(function () {
+        $(this).DataTable(tabTable)
+    })
 }
 
-let informTable = {
-    select:false,
-    paging:false,
-    searching:false,
-    info:false,
-    language: lang
+function hideAllTabExceptFirst() {
+    $("[id^='tab-container-']").each(function () {
+        $(this).addClass("hidden")
+    })
+    $("[id^='tab-container-0']").removeClass("hidden")
 }
 $(document).ready( function () {
+    findTabTabels()
+    hideAllTabExceptFirst()
     $('#UserTable').DataTable({
         select:true,
         paging:true,
@@ -53,5 +34,29 @@ $(document).ready( function () {
         $(this).removeAttr("style", "width")
     })
 
+    $(document).on('click', "[id^='tab-button']", function () {
+        if ($(this).hasClass("open-tab")){
+            return
+        }
+        newTabCounter = $(this).attr("id").match(/\d+/)[0]
+        currentTabCounter = $("[id^='tab-button'][class*='open-tab']").attr("id").match(/\d+/)[0]
+
+        // deactive current tab
+        $(`#tab-button-${currentTabCounter}`).removeClass("open-tab bg-white")
+        $(`#tab-button-${currentTabCounter}`).addClass("closed-tab bg-slate-300")
+
+
+
+        // hide current tab container 
+        $(`#tab-container-${currentTabCounter}`).addClass("hidden")
+        
+        // active new tab 
+        $(this).removeClass("closed-tab bg-slate-300")
+        $(this).addClass("open-tab bg-white")
+        
+        // show new tab container 
+        $(`#tab-container-${newTabCounter}`).removeClass("hidden")
+        
+    });
      
 } );

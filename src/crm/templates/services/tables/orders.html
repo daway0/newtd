@@ -1,0 +1,7 @@
+{% load crm_extras %}
+
+<tr data-link="{{row.get_absolute_url}}">
+    <td>{{row.order_at|persianize}}</td>
+    <td>{{row.client}}</td>
+    <td>{{row.services_list}}</td>
+</tr>

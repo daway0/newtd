@@ -1,4 +1,5 @@
 import jdatetime as jdt
+from django.db.models import QuerySet
 
 
 def get_diff_in_percentage(now: int, before: int) -> float:
@@ -39,6 +40,12 @@ def make_dashboard_card_data(
         growth=growth_percentage,
         **kwargs,
     )
+
+
+def make_section_tab(
+    title, datatable_headers: list[str], qs: QuerySet, table_template:str
+) -> dict:
+    return dict(title=title, data_table_headers=datatable_headers, qs=qs, table_template=table_template)
 
 
 def summarize_tooman_number(value):

@@ -364,6 +364,10 @@ class Order(Log):
     def get_absolute_url(self):
         return reverse("crm:get_order", kwargs={"id": self.pk})
 
+    @property
+    def services_list(self) -> str:
+        return ", ".join(self.services.all().values_list("title", flat=True))
+
     def __str__(self) -> str:
         return f"{self.client} / {self.assigned_personnel}"
 
