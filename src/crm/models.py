@@ -427,7 +427,9 @@ class Contract(Log):
     shift_end = models.PositiveSmallIntegerField(default=18)
 
     start = JDateField()
+    start_hour = models.TimeField()
     end = JDateField()
+    end_hour = models.TimeField()
 
     include_holidays = models.BooleanField(default=True)
     personnel_monthly_salary = models.IntegerField(default=0)
