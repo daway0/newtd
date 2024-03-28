@@ -73,6 +73,7 @@ class PeopleSerializer(serializers.ModelSerializer):
             "note",
             "total_orders",
             "total_contracts",
+            "total_debt",
         ]
 
 

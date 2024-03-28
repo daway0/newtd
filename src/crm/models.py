@@ -158,16 +158,30 @@ class People(Log):
         return 52
 
     @property
-    def services_number(self):
-        return 12
-
-    @property
-    def contracts_number(self):
-        return 2
-
-    @property
     def total_debt(self):
-        return
+        total_order_costs = (
+            self.client_orders.annotate(
+                cost=Sum("orderservices__cost"),
+            )
+            .values("cost", "discount")
+            .aggregate(total_cost=Sum("cost") - Sum("discount"))["total_cost"]
+            or 0
+        )
+
+        total_contract_costs = (
+            self.client_contracts.aggregate(
+                total_amount=Sum("healthcare_franchise_amount")
+            )["total_amount"]
+            or 0
+        )
+
+        total_paid_amount = (
+            self.source_payments.aggregate(total=Sum("amount"))["total"] or 0
+        )
+
+        debt = (total_order_costs + total_contract_costs) - total_paid_amount
+
+        return debt if debt >= 0 else 0
 
     @property
     def total_orders(self):
@@ -299,13 +313,25 @@ class Order(Log):
 
     @property
     def total_franchise(self):
-        franchise = OrderServices.objects.annotate(
-            franchise=Round(
-                F("cost") * F("service__healthcare_franchise") / 100, 3
+        franchise = (
+            OrderServices.objects.filter(order=self)
+            .annotate(
+                franchise=Round(
+                    F("cost") / 100 * F("service__healthcare_franchise"),
+                    3,
+                )
             )
-        ).aggregate(franchise_sum=Sum("franchise"))["franchise_sum"]
+            .aggregate(franchise_sum=Sum("franchise"))["franchise_sum"]
+        ) or 0
 
-        return franchise if franchise else 0
+        if self.discount > 0:
+            discount_percent = round(
+                self.discount / (self.total_cost + self.discount) * 100, 2
+            )
+            percent_of_franchise = round(franchise / 100 * discount_percent, 2)
+            return franchise - percent_of_franchise
+
+        return franchise
 
     @property
     def client_payment_status(self):
@@ -330,7 +356,9 @@ class Order(Log):
         cost = OrderServices.objects.filter(order=self).aggregate(
             total_cost=Sum("cost")
         )["total_cost"]
-        return cost if cost else 0
+        cost_minus_discount = cost - self.discount
+
+        return cost_minus_discount if cost_minus_discount >= 0 else 0
 
     @property
     def client_debt(self):
@@ -474,14 +502,14 @@ class Contract(Log):
 
         debt = self.healthcare_franchise_amount - total_paid_amount
         return debt if debt >= 0 else 0
-    
+
     @property
     def client_payment_status(self):
         if self.client_debt == 0:
             return "پرداخت شده"
         elif self.client_debt == self.healthcare_franchise_amount:
             return "پرداخت نشده"
-        
+
         return "پرداخت جزئی"
 
     def get_contracts_in_month_ago(month_count: int = 1) -> models.QuerySet:
