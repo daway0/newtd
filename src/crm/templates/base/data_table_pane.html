@@ -1,0 +1,34 @@
+{% extends "base/pane.html" %}
+{% load static %}
+{% load crm_extras %}
+{% block title %}نتایج{% endblock title %}
+{% block content %}
+
+    <div class="flex flex-row border-b border-slate-400">      
+    <span id="tab-button-0" class="open-tab p-2 cursor-pointer select-none bg-white border border-slate-400 rounded-t-md">{{data.tabs.0.title}}</span>
+
+    {% for tab in data.tabs|slice:"1:" %}
+        <span id="tab-button-{{forloop.counter}}" class="closed-tab p-2 cursor-pointer select-none bg-slate-300  border border-slate-400  rounded-t-md">{{tab.title}}</span>
+    {% endfor %}
+    </div>
+
+    {% for tab in data.tabs %}
+        <div id="tab-container-{{forloop.counter0}}" class="bg-white rounded-md shadow-sm p-4 pt-0 text-black" dir="rtl">
+            <table id="tab-table-{{forloop.counter0}}" class="display">
+                <thead>
+                    <tr>
+                    {% for header in tab.data_table_headers %}
+                        <th> {{header}} </th>
+                    {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in tab.qs %}
+                        {% include tab.table_template %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+    <script src="{% static 'js/data_tabels.js' %}"></script>
+{% endblock content %}

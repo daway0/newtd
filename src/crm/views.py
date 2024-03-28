@@ -114,25 +114,69 @@ def services_section(request):
 
 
 def people_section(request):
-    view_mode = request.GET.get("view_mode")
-    qs = models.People.objects.all()
-    return render(
-        request,
-        "people/main.html",
-        context=dict(
-            section="people",
-            people=qs,
-            personnel=qs.filter(
-                people_type=models.PeopleTypeChoices.PERSONNEL
+    clients = models.People.clients.all()
+    personnel = models.People.personnels.all()
+    cases = models.People.cases.all()
+    data = {
+        "tabs": [
+            utils.make_section_tab(
+                "کارفرما",
+                [
+                    "نام و نام خانوادگی",
+                    "خدمات دریافتی",
+                    "قرارداد ها",
+                    "بدهکاری",
+                ],
+                clients,
+                "people/tables/clients.html",
             ),
-            client=qs.filter(people_type=models.PeopleTypeChoices.CLIENT),
-            view_mode=view_mode,
-        ),
+            utils.make_section_tab(
+                "پرسنل",
+                [
+                    "نام و نام خانوادگی",
+                    "نقش در مرکز",
+                    "خدمت دهی",
+                    "قرارداد ها",
+                    "قابل تسویه",
+                ],
+                personnel,
+                "people/tables/personnel.html",
+            ),
+            utils.make_section_tab(
+                "مددجو",
+                ["نام و نام خانوادگی", "قرارداد ها"],
+                cases,
+                "people/tables/cases.html",
+            ),
+        ]
+    }
+    return render(
+        request, "people/main.html", dict(section="people", data=data)
     )
 
 
 def payments_section(request):
-    return render(request, "payments/main.html", dict(section="payments"))
+    incomes = models.Payment.incomes.all().order_by("-paid_at")
+    outgoes = models.Payment.outgoes.all().order_by("-paid_at")
+    data = {
+        "tabs": [
+            utils.make_section_tab(
+                "پرداختی کارفرما",
+                ["تاریخ واریز", "کارفرما", "بابت", "مبلغ", "یادداشت"],
+                incomes,
+                "payments/tables/incomes.html",
+            ),
+            utils.make_section_tab(
+                "دریافتی پرسنل",
+                ["تاریخ تسویه حساب", "پرسنل", "بابت", "مبلغ", "یادداشت"],
+                outgoes,
+                "payments/tables/outgoes.html",
+            ),
+        ]
+    }
+    return render(
+        request, "payments/main.html", dict(section="payments", data=data)
+    )
 
 
 def reports_section(request):
@@ -468,7 +512,7 @@ def client_preview(request, id):
                     fields=["amount", "paid_at", "note", "link"],
                     many=True,
                 ),
-            }
+            },
         ],
     }
 

@@ -1,18 +1,7 @@
-{% extends "base/base.html" %}
+{% extends "base/double_tabbed_pane.html" %}
 
 
 {% load crm_extras %}
 {% block breadcrumb %}
 {% make_breadcrumb "خدمات و قراردادها" %}
 {% endblock breadcrumb %}
-
-{% block content %}
-<div class="flex flex-row w-full gap-2">        
-{% comment %} right pane, add new people type {% endcomment %}
-        {% with icon="svg/add_user.html" %}
-            {% include "services/right_pane.html" %}
-        {% endwith %}
-
-        
-</div>
-{% endblock content %}      

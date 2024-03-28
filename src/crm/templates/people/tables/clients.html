@@ -1,0 +1,8 @@
+{% load crm_extras %}
+
+<tr data-link="{{row.get_absolute_url}}">
+    <td>{{row.fullname_with_prefix}}</td>
+    <td>{{row.total_orders|persianize}}</td>
+    <td>{{row.total_contracts|persianize}}</td>
+    <td>{{row.total_debt|persianize}}</td>
+</tr>

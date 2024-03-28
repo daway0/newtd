@@ -1,0 +1,9 @@
+{% load crm_extras %}
+
+<tr data-link="{{row.get_absolute_url}}">
+    <td>{{row.paid_at|persianize}}</td>
+    <td><a href="{{row.destination.get_absolute_url}}">{{row.destination}}</a></td>
+    <td><a href="{{row.payment_for.get_absolute_url}}">{{row.payment_for|persianize}}</a></td>
+    <td>{{row.amount|persianize}}</td>
+    <td>{{row.note|persianize}}</td>
+</tr>

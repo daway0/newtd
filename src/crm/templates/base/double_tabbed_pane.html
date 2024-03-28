@@ -1,0 +1,18 @@
+{% extends "base/base.html" %}
+
+
+{% block content %}
+<div class="flex flex-row w-full gap-2">
+    <div class="basis-1/2">
+        {% with icon="svg/notif.html" %}
+        {% include "base/data_table_pane.html" %}
+        {% endwith %}
+
+    </div>
+    <div class="basis-1/2">
+        {% with icon="svg/notif.html" %}
+        {% include "base/preview_pane.html" %}
+        {% endwith %}
+    </div>
+</div>
+{% endblock content %}

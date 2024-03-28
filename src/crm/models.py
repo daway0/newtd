@@ -156,7 +156,27 @@ class People(Log):
     @property
     def age(self):
         return 52
+    
+    @property
+    def personnel_display_role(self):
+        return self.get_personnel_role_display()
+    
+    @property
+    def total_personnel_orders(self):
+        return 52
 
+    @property
+    def total_personnel_contracts(self):
+        return 26
+    
+    @property
+    def total_healthcare_debt_to_personnel(self):
+        return 12550
+
+    @property
+    def total_case_contracts(self):
+        return 26
+    
     @property
     def total_debt(self):
         total_order_costs = (
@@ -397,7 +417,7 @@ class Order(Log):
         return ", ".join(self.services.all().values_list("title", flat=True))
 
     def __str__(self) -> str:
-        return f"{self.client} / {self.assigned_personnel}"
+        return f"خدمت موردی {self.id}"
 
 
 class OrderServices(Log):
@@ -503,12 +523,14 @@ class Contract(Log):
         debt = self.healthcare_franchise_amount - total_paid_amount
         return debt if debt >= 0 else 0
 
+
     @property
     def client_payment_status(self):
         if self.client_debt == 0:
             return "پرداخت شده"
         elif self.client_debt == self.healthcare_franchise_amount:
             return "پرداخت نشده"
+
 
         return "پرداخت جزئی"
 
@@ -517,6 +539,13 @@ class Contract(Log):
         return Contract.objects.filter(
             Q(contract_at__lte=end) & Q(contract_at__gte=start)
         )
+
+    def get_absolute_url(self):
+        # BUG
+        return reverse("crm:get_order", kwargs={"id": self.pk})
+
+    def __str__(self):
+        return f"قرارداد {self.id}"
 
 
 class IncomePaymentManager(models.Manager):
@@ -564,6 +593,10 @@ class Payment(Log):
     objects = models.Manager()
     incomes = IncomePaymentManager()
     outgoes = OutgoPaymentManager()
+
+    @property
+    def payment_for(self):
+        return self.order or self.contract
 
     @property
     def is_income(self):
