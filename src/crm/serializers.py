@@ -122,6 +122,7 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
             int(obj.joined_at.split("/")[1]),
             int(obj.joined_at.split("/")[2]),
         )
+        last_day_of_month = utils.get_last_day_of_month(date_obj)
 
         years_diff = now.year - date_obj.year
         months_diff = now.month - date_obj.month
@@ -130,7 +131,7 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
 
         days_diff = now.day - date_obj.day
         if days_diff < 0:
-            days_diff = 31 - abs(days_diff)
+            days_diff = last_day_of_month - abs(days_diff)
 
         return f"{years_diff} سال و {months_diff} ماه و {days_diff} روز"
 
@@ -205,6 +206,7 @@ class OrderSerializer(DynamicFieldSerializer):
 
 class ContractSerializer(DynamicFieldSerializer):
     contract_at = serializers.CharField()
+    client = PeopleMinimalSerializer()
     care_for = serializers.CharField(source="get_care_for_display")
     patients = PeopleMinimalSerializer(many=True)
     relationship_with_patient = serializers.CharField(
@@ -232,6 +234,7 @@ class ContractSerializer(DynamicFieldSerializer):
 
     translated_values = {
         "contract_at": "زمان قرارداد",
+        "client": "کارفرما",
         "care_for": "مراقبت از",
         "patients": "بیماران",
         "relationship_with_patient": "نسبت با بیمار",
@@ -277,18 +280,18 @@ class ContractSerializer(DynamicFieldSerializer):
             shift_days.append("جمعه")
 
         return ", ".join(shift_days)
-    
+
     def get_contract_start(self, obj):
         start_date = obj.start
         start_hour = obj.start_hour
 
-        return f"{start_date} {start_hour}" 
-    
+        return f"{start_date} {start_hour}"
+
     def get_contract_end(self, obj):
         end_date = obj.end
         end_hour = obj.end_hour
 
-        return f"{end_date} {end_hour}" 
+        return f"{end_date} {end_hour}"
 
 
 class PaymentSerializer(DynamicFieldSerializer, serializers.ModelSerializer):

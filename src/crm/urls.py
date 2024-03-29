@@ -43,6 +43,7 @@ urlpatterns = [
     path("api/contracts/<int:id>/", views.contract_preview, name="contract_preview"),
     path("api/clients/<int:id>/", views.client_preview, name="client_preview"),
     path("api/personnel/<int:id>/", views.personnel_preview, name="personnel_preview"),
+    path("api/patients/<int:id>/", views.patient_preview, name="patient_preview"),
     # REST end
     # fmt: on
 ]

@@ -624,3 +624,44 @@ def personnel_preview(request, id):
 
     serializer = s.PreviewSerializer(data).data
     return Response(serializer)
+
+
+@api_view(["GET"])
+def patient_preview(request, id):
+    patient = get_object_or_404(
+        models.People, pk=id, people_type=models.PeopleTypeChoices.CASE
+    )
+
+    data = {
+        "title": "بیمار",
+        "icon": "patient icon",
+        "buttons": [
+            {
+                "title": "first button",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            }
+        ],
+        "table": s.PeopleSerializer(
+            patient,
+        ),
+        "data_tables": [
+            {
+                "title": "contracts",
+                "icon": "contract icon",
+                "data": s.ContractSerializer(
+                    patient.patient_contracts.all(),
+                    fields=[
+                        "client",
+                        "contract_start",
+                        "contract_end",
+                        "link",
+                    ],
+                    many=True,
+                ),
+            },
+        ],
+    }
+
+    serializer = s.PreviewSerializer(data).data
+    return Response(serializer)

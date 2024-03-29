@@ -1,3 +1,4 @@
+import jdatetime
 import jdatetime as jdt
 from django.db.models import QuerySet
 
@@ -92,3 +93,18 @@ def translate_serializer_fields(
             new_data[key]["value"] = value
 
     return new_data
+
+
+def get_last_day_of_month(date_obj: jdatetime.date) -> int:
+    last_day_value = date_obj.day
+
+    while last_day_value < 31:
+        last_day_value = date_obj.day
+        date_obj += jdatetime.timedelta(days=1)
+        if date_obj.day == 1:
+            return last_day_value
+
+    raise RuntimeError(
+        "last_day_value passed 31 and your logic couldn't find "
+        "the last day of month, Abort!"
+    )
