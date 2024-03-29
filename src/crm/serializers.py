@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from . import models as m
+from . import utils
 
 
 class CommonPatternSerializer(serializers.Serializer):
@@ -101,8 +102,32 @@ class OrderSerializer(DynamicFieldSerializer):
     total_franchise = serializers.IntegerField()
     discount = serializers.IntegerField()
 
+    translated_titles = {
+        "order_at": "زمان خدمت",
+        "client": "کارفرما",
+        "services": "خدمت‌ها",
+        "assigned_personnel": "پرسنل مشخص شده",
+        "service_location": "محل خدمت",
+        "referral_people": "معرف",
+        "referral_other": "معرف دیگر",
+        "client_debt": "بدهی کارفرما",
+        "client_payment_status": "وضعیت پرداخت کارفرما",
+        "debt_to_personnel": "بدهی مرکز به پرسنل",
+        "personnel_payment_status": "وضعیت پرداخت پرسنل",
+        "total_cost": "هزینه کل",
+        "total_franchise": "فرانشیز مرکز",
+        "discount": "تخفیف",
+    }
 
-class ContractSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return utils.translate_serializer_fields(
+            data, OrderSerializer.translated_titles
+        )
+
+
+class ContractSerializer(DynamicFieldSerializer):
+    contract_at = serializers.CharField()
     care_for = serializers.CharField(source="get_care_for_display")
     patients = PeopleMinimalSerializer(many=True)
     relationship_with_patient = serializers.CharField(
@@ -111,45 +136,65 @@ class ContractSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
     personnel = PeopleMinimalSerializer()
     service_location = ServiceLocationSerializer()
     shift = serializers.CharField(source="get_shift_display")
+    shift_days = serializers.SerializerMethodField()
+    shift_start = serializers.IntegerField()
+    shift_end = serializers.IntegerField()
+    include_holidays = serializers.BooleanField()
+    personnel_monthly_salary = serializers.IntegerField()
     personnel_salary_payment_time = serializers.CharField(
         source="get_personnel_salary_payment_time_display"
     )
+    healthcare_franchise_amount = serializers.IntegerField()
     client_debt = serializers.IntegerField()
     client_payment_status = serializers.CharField()
     referral_people = PeopleMinimalSerializer()
     referral_other = CommonPatternSerializer()
 
-    class Meta:
-        model = m.Contract
-        fields = [
-            "id",
-            "contract_at",
-            "care_for",
-            "patients",
-            "relationship_with_patient",
-            "personnel",
-            "service_location",
-            "shift",
-            "saturday",
-            "sunday",
-            "monday",
-            "tuesday",
-            "wednesday",
-            "thursday",
-            "friday",
-            "shift_start",
-            "shift_end",
-            "start",
-            "end",
-            "include_holidays",
-            "client_debt",
-            "client_payment_status",
-            "personnel_monthly_salary",
-            "personnel_salary_payment_time",
-            "healthcare_franchise_amount",
-            "referral_people",
-            "referral_other",
-        ]
+    translated_values = {
+        "contract_at": "زمان قرارداد",
+        "care_for": "مراقبت از",
+        "patients": "بیماران",
+        "relationship_with_patient": "نسبت با بیمار",
+        "personnel": "پرسنل مشخص شده",
+        "service_location": "محل خدمت",
+        "shift": "شیفت",
+        "shift_days": "روز‌های شیفت",
+        "shift_start": "ساعت شروع شیفت",
+        "shift_end": "ساعت پایان شیفت",
+        "include_holidays": "شامل تعطیلات می‌باشد",
+        "personnel_monthly_salary": "حقوق ماهیانه پرسنل",
+        "personnel_salary_payment_time": "زمان پرداخت حقوق پرسنل",
+        "healthcare_franchise_amount": "فرانشیز مرکز",
+        "client_debt": "بدهی کارفرما",
+        "client_payment_status": "وضعیت پرداخت کارفرما",
+        "referral_people": "معرف",
+        "referral_other": "معرف های دیگر",
+    }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return utils.translate_serializer_fields(
+            data, ContractSerializer.translated_values
+        )
+
+    def get_shift_days(self, obj):
+        shift_days = []
+        if obj.saturday:
+            shift_days.append("شنبه")
+        if obj.sunday:
+            shift_days.append("یک‌شنبه")
+        if obj.monday:
+            shift_days.append("دو‌شنبه")
+        if obj.tuesday:
+            shift_days.append("سه‌شنبه")
+        if obj.wednesday:
+            shift_days.append("چهارشنبه")
+        if obj.thursday:
+            shift_days.append("پنج‌شنبه")
+        if obj.friday:
+            shift_days.append("جمعه")
+
+        return shift_days
 
 
 class PaymentSerializer(DynamicFieldSerializer, serializers.ModelSerializer):

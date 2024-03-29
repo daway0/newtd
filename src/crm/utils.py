@@ -43,9 +43,14 @@ def make_dashboard_card_data(
 
 
 def make_section_tab(
-    title, datatable_headers: list[str], qs: QuerySet, table_template:str
+    title, datatable_headers: list[str], qs: QuerySet, table_template: str
 ) -> dict:
-    return dict(title=title, data_table_headers=datatable_headers, qs=qs, table_template=table_template)
+    return dict(
+        title=title,
+        data_table_headers=datatable_headers,
+        qs=qs,
+        table_template=table_template,
+    )
 
 
 def summarize_tooman_number(value):
@@ -66,3 +71,18 @@ def summarize_tooman_postfix_word(value):
         return "میلیون تومان"
     elif value < 999999999999:
         return "میلیارد تومان"
+
+
+def translate_serializer_fields(
+    serialized_data: dict, translated_fields: dict
+):
+    new_data = {}
+    for key, value in serialized_data.items():
+        new_data[key] = {"title": translated_fields[key]}
+
+        if isinstance(value, dict):
+            new_data[key].update(value)
+        else:
+            new_data[key]["value"] = value
+
+    return new_data

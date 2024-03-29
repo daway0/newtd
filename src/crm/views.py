@@ -394,6 +394,7 @@ def search(request):
 def order_preview(request, id):
     order = get_object_or_404(models.Order, pk=id)
     payment = models.Payment.objects.filter(order=order)
+    data = s.OrderSerializer(order)
 
     data = {
         "title": "خدمت موردی",

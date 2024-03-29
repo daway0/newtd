@@ -226,6 +226,9 @@ class People(Log):
                 label = enum.name
         path_name = f"crm:edit_{label.lower()}"
         return reverse(path_name, kwargs={"id": self.id})
+    
+    def get_absolute_url_api(self):
+        pass
 
     def get_clients_in_months_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)
