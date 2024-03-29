@@ -74,10 +74,16 @@ def summarize_tooman_postfix_word(value):
 
 
 def translate_serializer_fields(
-    serialized_data: dict, translated_fields: dict
+    serialized_data: dict,
+    translated_fields: dict,
+    exclude_fields: list[str] = [],
 ):
-    new_data = {}
+    new_data = dict()
     for key, value in serialized_data.items():
+        if key in exclude_fields:
+            new_data[key] = value
+            continue
+
         new_data[key] = {"title": translated_fields[key]}
 
         if isinstance(value, dict):

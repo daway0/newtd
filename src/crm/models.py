@@ -63,6 +63,9 @@ class TagSpecefication(Log):
     )
     title = models.CharField(max_length=150)
 
+    def get_absolute_url(self):
+        return reverse("crm:get_tag", kwargs={"id": self.pk})
+
     def __str__(self) -> str:
         return self.title
 
@@ -156,37 +159,34 @@ class People(Log):
     @property
     def age(self):
         return 52
-    
+
     @property
     def personnel_display_role(self):
         return self.get_personnel_role_display()
-    
+
     @property
     def total_personnel_orders(self):
-        return 52
+        return self.personnel_orders.count()
 
     @property
     def total_personnel_contracts(self):
-        return 26
-    
+        return self.personnel_contracts.count()
+
     @property
     def total_healthcare_debt_to_personnel(self):
-        return 12550
+        return OrderPayment.objects.filter(
+            order__assigned_personnel=self
+        ).aggregate(debt=Sum("personnel_debt"))["debt"]
 
     @property
     def total_case_contracts(self):
-        return 26
-    
+        return self.total_orders + self.patient_contracts.count()
+
     @property
-    def total_debt(self):
-        total_order_costs = (
-            self.client_orders.annotate(
-                cost=Sum("orderservices__cost"),
-            )
-            .values("cost", "discount")
-            .aggregate(total_cost=Sum("cost") - Sum("discount"))["total_cost"]
-            or 0
-        )
+    def total_client_debt(self):
+        total_order_costs = OrderPayment.objects.filter(
+            order__client=self
+        ).aggregate(debt=Sum("client_debt"))["debt"]
 
         total_contract_costs = (
             self.client_contracts.aggregate(
@@ -195,20 +195,25 @@ class People(Log):
             or 0
         )
 
-        total_paid_amount = (
-            self.source_payments.aggregate(total=Sum("amount"))["total"] or 0
+        contract_paid_amount = (
+            self.source_payments.filter(order__isnull=True).aggregate(
+                total=Sum("amount")
+            )["total"]
+            or 0
         )
 
-        debt = (total_order_costs + total_contract_costs) - total_paid_amount
+        debt = (
+            total_order_costs + total_contract_costs
+        ) - contract_paid_amount
 
         return debt if debt >= 0 else 0
 
     @property
-    def total_orders(self):
+    def total_client_orders(self):
         return Order.objects.filter(client=self).count()
 
     @property
-    def total_contracts(self):
+    def total_client_contracts(self):
         return Contract.objects.filter(client=self).count()
 
     def spec_list(self) -> str:
@@ -219,16 +224,22 @@ class People(Log):
             return " ,".join(specs)
         return ""
 
-    def get_absolute_url(self):
-        label = None
+    def _get_people_type_label(self):
         for enum in PeopleTypeChoices:
             if enum.value == self.people_type:
-                label = enum.name
+                return enum.name
+
+    def get_absolute_url(self):
+        label = self._get_people_type_label()
         path_name = f"crm:edit_{label.lower()}"
+
         return reverse(path_name, kwargs={"id": self.id})
-    
+
     def get_absolute_url_api(self):
-        pass
+        label = self._get_people_type_label()
+        path_name = f"crm:{label.lower()}_preview"
+
+        return reverse(path_name, kwargs={"id": self.id})
 
     def get_clients_in_months_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)
@@ -336,25 +347,7 @@ class Order(Log):
 
     @property
     def total_franchise(self):
-        franchise = (
-            OrderServices.objects.filter(order=self)
-            .annotate(
-                franchise=Round(
-                    F("cost") / 100 * F("service__healthcare_franchise"),
-                    3,
-                )
-            )
-            .aggregate(franchise_sum=Sum("franchise"))["franchise_sum"]
-        ) or 0
-
-        if self.discount > 0:
-            discount_percent = round(
-                self.discount / (self.total_cost + self.discount) * 100, 2
-            )
-            percent_of_franchise = round(franchise / 100 * discount_percent, 2)
-            return franchise - percent_of_franchise
-
-        return franchise
+        return OrderPayment.objects.get(order=self).healthcare_franchise
 
     @property
     def client_payment_status(self):
@@ -376,35 +369,19 @@ class Order(Log):
 
     @property
     def total_cost(self):
-        cost = OrderServices.objects.filter(order=self).aggregate(
-            total_cost=Sum("cost")
-        )["total_cost"]
-        cost_minus_discount = cost - self.discount
-
-        return cost_minus_discount if cost_minus_discount >= 0 else 0
+        return OrderPayment.objects.get(order=self).cost
 
     @property
     def client_debt(self):
-        client_total_payment = Payment.objects.filter(
-            source=self.client, order=self
-        ).aggregate(total_paid_amount=Sum("amount"))["total_paid_amount"]
-        if not client_total_payment:
-            return self.total_cost
-
-        return self.total_cost - client_total_payment
+        return OrderPayment.objects.get(order=self).client_debt
 
     @property
     def debt_to_personnel(self):
-        personnel_salary = self.total_cost - self.total_franchise
-        paid_salary = Payment.objects.filter(
-            destination=self.assigned_personnel
-        ).aggregate(total_paid_amount=Sum("amount"))["total_paid_amount"]
+        return OrderPayment.objects.get(order=self).personnel_debt
 
-        if not paid_salary:
-            return personnel_salary
-
-        debt = personnel_salary - paid_salary
-        return debt if debt >= 0 else 0
+    @property
+    def services_list(self) -> str:
+        return ", ".join(self.services.all().values_list("title", flat=True))
 
     def get_orders_in_month_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)
@@ -415,9 +392,8 @@ class Order(Log):
     def get_absolute_url(self):
         return reverse("crm:get_order", kwargs={"id": self.pk})
 
-    @property
-    def services_list(self) -> str:
-        return ", ".join(self.services.all().values_list("title", flat=True))
+    def get_absolute_url_api(self):
+        return reverse("crm:order_preview", kwargs={"id": self.pk})
 
     def __str__(self) -> str:
         return f"خدمت موردی {self.id}"
@@ -526,14 +502,12 @@ class Contract(Log):
         debt = self.healthcare_franchise_amount - total_paid_amount
         return debt if debt >= 0 else 0
 
-
     @property
     def client_payment_status(self):
         if self.client_debt == 0:
             return "پرداخت شده"
         elif self.client_debt == self.healthcare_franchise_amount:
             return "پرداخت نشده"
-
 
         return "پرداخت جزئی"
 
@@ -545,7 +519,10 @@ class Contract(Log):
 
     def get_absolute_url(self):
         # BUG
-        return reverse("crm:get_order", kwargs={"id": self.pk})
+        return reverse("crm:get_contract", kwargs={"id": self.pk})
+
+    def get_absolute_url_api(self):
+        return reverse("crm:contract_preview", kwargs={"id": self.pk})
 
     def __str__(self):
         return f"قرارداد {self.id}"
@@ -684,3 +661,21 @@ class Call(Log):
 
     def __str__(self) -> str:
         return self.called_at
+
+
+class OrderPayment(models.Model):
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name="order_payment"
+    )
+    cost_without_discount = models.BigIntegerField()
+    cost = models.BigIntegerField()
+    healthcare_franchise = models.BigIntegerField()
+    personnel_fee = models.BigIntegerField()
+    personnel_paid = models.BigIntegerField()
+    client_paid = models.BigIntegerField()
+    personnel_debt = models.BigIntegerField()
+    client_debt = models.BigIntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "order_payment"
