@@ -514,8 +514,11 @@ def client_preview(request, id):
                 "data": s.ContractSerializer(
                     client.client_contracts.all(),
                     fields=[
-                        "contract_start",
-                        "contract_end",
+                        "start",
+                        "start_hour",
+                        "end",
+                        "end_hour",
+                        "end_verbose",
                         "healthcare_franchise_amount",
                         "client_payment_status",
                         "link",
@@ -602,7 +605,10 @@ def personnel_preview(request, id):
                     personnel.personnel_contracts.all(),
                     fields=[
                         "start",
+                        "start_hour",
                         "end",
+                        "end_hour",
+                        "end_verbose",
                         "healthcare_franchise_amount",
                         "client_payment_status",
                         "link",
@@ -653,8 +659,11 @@ def patient_preview(request, id):
                     patient.patient_contracts.all(),
                     fields=[
                         "client",
-                        "contract_start",
-                        "contract_end",
+                        "start",
+                        "start_hour",
+                        "end",
+                        "end_hour",
+                        "end_verbose",
                         "link",
                     ],
                     many=True,

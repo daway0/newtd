@@ -96,6 +96,11 @@ def translate_serializer_fields(
 
 
 def get_last_day_of_month(date_obj: jdatetime.date) -> int:
+    if date_obj.day == 31:
+        # day is already on maximum value, so we dont need to
+        # calculate anything here.
+        return date_obj.day
+
     last_day_value = date_obj.day
 
     while last_day_value < 31:
@@ -108,3 +113,65 @@ def get_last_day_of_month(date_obj: jdatetime.date) -> int:
         "last_day_value passed 31 and your logic couldn't find "
         "the last day of month, Abort!"
     )
+
+
+def create_jdate_from_str(str_date: str) -> jdatetime.date:
+    return jdatetime.date(
+        int(str_date.split("/")[0]),
+        int(str_date.split("/")[1]),
+        int(str_date.split("/")[2]),
+    )
+
+
+def time_left_til_specific_date_verbose(
+    start_date_obj: jdatetime.date, unitl_date_obj: jdatetime.date
+) -> str:
+    """
+    Calculating remaining time from an specific date to another one
+    in persian verbose format.
+
+    Args:
+        start_date_obj: start date
+        unitl_date_obj: end date
+
+    Returns:
+        str: Persian verbose format of remaining time.
+
+    Raises:
+        ValueError: if start_date_obj is bigger than unitl_date_obj.
+    """
+
+    if start_date_obj > unitl_date_obj:
+        raise ValueError(
+            "'start_date_obj' value is bigger than 'unitl_date_obj' value, "
+            "your data is wrong logically, Abort!"
+        )
+
+    final_string = list()
+
+    years_diff = unitl_date_obj.year - start_date_obj.year
+
+    days_diff = unitl_date_obj.day - start_date_obj.day
+    if days_diff < 0:
+        last_day_of_month = get_last_day_of_month(unitl_date_obj)
+        days_diff = last_day_of_month - abs(days_diff)
+
+    month_diff = unitl_date_obj.month - start_date_obj.month
+    if month_diff < 0:
+        month_diff = 12 - abs(month_diff)
+
+    if days_diff != 0 and month_diff != 0:
+        # Decreasing month value becasuse its actually not a month,
+        # its between 1 to 30 days, for instance:
+        # when we have 25 days until end_date, we have to say
+        # "25 روز", not "1 ماه و 25 روز".
+        month_diff -= 1
+
+    if years_diff > 0:
+        final_string.append(f"{years_diff} سال")
+    if month_diff > 0:
+        final_string.append(f"{month_diff} ماه")
+    if days_diff > 0:
+        final_string.append(f"{days_diff} روز")
+
+    return ", ".join(final_string)

@@ -116,24 +116,10 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
         )
 
     def get_membership_period(self, obj):
-        now = jdatetime.date.today()
-        date_obj = jdatetime.date(
-            int(obj.joined_at.split("/")[0]),
-            int(obj.joined_at.split("/")[1]),
-            int(obj.joined_at.split("/")[2]),
+        date_obj = utils.create_jdate_from_str(obj.joined_at)
+        return utils.time_left_til_specific_date_verbose(
+            date_obj, jdatetime.date.today()
         )
-        last_day_of_month = utils.get_last_day_of_month(date_obj)
-
-        years_diff = now.year - date_obj.year
-        months_diff = now.month - date_obj.month
-        if months_diff < 0:
-            months_diff = 12 - abs(months_diff)
-
-        days_diff = now.day - date_obj.day
-        if days_diff < 0:
-            days_diff = last_day_of_month - abs(days_diff)
-
-        return f"{years_diff} سال و {months_diff} ماه و {days_diff} روز"
 
     class Meta:
         model = m.People
@@ -218,8 +204,11 @@ class ContractSerializer(DynamicFieldSerializer):
     shift_days = serializers.SerializerMethodField()
     shift_start = serializers.IntegerField()
     shift_end = serializers.IntegerField()
-    contract_start = serializers.SerializerMethodField()
-    contract_end = serializers.SerializerMethodField()
+    start = serializers.CharField()
+    start_hour = serializers.CharField()
+    end = serializers.CharField()
+    end_hour = serializers.CharField()
+    end_verbose = serializers.SerializerMethodField()
     include_holidays = serializers.BooleanField()
     personnel_monthly_salary = serializers.IntegerField()
     personnel_salary_payment_time = serializers.CharField(
@@ -244,8 +233,11 @@ class ContractSerializer(DynamicFieldSerializer):
         "shift_days": "روز‌های شیفت",
         "shift_start": "ساعت شروع شیفت",
         "shift_end": "ساعت پایان شیفت",
-        "contract_start": "شروع قرارداد",
-        "contract_end": "پایان قرارداد",
+        "start": "تاریخ شروع قرارداد",
+        "start_hour": "ساعت شروع قرارداد",
+        "end": "تاریخ پایان قرارداد",
+        "end_hour": "ساعت پایان قرارداد",
+        "end_verbose": "زمان مانده تا سررسید قرارداد",
         "include_holidays": "شامل تعطیلات می‌باشد",
         "personnel_monthly_salary": "حقوق ماهیانه پرسنل",
         "personnel_salary_payment_time": "زمان پرداخت حقوق پرسنل",
@@ -281,17 +273,11 @@ class ContractSerializer(DynamicFieldSerializer):
 
         return ", ".join(shift_days)
 
-    def get_contract_start(self, obj):
-        start_date = obj.start
-        start_hour = obj.start_hour
-
-        return f"{start_date} {start_hour}"
-
-    def get_contract_end(self, obj):
-        end_date = obj.end
-        end_hour = obj.end_hour
-
-        return f"{end_date} {end_hour}"
+    def get_end_verbose(self, obj):
+        date_obj = utils.create_jdate_from_str(obj.end)
+        return utils.time_left_til_specific_date_verbose(
+            jdatetime.date.today(), date_obj
+        )
 
 
 class PaymentSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
