@@ -34,6 +34,8 @@ $(document).ready( function () {
         $(this).removeAttr("style", "width")
     })
 
+    $("table.dataTable tr[data-link]").addClass("cursor-pointer")
+    
     $(document).on('click', "[id^='tab-button']", function () {
         if ($(this).hasClass("open-tab")){
             return

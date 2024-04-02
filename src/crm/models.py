@@ -183,7 +183,7 @@ class People(Log):
     def total_client_debt(self):
         total_order_costs = OrderPayment.objects.filter(
             order__client=self
-        ).aggregate(debt=Sum("client_debt"))["debt"]
+        ).aggregate(debt=Sum("client_debt"))["debt"] or 0
 
         total_contract_costs = (
             self.client_contracts.aggregate(

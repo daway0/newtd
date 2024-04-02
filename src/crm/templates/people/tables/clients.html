@@ -1,8 +1,8 @@
 {% load crm_extras %}
 
-<tr data-link="{{row.get_absolute_url}}">
+<tr data-link="{{row.get_absolute_url_api}}">
     <td>{{row.fullname_with_prefix}}</td>
-    <td>{{row.total_orders|persianize}}</td>
-    <td>{{row.total_contracts|persianize}}</td>
-    <td>{{row.total_debt|persianize}}</td>
+    <td>{{row.total_client_orders|persianize}}</td>
+    <td>{{row.total_client_contracts|persianize}}</td>
+    <td>{{row.total_client_debt|persianize}}</td>
 </tr>

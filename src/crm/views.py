@@ -432,7 +432,37 @@ def order_preview(request, id):
         "icon": "test icon",
         "buttons": [
             {
-                "title": "first button",
+                "title": "حذف خدمت",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "ویرایش خدمت",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "چاپ خدمت",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "تماس پرسنل",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "تماس کارفرما",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "پرداخت کارفرما",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "پرداخت پرسنل",
                 "icon": "first button icon",
                 "link": "https://test.com/",
             }
@@ -440,7 +470,7 @@ def order_preview(request, id):
         "table": s.OrderSerializer(order, exclude=["link"]),
         "data_tables": [
             {
-                "title": "payment",
+                "title": "پرداخت ها",
                 "icon": "payment icon",
                 "data": s.PaymentSerializer(
                     payment,
