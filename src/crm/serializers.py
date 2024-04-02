@@ -34,6 +34,12 @@ class DynamicFieldSerializer(TranslatedSerializer):
                 self.fields.pop(field)
 
 
+class PersianBooleanField(serializers.BooleanField):
+    def to_representation(self, value):
+        val = super().to_representation(value)
+        return "بله" if val else "خیر"
+
+
 class SpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.TagSpecefication
@@ -187,7 +193,7 @@ class OrderSerializer(DynamicFieldSerializer):
         "client_payment_status": "وضعیت پرداخت کارفرما",
         "debt_to_personnel": "بدهی مرکز به پرسنل",
         "personnel_payment_status": "وضعیت پرداخت پرسنل",
-        "total_cost": "هزینه کل",
+        "total_cost": "هزینه با تخفیف",
         "total_franchise": "فرانشیز مرکز",
         "discount": "تخفیف",
     }
@@ -215,7 +221,7 @@ class ContractSerializer(DynamicFieldSerializer):
     end = serializers.CharField()
     end_hour = serializers.CharField()
     end_verbose = serializers.SerializerMethodField()
-    include_holidays = serializers.BooleanField()
+    include_holidays = PersianBooleanField()
     personnel_monthly_salary = serializers.IntegerField()
     personnel_salary_payment_time = serializers.CharField(
         source="get_personnel_salary_payment_time_display"
@@ -286,6 +292,7 @@ class ContractSerializer(DynamicFieldSerializer):
 class PaymentSerializer(DynamicFieldSerializer):
     source = PeopleSerializer()
     destination = PeopleSerializer()
+    payment_type = serializers.SerializerMethodField()
     amount = serializers.IntegerField()
     paid_at = serializers.CharField()
     note = serializers.CharField()
@@ -295,6 +302,7 @@ class PaymentSerializer(DynamicFieldSerializer):
     translated_fields = {
         "source": "مبداء",
         "destination": "مقصد",
+        "payment_type": "نوع پرداختی",
         "amount": "مقدار",
         "paid_at": "زمان پرداخت",
         "note": "نوت",
@@ -302,6 +310,11 @@ class PaymentSerializer(DynamicFieldSerializer):
 
     def to_representation(self, instance):
         return super().to_representation(instance, ["contract", "order"])
+
+    def get_payment_type(self, obj):
+        if obj.source:
+            return "پرداختی کارفرما"
+        return "پرداختی پرسنل"
 
 
 class ButtonSerializer(serializers.Serializer):

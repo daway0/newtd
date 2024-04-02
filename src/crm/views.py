@@ -444,7 +444,13 @@ def order_preview(request, id):
                 "icon": "payment icon",
                 "data": s.PaymentSerializer(
                     payment,
-                    fields=["amount", "paid_at", "note", "link"],
+                    fields=[
+                        "payment_type",
+                        "amount",
+                        "paid_at",
+                        "note",
+                        "link",
+                    ],
                     many=True,
                 ),
             }
@@ -477,7 +483,13 @@ def contract_preview(request, id):
                 "icon": "payment icon",
                 "data": s.PaymentSerializer(
                     payment,
-                    fields=["amount", "paid_at", "note", "link"],
+                    fields=[
+                        "payment_type",
+                        "amount",
+                        "paid_at",
+                        "note",
+                        "link",
+                    ],
                     many=True,
                 ),
             }
