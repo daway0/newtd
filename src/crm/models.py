@@ -2,7 +2,8 @@ from typing import Any
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import Q, Sum
+from django.db.models import F, Q, Sum, Value
+from django.db.models.functions import Concat
 from django.urls import reverse
 
 from . import utils, validators
@@ -502,6 +503,17 @@ class Contract(Log):
             return "پرداخت نشده"
 
         return "پرداخت جزئی"
+
+    @property
+    def all_patients(self):
+        patients = (
+            self.patients.all()
+            .annotate(
+                fullname=Concat(F("firstname"), Value(" "), F("lastname"))
+            )
+            .values_list("fullname", flat=True)
+        )
+        return ", ".join(patients) if patients else ""
 
     def get_contracts_in_month_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)

@@ -206,7 +206,7 @@ class ContractSerializer(DynamicFieldSerializer):
     contract_at = serializers.CharField()
     client = PeopleMinimalSerializer()
     care_for = serializers.CharField(source="get_care_for_display")
-    patients = PeopleMinimalSerializer(many=True)
+    patients = serializers.CharField(source="all_patients")
     relationship_with_patient = serializers.CharField(
         source="get_relationship_with_patient_display"
     )
