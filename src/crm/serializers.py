@@ -49,7 +49,7 @@ class PeopleDetailsSerializer(serializers.ModelSerializer):
             "link",
         ]
 
-    translated_titles = {
+    translated_fields = {
         "get_detail_type_display": "نوع رکورد",
         "address": "آدرس",
         "phone_number": "شماره تلفن",
@@ -68,7 +68,7 @@ class PeopleDetailsSerializer(serializers.ModelSerializer):
             new_data[key] = value
 
         return utils.translate_serializer_fields(
-            new_data, PeopleDetailsSerializer.translated_titles, ["link"]
+            new_data, PeopleDetailsSerializer.translated_fields, ["link"]
         )
 
 
@@ -93,7 +93,7 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
     specifications = SpecificationSerializer(many=True)
     membership_period = serializers.SerializerMethodField()
 
-    translated_titles = {
+    translated_fields = {
         "joined_at": "تاریخ عضویت",
         "membership_period": "عضویت از",
         "national_code": "کد ملی",
@@ -118,7 +118,7 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         return utils.translate_serializer_fields(
-            data, PeopleSerializer.translated_titles
+            data, PeopleSerializer.translated_fields
         )
 
     def get_membership_period(self, obj):
@@ -172,7 +172,7 @@ class OrderSerializer(DynamicFieldSerializer):
     discount = serializers.IntegerField()
     link = serializers.CharField(source="get_absolute_url_api")
 
-    translated_titles = {
+    translated_fields = {
         "order_at": "تاریخ خدمت",
         "client": "کارفرما",
         "services": "خدمت‌ها",
@@ -192,7 +192,7 @@ class OrderSerializer(DynamicFieldSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         return utils.translate_serializer_fields(
-            data, OrderSerializer.translated_titles, ["link"]
+            data, OrderSerializer.translated_fields, ["link"]
         )
 
 
@@ -227,7 +227,7 @@ class ContractSerializer(DynamicFieldSerializer):
     referral_other = CommonPatternSerializer()
     link = serializers.CharField(source="get_absolute_url_api")
 
-    translated_values = {
+    translated_fields = {
         "contract_at": "تاریخ قرارداد",
         "client": "کارفرما",
         "care_for": "مراقبت از",
@@ -257,7 +257,7 @@ class ContractSerializer(DynamicFieldSerializer):
     def to_representation(self, instance):
         data = super().to_representation(instance)
         return utils.translate_serializer_fields(
-            data, ContractSerializer.translated_values, ["link"]
+            data, ContractSerializer.translated_fields, ["link"]
         )
 
     def get_shift_days(self, obj):
@@ -286,25 +286,31 @@ class ContractSerializer(DynamicFieldSerializer):
         )
 
 
-class PaymentSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
+class PaymentSerializer(DynamicFieldSerializer):
     source = PeopleSerializer()
     destination = PeopleSerializer()
+    amount = serializers.IntegerField()
+    paid_at = serializers.CharField()
+    note = serializers.CharField()
     order = OrderSerializer()
     contract = ContractSerializer()
     link = serializers.CharField(source="get_absolute_url")
 
-    class Meta:
-        model = m.Payment
-        fields = [
-            "source",
-            "destination",
-            "amount",
-            "paid_at",
-            "note",
-            "order",
-            "contract",
-            "link",
-        ]
+    translated_fields = {
+        "source": "مبداء",
+        "destination": "مقصد",
+        "amount": "مقدار",
+        "paid_at": "زمان پرداخت",
+        "note": "نوت",
+    }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return utils.translate_serializer_fields(
+            data,
+            PaymentSerializer.translated_fields,
+            ["contract", "order", "link"],
+        )
 
 
 class ButtonSerializer(serializers.Serializer):
@@ -316,11 +322,7 @@ class ButtonSerializer(serializers.Serializer):
 class DataTableSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=250)
     icon = serializers.CharField(max_length=250)
-    headers = serializers.SerializerMethodField(required=False)
     data = serializers.SerializerMethodField()
-
-    def get_headers(self, obj):
-        return list(obj["data"].child.fields.keys())
 
     def get_data(self, obj):
         return obj["data"].data
