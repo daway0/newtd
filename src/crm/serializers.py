@@ -5,12 +5,17 @@ from . import models as m
 from . import utils
 
 
-class CommonPatternSerializer(serializers.Serializer):
-    value = serializers.CharField(source="title")
-    link = serializers.CharField(source="get_absolute_url")
+class TranslatedSerializer(serializers.Serializer):
+    translated_fields = dict()
+
+    def to_representation(self, instance, exclude: list[str] = []):
+        data = super().to_representation(instance)
+        return utils.translate_serializer_fields(
+            data, self.translated_fields, exclude
+        )
 
 
-class DynamicFieldSerializer(serializers.Serializer):
+class DynamicFieldSerializer(TranslatedSerializer):
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop("fields", None)
         exclude = kwargs.pop("exclude", None)
@@ -35,9 +40,9 @@ class SpecificationSerializer(serializers.ModelSerializer):
         fields = ["parent", "title"]
 
 
-class PeopleDetailsSerializer(serializers.ModelSerializer):
-    link = serializers.CharField(source="get_absolute_url")
-
+class PeopleDetailsSerializer(
+    TranslatedSerializer, serializers.ModelSerializer
+):
     class Meta:
         model = m.PeopleDetailedInfo
         fields = [
@@ -46,7 +51,6 @@ class PeopleDetailsSerializer(serializers.ModelSerializer):
             "phone_number",
             "card_number",
             "note",
-            "link",
         ]
 
     translated_fields = {
@@ -67,9 +71,7 @@ class PeopleDetailsSerializer(serializers.ModelSerializer):
                 continue
             new_data[key] = value
 
-        return utils.translate_serializer_fields(
-            new_data, PeopleDetailsSerializer.translated_fields, ["link"]
-        )
+        return new_data
 
 
 class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
@@ -97,6 +99,7 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
         "joined_at": "تاریخ عضویت",
         "membership_period": "عضویت از",
         "national_code": "کد ملی",
+        "full_name": "نام و نام خانوادگی",
         "fullname_with_prefix": "نام و نام خانوادگی",
         "get_people_type_display": "نوع شخص",
         "get_gender_display": "جنسیت",
@@ -114,12 +117,6 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
         "total_client_orders": "تعداد خدمت‌های کارفرما",
         "total_client_contracts": "تعداد قرارداد‌های کارفرما",
     }
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        return utils.translate_serializer_fields(
-            data, PeopleSerializer.translated_fields
-        )
 
     def get_membership_period(self, obj):
         date_obj = utils.create_jdate_from_str(obj.joined_at)
@@ -150,9 +147,15 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
         ]
 
 
-class PeopleMinimalSerializer(CommonPatternSerializer):
+class PeopleMinimalSerializer(serializers.Serializer):
     value = serializers.CharField(source="full_name")
     link = serializers.CharField(source="get_absolute_url_api")
+
+
+class ReferralOtherSerializer(TranslatedSerializer):
+    title = serializers.CharField
+
+    translated_fields = {"title": "عنوان"}
 
 
 class OrderSerializer(DynamicFieldSerializer):
@@ -162,7 +165,7 @@ class OrderSerializer(DynamicFieldSerializer):
     assigned_personnel = PeopleMinimalSerializer()
     service_location = serializers.CharField(source="service_location.address")
     referral_people = PeopleMinimalSerializer()
-    referral_other = CommonPatternSerializer()
+    referral_other = ReferralOtherSerializer()
     client_debt = serializers.IntegerField()
     client_payment_status = serializers.CharField()
     debt_to_personnel = serializers.IntegerField()
@@ -190,10 +193,7 @@ class OrderSerializer(DynamicFieldSerializer):
     }
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
-        return utils.translate_serializer_fields(
-            data, OrderSerializer.translated_fields, ["link"]
-        )
+        return super().to_representation(instance, exclude=["link"])
 
 
 class ContractSerializer(DynamicFieldSerializer):
@@ -224,7 +224,7 @@ class ContractSerializer(DynamicFieldSerializer):
     client_debt = serializers.IntegerField()
     client_payment_status = serializers.CharField()
     referral_people = PeopleMinimalSerializer()
-    referral_other = CommonPatternSerializer()
+    referral_other = ReferralOtherSerializer()
     link = serializers.CharField(source="get_absolute_url_api")
 
     translated_fields = {
@@ -255,10 +255,7 @@ class ContractSerializer(DynamicFieldSerializer):
     }
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
-        return utils.translate_serializer_fields(
-            data, ContractSerializer.translated_fields, ["link"]
-        )
+        return super().to_representation(instance, exclude=["link"])
 
     def get_shift_days(self, obj):
         shift_days = []
@@ -294,7 +291,6 @@ class PaymentSerializer(DynamicFieldSerializer):
     note = serializers.CharField()
     order = OrderSerializer()
     contract = ContractSerializer()
-    link = serializers.CharField(source="get_absolute_url")
 
     translated_fields = {
         "source": "مبداء",
@@ -305,12 +301,7 @@ class PaymentSerializer(DynamicFieldSerializer):
     }
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
-        return utils.translate_serializer_fields(
-            data,
-            PaymentSerializer.translated_fields,
-            ["contract", "order", "link"],
-        )
+        return super().to_representation(instance, ["contract", "order"])
 
 
 class ButtonSerializer(serializers.Serializer):

@@ -117,7 +117,7 @@ def services_section(request):
 def people_section(request):
     clients = models.People.clients.all()
     personnel = models.People.personnels.all()
-    cases = models.People.cases.all()
+    cases = models.People.patients.all()
     data = {
         "tabs": [
             utils.make_section_tab(
@@ -188,7 +188,7 @@ def settings_section(request):
     return render(request, "settings/main.html", dict(section="settings"))
 
 
-def new_client(request):
+def create_client(request):
     form = TestForm()
     return render(
         request,
@@ -197,14 +197,14 @@ def new_client(request):
     )
 
 
-def new_personnel(request):
+def create_personnel(request):
     form = TestForm()
     return render(
         request, "users/create_change/client.html", context=dict(form=form)
     )
 
 
-def new_case(request):
+def create_patient(request):
     form = TestForm()
     return render(
         request, "users/create_change/client.html", context=dict(form=form)
@@ -225,7 +225,49 @@ def edit_personnel(request, id):
     )
 
 
-def edit_case(request, id):
+def edit_patient(request, id):
+    form = TestForm()
+    return render(
+        request, "users/create_change/client.html", context=dict(form=form)
+    )
+
+
+def update_client(request, id):
+    form = TestForm()
+    return render(
+        request, "people/create_change/client.html", context=dict(form=form)
+    )
+
+
+def update_personnel(request, id):
+    form = TestForm()
+    return render(
+        request, "users/create_change/client.html", context=dict(form=form)
+    )
+
+
+def update_patient(request, id):
+    form = TestForm()
+    return render(
+        request, "users/create_change/client.html", context=dict(form=form)
+    )
+
+
+def delete_client(request, id):
+    form = TestForm()
+    return render(
+        request, "people/create_change/client.html", context=dict(form=form)
+    )
+
+
+def delete_personnel(request, id):
+    form = TestForm()
+    return render(
+        request, "users/create_change/client.html", context=dict(form=form)
+    )
+
+
+def delete_patient(request, id):
     form = TestForm()
     return render(
         request, "users/create_change/client.html", context=dict(form=form)
@@ -238,18 +280,6 @@ def get_service(request, id):
     return render(request, "some_template", context={"form": form})
 
 
-def get_person_info(request, id):
-    service = get_object_or_404(models.PeopleDetailedInfo, pk=id)
-    form = TestForm(service)
-    return render(request, "some_template", context={"form": form})
-
-
-def get_referral(request, id):
-    referral = get_object_or_404(models.Referral, pk=id)
-    form = TestForm(referral)
-    return render(request, "some_template", {"form": form})
-
-
 def get_order(request, id):
     order = get_object_or_404(models.Order, pk=id)
     form = TestForm(order)
@@ -259,12 +289,6 @@ def get_order(request, id):
 def get_contract(request, id):
     contract = get_object_or_404(models.Contract, pk=id)
     form = TestForm(contract)
-    return render(request, "some_template", {"form": form})
-
-
-def get_payment(request, id):
-    payment = get_object_or_404(models.Payment, pk=id)
-    form = TestForm(payment)
     return render(request, "some_template", {"form": form})
 
 
@@ -581,7 +605,7 @@ def personnel_preview(request, id):
             {
                 "title": "tags",
                 "icon": "tags icon",
-                "data": s.CommonPatternSerializer(
+                "data": s.ReferralOtherSerializer(  # They have same schema
                     personnel.specifications.all(), many=True
                 ),
             },
@@ -637,7 +661,7 @@ def personnel_preview(request, id):
 @api_view(["GET"])
 def patient_preview(request, id):
     patient = get_object_or_404(
-        models.People, pk=id, people_type=models.PeopleTypeChoices.CASE
+        models.People, pk=id, people_type=models.PeopleTypeChoices.PATIENT
     )
 
     data = {
@@ -650,9 +674,7 @@ def patient_preview(request, id):
                 "link": "https://test.com/",
             }
         ],
-        "table": s.PeopleSerializer(
-            patient, exclude=["link"]
-        ),
+        "table": s.PeopleSerializer(patient, exclude=["link"]),
         "data_tables": [
             {
                 "title": "contracts",

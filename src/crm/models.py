@@ -40,7 +40,7 @@ class Log(models.Model):
 class PeopleTypeChoices(models.TextChoices):
     PERSONNEL = "PSN", "پرسنل"
     CLIENT = "CLI", "کارفرما"
-    CASE = "CSE", "مددجو"
+    PATIENT = "PNT", "مددجو"
 
 
 class PersonnelRoleChoices(models.TextChoices):
@@ -61,9 +61,6 @@ class TagSpecefication(Log):
         "self", on_delete=models.CASCADE, null=True, blank=True
     )
     title = models.CharField(max_length=150)
-
-    def get_absolute_url(self):
-        return reverse("crm:get_tag", kwargs={"id": self.pk})
 
     def __str__(self) -> str:
         return self.title
@@ -89,12 +86,12 @@ class PersonnelManager(models.Manager):
         )
 
 
-class CaseManager(models.Manager):
+class PatientManager(models.Manager):
     def get_queryset(self) -> models.QuerySet:
         return (
             super()
             .get_queryset()
-            .filter(people_type=PeopleTypeChoices.CASE)
+            .filter(people_type=PeopleTypeChoices.PATIENT)
             .order_by("-joined_at")
         )
 
@@ -178,8 +175,8 @@ class People(Log):
         ).aggregate(debt=Sum("personnel_debt"))["debt"]
 
     @property
-    def total_case_contracts(self):
-        return self.total_orders + self.patient_contracts.count()
+    def total_patient_contracts(self):
+        return self.patient_contracts.count()
 
     @property
     def total_client_debt(self):
@@ -228,9 +225,11 @@ class People(Log):
             if enum.value == self.people_type:
                 return enum.name
 
-    def get_absolute_url(self):
+    def get_absolute_url(self, action_type: str):
+        assert action_type.lower() in ["create", "edit", "update", "delete"]
+
         label = self._get_people_type_label()
-        path_name = f"crm:edit_{label.lower()}"
+        path_name = f"crm:{action_type.lower()}_{label.lower()}"
 
         return reverse(path_name, kwargs={"id": self.id})
 
@@ -258,7 +257,7 @@ class People(Log):
     objects = models.Manager()
     clients = ClientManager()
     personnels = PersonnelManager()
-    cases = CaseManager()
+    patients = PatientManager()
 
 
 class PeopleDetailTypeChoices(models.TextChoices):
@@ -281,9 +280,6 @@ class PeopleDetailedInfo(Log):
     phone_number = models.CharField(max_length=10, null=True, blank=True)
     card_number = models.CharField(max_length=16, null=True, blank=True)
     note = models.TextField(null=True, blank=True)
-
-    def get_absolute_url(self):
-        return reverse("crm:get_person_info", kwargs={"id": self.pk})
 
     def __str__(self) -> str:
         detail = self.address or self.phone_number or self.card_number
@@ -310,9 +306,6 @@ class Service(Log):
 
 class Referral(Log):
     title = models.CharField(max_length=150)
-
-    def get_absolute_url(self):
-        return reverse("crm:get_referral", kwargs={"id": self.pk})
 
     def __str__(self) -> str:
         return f"{self.title}"
@@ -590,9 +583,6 @@ class Payment(Log):
         return Payment.incomes.filter(
             Q(paid_at__lte=end) & Q(paid_at__gte=start)
         )
-
-    def get_absolute_url(self):
-        return reverse("crm:get_payment", kwargs={"id": self.pk})
 
     def __str__(self) -> str:
         return f"from {self.source} to {self.destination} amount {self.amount}"

@@ -52,4 +52,13 @@ def make_breadcrumb(path: str):
     return dict(parents=parents[:-1], latest=parents[-1])
 
 
+@register.simple_tag(name="get_people_url")
+def get_people_url(people, action: str):
+    assert action.lower() in [
+        "create",
+        "edit",
+        "update",
+        "delete",
+    ], "invalid action"
 
+    return people.get_absolute_url(action.lower())
