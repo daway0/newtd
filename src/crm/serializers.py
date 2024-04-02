@@ -13,12 +13,19 @@ class CommonPatternSerializer(serializers.Serializer):
 class DynamicFieldSerializer(serializers.Serializer):
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop("fields", None)
+        exclude = kwargs.pop("exclude", None)
         super().__init__(*args, **kwargs)
 
         if fields:
             allowed = set(fields)
             existings = set(self.fields)
             for field in existings.difference(allowed):
+                self.fields.pop(field)
+
+        if exclude:
+            exludes = set(exclude)
+            existings = set(self.fields)
+            for field in existings.intersection(exludes):
                 self.fields.pop(field)
 
 
@@ -48,7 +55,6 @@ class PeopleDetailsSerializer(serializers.ModelSerializer):
         "phone_number": "شماره تلفن",
         "card_number": "شماره کارت",
         "note": "نوت",
-        "link": "لینک",
     }
 
     def to_representation(self, instance):
@@ -167,10 +173,10 @@ class OrderSerializer(DynamicFieldSerializer):
     link = serializers.CharField(source="get_absolute_url_api")
 
     translated_titles = {
-        "order_at": "زمان خدمت",
+        "order_at": "تاریخ خدمت",
         "client": "کارفرما",
         "services": "خدمت‌ها",
-        "assigned_personnel": "پرسنل مشخص شده",
+        "assigned_personnel": "پرسنل",
         "service_location": "محل خدمت",
         "referral_people": "معرف",
         "referral_other": "معرف دیگر",
@@ -222,12 +228,12 @@ class ContractSerializer(DynamicFieldSerializer):
     link = serializers.CharField(source="get_absolute_url_api")
 
     translated_values = {
-        "contract_at": "زمان قرارداد",
+        "contract_at": "تاریخ قرارداد",
         "client": "کارفرما",
         "care_for": "مراقبت از",
         "patients": "بیماران",
         "relationship_with_patient": "نسبت با بیمار",
-        "personnel": "پرسنل مشخص شده",
+        "personnel": "پرسنل",
         "service_location": "محل خدمت",
         "shift": "شیفت",
         "shift_days": "روز‌های شیفت",

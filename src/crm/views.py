@@ -413,7 +413,7 @@ def order_preview(request, id):
                 "link": "https://test.com/",
             }
         ],
-        "table": s.OrderSerializer(order),
+        "table": s.OrderSerializer(order, exclude=["link"]),
         "data_tables": [
             {
                 "title": "payment",
@@ -446,7 +446,7 @@ def contract_preview(request, id):
                 "link": "https://test.com/",
             }
         ],
-        "table": s.ContractSerializer(contract),
+        "table": s.ContractSerializer(contract, exclude=["link"]),
         "data_tables": [
             {
                 "title": "payment",
@@ -486,6 +486,7 @@ def client_preview(request, id):
                 "total_clinet_contracts",
                 "total_client_debt",
             ],
+            exclude=["link"],
         ),
         "data_tables": [
             {
@@ -567,6 +568,7 @@ def personnel_preview(request, id):
                 "total_personnel_contracts",
                 "total_healthcare_debt_to_personnel",
             ],
+            exclude=["link"],
         ),
         "data_tables": [
             {
@@ -649,7 +651,7 @@ def patient_preview(request, id):
             }
         ],
         "table": s.PeopleSerializer(
-            patient,
+            patient, exclude=["link"]
         ),
         "data_tables": [
             {
