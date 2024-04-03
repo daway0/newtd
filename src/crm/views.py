@@ -430,6 +430,7 @@ def order_preview(request, id):
     data = {
         "title": "خدمت موردی",
         "icon": "test icon",
+        "description": order.__str__(),
         "buttons": [
             {
                 "title": "حذف خدمت",
@@ -492,9 +493,7 @@ def order_preview(request, id):
             {
                 "title": "تماس‌ها",
                 "icon": "call icon",
-                "data": s.CallSerializer(
-                    order.call_set.all(), many=True
-                ),
+                "data": s.CallSerializer(order.call_set.all(), many=True),
             },
         ],
     }
@@ -511,6 +510,7 @@ def contract_preview(request, id):
     data = {
         "title": "قرارداد مراقبت",
         "icon": "test icon",
+        "description": contract.__str__(),
         "buttons": [
             {
                 "title": "first button",
@@ -521,7 +521,7 @@ def contract_preview(request, id):
         "table": s.ContractSerializer(contract, exclude=["link"]),
         "data_tables": [
             {
-                "title": "payment",
+                "title": "پرداختی‌ها",
                 "icon": "payment icon",
                 "data": s.PaymentSerializer(
                     payment,
@@ -562,6 +562,7 @@ def client_preview(request, id):
     data = {
         "title": "کارفرما",
         "icon": "client icon",
+        "description": client.__str__(),
         "buttons": [
             {
                 "title": "first button",
@@ -573,19 +574,19 @@ def client_preview(request, id):
             client,
             fields=[
                 "total_client_orders",
-                "total_clinet_contracts",
+                "total_client_contracts",
                 "total_client_debt",
             ],
             exclude=["link"],
         ),
         "data_tables": [
             {
-                "title": "details",
+                "title": "اطلاعات جزئی",
                 "icon": "details icon",
                 "data": s.PeopleDetailsSerializer(client.details, many=True),
             },
             {
-                "title": "orders",
+                "title": "خدمات",
                 "icon": "order icon",
                 "data": s.OrderSerializer(
                     client.client_orders.all(),
@@ -600,7 +601,7 @@ def client_preview(request, id):
                 ),
             },
             {
-                "title": "contracts",
+                "title": "قراردادها",
                 "icon": "contract icon",
                 "data": s.ContractSerializer(
                     client.client_contracts.all(),
@@ -615,11 +616,11 @@ def client_preview(request, id):
                 ),
             },
             {
-                "title": "payment",
+                "title": "پرداختی‌ها",
                 "icon": "payment icon",
                 "data": s.PaymentSerializer(
                     client.source_payments.all(),
-                    fields=["amount", "paid_at", "note", "link"],
+                    fields=["amount", "paid_at", "reason", "note", "link"],
                     many=True,
                 ),
             },
@@ -650,6 +651,7 @@ def personnel_preview(request, id):
     data = {
         "title": "پرسنل",
         "icon": "personnel icon",
+        "description": personnel.__str__(),
         "buttons": [
             {
                 "title": "first button",
@@ -670,21 +672,21 @@ def personnel_preview(request, id):
         ),
         "data_tables": [
             {
-                "title": "details",
+                "title": "اطلاعات جزئی",
                 "icon": "details icon",
                 "data": s.PeopleDetailsSerializer(
                     personnel.details.all(), many=True
                 ),
             },
             {
-                "title": "tags",
+                "title": "صفت‌ها",
                 "icon": "tags icon",
                 "data": s.ReferralOtherSerializer(  # They have same schema
                     personnel.specifications.all(), many=True
                 ),
             },
             {
-                "title": "orders",
+                "title": "خدمات",
                 "icon": "order icon",
                 "data": s.OrderSerializer(
                     personnel.personnel_orders.all(),
@@ -699,7 +701,7 @@ def personnel_preview(request, id):
                 ),
             },
             {
-                "title": "contracts",
+                "title": "قراردادها",
                 "icon": "contract icon",
                 "data": s.ContractSerializer(
                     personnel.personnel_contracts.all(),
@@ -717,11 +719,11 @@ def personnel_preview(request, id):
                 ),
             },
             {
-                "title": "payment",
+                "title": "پرداختی‌ها",
                 "icon": "payment icon",
                 "data": s.PaymentSerializer(
                     personnel.source_payments.all(),
-                    fields=["amount", "paid_at", "note", "link"],
+                    fields=["amount", "paid_at", "reason", "note", "link"],
                     many=True,
                 ),
             },
@@ -749,6 +751,7 @@ def patient_preview(request, id):
     data = {
         "title": "بیمار",
         "icon": "patient icon",
+        "description": patient.__str__(),
         "buttons": [
             {
                 "title": "first button",
@@ -759,7 +762,7 @@ def patient_preview(request, id):
         "table": s.PeopleSerializer(patient, exclude=["link"]),
         "data_tables": [
             {
-                "title": "contracts",
+                "title": "قراردادها",
                 "icon": "contract icon",
                 "data": s.ContractSerializer(
                     patient.patient_contracts.all(),

@@ -253,7 +253,7 @@ class People(Log):
         )
 
     def __str__(self) -> str:
-        return self.fullname_with_prefix
+        return f"{self.fullname_with_prefix} {self.get_people_type_display()}"
 
     objects = models.Manager()
     clients = ClientManager()

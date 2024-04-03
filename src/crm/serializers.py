@@ -127,6 +127,7 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
         model = m.People
         fields = [
             "joined_at",
+            "national_code",
             "membership_period",
             "fullname_with_prefix",
             "get_people_type_display",
@@ -291,6 +292,7 @@ class PaymentSerializer(DynamicFieldSerializer):
     note = serializers.CharField()
     order = OrderSerializer()
     contract = ContractSerializer()
+    reason = serializers.SerializerMethodField()
 
     translated_fields = {
         "source": "مبداء",
@@ -298,6 +300,7 @@ class PaymentSerializer(DynamicFieldSerializer):
         "payment_type": "نوع پرداختی",
         "amount": "مقدار",
         "paid_at": "زمان پرداخت",
+        "reason": "علت پرداخت",
         "note": "نوت",
     }
 
@@ -308,6 +311,10 @@ class PaymentSerializer(DynamicFieldSerializer):
         if obj.source:
             return "پرداختی کارفرما"
         return "پرداختی پرسنل"
+
+    def get_reason(self, obj):
+        reason = obj.order or obj.contract
+        return reason.__str__()
 
 
 class ButtonSerializer(serializers.Serializer):
@@ -328,6 +335,7 @@ class DataTableSerializer(serializers.Serializer):
 class PreviewSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=250)
     icon = serializers.CharField(max_length=250)
+    description = serializers.CharField(max_length=250)
     buttons = ButtonSerializer(many=True)
     table = serializers.SerializerMethodField()
     data_tables = DataTableSerializer(many=True)
