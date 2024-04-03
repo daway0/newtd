@@ -173,7 +173,7 @@ class People(Log):
     def total_healthcare_debt_to_personnel(self):
         return OrderPayment.objects.filter(
             order__assigned_personnel=self
-        ).aggregate(debt=Sum("personnel_debt"))["debt"]
+        ).aggregate(debt=Sum("personnel_debt"))["debt"] or 0
 
     @property
     def total_patient_contracts(self):
@@ -652,6 +652,7 @@ class Call(Log):
         null=True,
         blank=True,
     )
+    note = models.TextField(null=True, blank=True)
 
     def get_all_calls_in_months_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)

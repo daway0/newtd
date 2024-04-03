@@ -70,14 +70,7 @@ class PeopleDetailsSerializer(
     def to_representation(self, instance):
         data = super().to_representation(instance)
         omitabale_keys = ["address", "phone_number", "card_number"]
-        new_data = dict()
-
-        for key, value in data.items():
-            if key in omitabale_keys and value is None:
-                continue
-            new_data[key] = value
-
-        return new_data
+        return utils.omit_null_fields(data, omitabale_keys)
 
 
 class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
@@ -341,3 +334,34 @@ class PreviewSerializer(serializers.Serializer):
 
     def get_table(self, obj):
         return obj["table"].data
+
+
+class ServiceSerializer(TranslatedSerializer):
+    title = serializers.CharField(source="service__title")
+    cost = serializers.IntegerField()
+
+    translated_fields = {"title": "عنوان", "cost": "هزینه"}
+
+
+class CallSerializer(DynamicFieldSerializer):
+    called_at = serializers.CharField()
+    call_direction = serializers.CharField(source="get_call_direction_display")
+    from_number = serializers.CharField()
+    to_number = serializers.CharField()
+    response_status = serializers.CharField(
+        source="get_response_status_display"
+    )
+    note = serializers.CharField()
+
+    translated_fields = {
+        "called_at": "تاریخ تماس",
+        "call_direction": "نوع تماس",
+        "from_number": "از شماره",
+        "to_number": "به شماره",
+        "response_status": "وضعیت پاسخ",
+        "note": "نوت",
+    }
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        return utils.omit_null_fields(data, ["from_number", "to_number"])

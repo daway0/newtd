@@ -465,12 +465,17 @@ def order_preview(request, id):
                 "title": "پرداخت پرسنل",
                 "icon": "first button icon",
                 "link": "https://test.com/",
-            }
+            },
         ],
         "table": s.OrderSerializer(order, exclude=["link"]),
         "data_tables": [
             {
-                "title": "پرداخت ها",
+                "title": "خدمات",
+                "icon": "services icon",
+                "data": s.ServiceSerializer(order.services.all(), many=True),
+            },
+            {
+                "title": "پرداختی‌ها",
                 "icon": "payment icon",
                 "data": s.PaymentSerializer(
                     payment,
@@ -483,7 +488,14 @@ def order_preview(request, id):
                     ],
                     many=True,
                 ),
-            }
+            },
+            {
+                "title": "تماس‌ها",
+                "icon": "call icon",
+                "data": s.CallSerializer(
+                    order.call_set.all(), many=True
+                ),
+            },
         ],
     }
     serializer = s.PreviewSerializer(data).data
@@ -522,7 +534,15 @@ def contract_preview(request, id):
                     ],
                     many=True,
                 ),
-            }
+            },
+            {
+                "title": "تماس‌ها",
+                "icon": "call icon",
+                "data": s.CallSerializer(
+                    contract.call_set.all(),
+                    many=True,
+                ),
+            },
         ],
     }
     serializer = s.PreviewSerializer(data).data
@@ -535,6 +555,10 @@ def client_preview(request, id):
     client = get_object_or_404(
         models.People, pk=id, people_type=models.PeopleTypeChoices.CLIENT
     )
+    client_calls = models.Call.objects.filter(
+        Q(from_people=client) | Q(to_people=client)
+    )
+
     data = {
         "title": "کارفرما",
         "icon": "client icon",
@@ -582,9 +606,6 @@ def client_preview(request, id):
                     client.client_contracts.all(),
                     fields=[
                         "start",
-                        "start_hour",
-                        "end",
-                        "end_hour",
                         "end_verbose",
                         "healthcare_franchise_amount",
                         "client_payment_status",
@@ -602,6 +623,14 @@ def client_preview(request, id):
                     many=True,
                 ),
             },
+            {
+                "title": "تماس‌ها",
+                "icon": "call icon",
+                "data": s.CallSerializer(
+                    client_calls,
+                    many=True,
+                ),
+            },
         ],
     }
 
@@ -613,6 +642,9 @@ def client_preview(request, id):
 def personnel_preview(request, id):
     personnel = get_object_or_404(
         models.People, pk=id, people_type=models.PeopleTypeChoices.PERSONNEL
+    )
+    personnel_calls = models.Call.objects.filter(
+        Q(from_people=personnel) | Q(to_people=personnel)
     )
 
     data = {
@@ -690,6 +722,14 @@ def personnel_preview(request, id):
                 "data": s.PaymentSerializer(
                     personnel.source_payments.all(),
                     fields=["amount", "paid_at", "note", "link"],
+                    many=True,
+                ),
+            },
+            {
+                "title": "تماس‌ها",
+                "icon": "call icon",
+                "data": s.CallSerializer(
+                    personnel_calls,
                     many=True,
                 ),
             },

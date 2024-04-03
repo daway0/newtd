@@ -175,3 +175,14 @@ def time_left_til_specific_date_verbose(
         final_string.append(f"{days_diff} روز")
 
     return ", ".join(final_string)
+
+
+def omit_null_fields(data: dict, omitabale_fields: list[str]) -> dict:
+    new_data = dict()
+
+    for key, value in data.items():
+        if key in omitabale_fields and value["value"] is None:
+            continue
+        new_data[key] = value
+
+    return new_data
