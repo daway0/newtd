@@ -707,9 +707,6 @@ def personnel_preview(request, id):
                     personnel.personnel_contracts.all(),
                     fields=[
                         "start",
-                        "start_hour",
-                        "end",
-                        "end_hour",
                         "end_verbose",
                         "healthcare_franchise_amount",
                         "client_payment_status",
@@ -769,9 +766,6 @@ def patient_preview(request, id):
                     fields=[
                         "client",
                         "start",
-                        "start_hour",
-                        "end",
-                        "end_hour",
                         "end_verbose",
                         "link",
                     ],
