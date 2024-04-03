@@ -243,7 +243,7 @@ class ContractSerializer(DynamicFieldSerializer):
         "start_hour": "ساعت شروع قرارداد",
         "end": "تاریخ پایان قرارداد",
         "end_hour": "ساعت پایان قرارداد",
-        "end_verbose": "زمان مانده تا سررسید قرارداد",
+        "end_verbose": "سررسید قرارداد",
         "include_holidays": "شامل تعطیلات می‌باشد",
         "personnel_monthly_salary": "حقوق ماهیانه پرسنل",
         "personnel_salary_payment_time": "زمان پرداخت حقوق پرسنل",
@@ -284,22 +284,22 @@ class ContractSerializer(DynamicFieldSerializer):
 
 
 class PaymentSerializer(DynamicFieldSerializer):
+    paid_at = serializers.CharField()
     source = PeopleSerializer()
     destination = PeopleSerializer()
     payment_type = serializers.SerializerMethodField()
     amount = serializers.IntegerField()
-    paid_at = serializers.CharField()
-    note = serializers.CharField()
     order = OrderSerializer()
     contract = ContractSerializer()
     reason = serializers.SerializerMethodField()
+    note = serializers.CharField()
 
     translated_fields = {
         "source": "مبداء",
         "destination": "مقصد",
         "payment_type": "نوع پرداختی",
         "amount": "مقدار",
-        "paid_at": "زمان پرداخت",
+        "paid_at": "تاریخ پرداخت",
         "reason": "علت پرداخت",
         "note": "نوت",
     }

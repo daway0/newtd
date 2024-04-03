@@ -177,18 +177,18 @@ class People(Log):
         return debt if debt and debt >= 0 else 0
 
     @property
-    def total_personnel_revenue(self):
-        raise NotImplementedError()
-        orders_revenue = OrderPayment.objects.filter(
-            order__assigned_personnel=self
-        ).aggregate(revenue=Sum("personnel_fee"))["revenue"]
-
-        contracts_revenue = ...
-
-    @property
     def total_personnel_additional_payment(self):
-        raise NotImplementedError()
-        return self.totalpers
+        total_revenue_and_paid = OrderPayment.objects.filter(
+            order__assigned_personnel=self
+        ).aggregate(revenue=Sum("personnel_fee"), paid=Sum("personnel_paid"))
+
+        revenue = total_revenue_and_paid["revenue"]
+        paid = total_revenue_and_paid["paid"]
+
+        if revenue > paid:
+            return 0
+
+        return paid - revenue
 
     @property
     def total_patient_contracts(self):
