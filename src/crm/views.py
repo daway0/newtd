@@ -425,6 +425,7 @@ def search(request):
 def order_preview(request, id):
     order = get_object_or_404(models.Order, pk=id)
     payment = models.Payment.objects.filter(order=order)
+    services = models.OrderServices.objects.filter(order=order)
     data = s.OrderSerializer(order)
 
     data = {
@@ -473,7 +474,7 @@ def order_preview(request, id):
             {
                 "title": "خدمات",
                 "icon": "services icon",
-                "data": s.ServiceSerializer(order.services.all(), many=True),
+                "data": s.ServiceSerializer(services, many=True),
             },
             {
                 "title": "پرداختی‌ها",
@@ -513,10 +514,35 @@ def contract_preview(request, id):
         "description": contract.__str__(),
         "buttons": [
             {
-                "title": "first button",
+                "title": "حذف قرارداد",
                 "icon": "first button icon",
                 "link": "https://test.com/",
-            }
+            },
+            {
+                "title": "ویرایش قرارداد",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "چاپ قرارداد",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "پرداخت کارفرما",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "تماس پرسنل",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "تماس کارفرما",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
         ],
         "table": s.ContractSerializer(contract, exclude=["link"]),
         "data_tables": [
@@ -565,10 +591,35 @@ def client_preview(request, id):
         "description": client.__str__(),
         "buttons": [
             {
-                "title": "first button",
+                "title": "حذف کارفرما",
                 "icon": "first button icon",
                 "link": "https://test.com/",
-            }
+            },
+            {
+                "title": "ویرایش کارفرما",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "خدمت جدید",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "قرارداد جدید",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "تماس",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "ارسال SMS",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
         ],
         "table": s.PeopleSerializer(
             client,
@@ -654,10 +705,20 @@ def personnel_preview(request, id):
         "description": personnel.__str__(),
         "buttons": [
             {
-                "title": "first button",
+                "title": "حذف پرسنل",
                 "icon": "first button icon",
                 "link": "https://test.com/",
-            }
+            },
+            {
+                "title": "ارسال SMS",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
+            {
+                "title": "تماس",
+                "icon": "first button icon",
+                "link": "https://test.com/",
+            },
         ],
         "table": s.PeopleSerializer(
             personnel,
@@ -751,10 +812,10 @@ def patient_preview(request, id):
         "description": patient.__str__(),
         "buttons": [
             {
-                "title": "first button",
+                "title": "حذف مددجو",
                 "icon": "first button icon",
                 "link": "https://test.com/",
-            }
+            },
         ],
         "table": s.PeopleSerializer(patient, exclude=["link"]),
         "data_tables": [

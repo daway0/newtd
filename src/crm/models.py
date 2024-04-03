@@ -171,9 +171,24 @@ class People(Log):
 
     @property
     def total_healthcare_debt_to_personnel(self):
-        return OrderPayment.objects.filter(
+        debt = OrderPayment.objects.filter(
             order__assigned_personnel=self
-        ).aggregate(debt=Sum("personnel_debt"))["debt"] or 0
+        ).aggregate(debt=Sum("personnel_debt"))["debt"]
+        return debt if debt and debt >= 0 else 0
+
+    @property
+    def total_personnel_revenue(self):
+        raise NotImplementedError()
+        orders_revenue = OrderPayment.objects.filter(
+            order__assigned_personnel=self
+        ).aggregate(revenue=Sum("personnel_fee"))["revenue"]
+
+        contracts_revenue = ...
+
+    @property
+    def total_personnel_additional_payment(self):
+        raise NotImplementedError()
+        return self.totalpers
 
     @property
     def total_patient_contracts(self):
@@ -181,9 +196,12 @@ class People(Log):
 
     @property
     def total_client_debt(self):
-        total_order_costs = OrderPayment.objects.filter(
-            order__client=self
-        ).aggregate(debt=Sum("client_debt"))["debt"] or 0
+        total_order_costs = (
+            OrderPayment.objects.filter(order__client=self).aggregate(
+                debt=Sum("client_debt")
+            )["debt"]
+            or 0
+        )
 
         total_contract_costs = (
             self.client_contracts.aggregate(
@@ -253,7 +271,9 @@ class People(Log):
         )
 
     def __str__(self) -> str:
-        return f"{self.fullname_with_prefix} {self.get_people_type_display()}"
+        return (
+            f"{self.fullname_with_prefix} ({self.get_people_type_display()})"
+        )
 
     objects = models.Manager()
     clients = ClientManager()

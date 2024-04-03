@@ -153,7 +153,7 @@ class PeopleMinimalSerializer(serializers.Serializer):
 
 
 class ReferralOtherSerializer(TranslatedSerializer):
-    title = serializers.CharField
+    title = serializers.CharField()
 
     translated_fields = {"title": "عنوان"}
 
@@ -345,7 +345,7 @@ class PreviewSerializer(serializers.Serializer):
 
 
 class ServiceSerializer(TranslatedSerializer):
-    title = serializers.CharField(source="service__title")
+    title = serializers.CharField(source="service.title")
     cost = serializers.IntegerField()
 
     translated_fields = {"title": "عنوان", "cost": "هزینه"}

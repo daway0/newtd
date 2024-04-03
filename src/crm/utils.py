@@ -79,6 +79,22 @@ def translate_serializer_fields(
     translated_fields: dict,
     exclude_fields: list[str] = [],
 ):
+    """
+    Translating serializer fields based on the given data, then
+    converting each field to object for the sake of frontend.
+
+    All fields within 'serialized_data' HAVE TO have a translated value
+    in 'translated_fields', or specified within 'exclude_fields'.
+
+    Fields that are exists in 'exclude_fields' will not
+    have a translated value.
+
+    Args:
+        serialized_data: The final data of serializer.
+        translated_fields: Translated value of serializer fields.
+        exclude_fields: Fields which you dont want to translate.
+    """
+
     new_data = dict()
     for key, value in serialized_data.items():
         if key in exclude_fields:
@@ -96,6 +112,16 @@ def translate_serializer_fields(
 
 
 def get_last_day_of_month(date_obj: jdatetime.date) -> int:
+    """
+    Calculating last day of the given date and returning it.
+
+    Args:
+        date_obj: The date you want to get the last day of it.
+    
+    Returns:
+        last day of the given month.
+    """
+
     if date_obj.day == 31:
         # day is already on maximum value, so we dont need to
         # calculate anything here.
@@ -178,6 +204,20 @@ def time_left_til_specific_date_verbose(
 
 
 def omit_null_fields(data: dict, omitabale_fields: list[str]) -> dict:
+    """
+    Skipping null fields in serializer's data, removing them from
+    final schema.
+    All fields must be an instance of object which has a 'value' field
+    within it, otherwise it will crash the code.
+
+    Args:
+        data: Final serializer data.
+        omitabale_fields: fields which you want to skip if they are null.
+
+    Returns:
+        data after skiping null values.
+    """
+
     new_data = dict()
 
     for key, value in data.items():
