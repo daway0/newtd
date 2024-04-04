@@ -184,6 +184,8 @@ class People(Log):
 
         revenue = total_revenue_and_paid["revenue"]
         paid = total_revenue_and_paid["paid"]
+        if not (revenue and paid):
+            return 0
 
         if revenue > paid:
             return 0

@@ -61,9 +61,9 @@ class PeopleDetailsSerializer(
 
     translated_fields = {
         "get_detail_type_display": "نوع رکورد",
-        "address": "آدرس",
-        "phone_number": "شماره تلفن",
-        "card_number": "شماره کارت",
+        "address": "مقدار",
+        "phone_number": "مقدار",
+        "card_number": "مقدار",
         "note": "نوت",
     }
 

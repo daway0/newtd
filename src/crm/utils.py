@@ -117,7 +117,7 @@ def get_last_day_of_month(date_obj: jdatetime.date) -> int:
 
     Args:
         date_obj: The date you want to get the last day of it.
-    
+
     Returns:
         last day of the given month.
     """
@@ -173,34 +173,22 @@ def time_left_til_specific_date_verbose(
             "your data is wrong logically, Abort!"
         )
 
+    difference = (unitl_date_obj - start_date_obj).days
+    years = difference // 365
+    months = (difference % 365) // 30
+    days = (difference % 365) % 30
+
     final_string = list()
+    if years:
+        final_string.append(f"{years} سال")
 
-    years_diff = unitl_date_obj.year - start_date_obj.year
+    if months:
+        final_string.append(f"{months} ماه")
 
-    days_diff = unitl_date_obj.day - start_date_obj.day
-    if days_diff < 0:
-        last_day_of_month = get_last_day_of_month(unitl_date_obj)
-        days_diff = last_day_of_month - abs(days_diff)
+    if days:
+        final_string.append(f"{days} روز")
 
-    month_diff = unitl_date_obj.month - start_date_obj.month
-    if month_diff < 0:
-        month_diff = 12 - abs(month_diff)
-
-    if days_diff != 0 and month_diff != 0:
-        # Decreasing month value becasuse its actually not a month,
-        # its between 1 to 30 days, for instance:
-        # when we have 25 days until end_date, we have to say
-        # "25 روز", not "1 ماه و 25 روز".
-        month_diff -= 1
-
-    if years_diff > 0:
-        final_string.append(f"{years_diff} سال")
-    if month_diff > 0:
-        final_string.append(f"{month_diff} ماه")
-    if days_diff > 0:
-        final_string.append(f"{days_diff} روز")
-
-    return ", ".join(final_string)
+    return " ,".join(final_string)
 
 
 def omit_null_fields(data: dict, omitabale_fields: list[str]) -> dict:
