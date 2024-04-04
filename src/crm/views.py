@@ -567,9 +567,7 @@ def contract_preview(request, id):
                 "title": "تماس‌ها",
                 "icon": "call icon",
                 "data": s.CallSerializer(
-                    contract.call_set.all(),
-                    many=True,
-                    exclude=["reason"]
+                    contract.call_set.all(), many=True, exclude=["reason"]
                 ),
             },
         ],
@@ -586,6 +584,10 @@ def client_preview(request, id):
     )
     client_calls = models.Call.objects.filter(
         Q(from_people=client) | Q(to_people=client)
+    )
+    referraled_orders = models.Order.objects.filter(referral_people=client)
+    referraled_contracts = models.Contract.objects.filter(
+        referral_people=client
     )
 
     data = {
@@ -685,6 +687,24 @@ def client_preview(request, id):
                     client_calls, many=True, exclude=["who_called"]
                 ),
             },
+            {
+                "title": "خدمات معرفی شده",
+                "icon": "referral icon",
+                "data": s.OrderSerializer(
+                    referraled_orders,
+                    many=True,
+                    fields=["order_at", "client", "services"],
+                ),
+            },
+            {
+                "title": "قراردادهای معرفی شده",
+                "icon": "referral icon",
+                "data": s.ContractSerializer(
+                    referraled_contracts,
+                    many=True,
+                    fields=["contract_at", "client", "patients"],
+                ),
+            },
         ],
     }
 
@@ -699,6 +719,10 @@ def personnel_preview(request, id):
     )
     personnel_calls = models.Call.objects.filter(
         Q(from_people=personnel) | Q(to_people=personnel)
+    )
+    referraled_orders = models.Order.objects.filter(referral_people=personnel)
+    referraled_contracts = models.Contract.objects.filter(
+        referral_people=personnel
     )
 
     data = {
@@ -794,6 +818,24 @@ def personnel_preview(request, id):
                     personnel_calls, many=True, exclude=["who_called"]
                 ),
             },
+            {
+                "title": "خدمات معرفی شده",
+                "icon": "referral icon",
+                "data": s.OrderSerializer(
+                    referraled_orders,
+                    many=True,
+                    fields=["order_at", "client", "services"],
+                ),
+            },
+            {
+                "title": "قراردادهای معرفی شده",
+                "icon": "referral icon",
+                "data": s.ContractSerializer(
+                    referraled_contracts,
+                    many=True,
+                    fields=["contract_at", "client", "patients"],
+                ),
+            },
         ],
     }
 
@@ -806,6 +848,8 @@ def patient_preview(request, id):
     patient = get_object_or_404(
         models.People, pk=id, people_type=models.PeopleTypeChoices.PATIENT
     )
+    referraled_orders = models.Order.objects.filter(referral_people=patient)
+    referraled_contracts = models.Contract.objects.filter(referral_people=patient)
 
     data = {
         "title": "بیمار",
@@ -837,6 +881,24 @@ def patient_preview(request, id):
                         "link",
                     ],
                     many=True,
+                ),
+            },
+            {
+                "title": "خدمات معرفی شده",
+                "icon": "referral icon",
+                "data": s.OrderSerializer(
+                    referraled_orders,
+                    many=True,
+                    fields=["order_at", "client", "services"],
+                ),
+            },
+            {
+                "title": "قراردادهای معرفی شده",
+                "icon": "referral icon",
+                "data": s.ContractSerializer(
+                    referraled_contracts,
+                    many=True,
+                    fields=["contract_at", "client", "patients"],
                 ),
             },
         ],
