@@ -122,23 +122,16 @@ def get_last_day_of_month(date_obj: jdatetime.date) -> int:
         last day of the given month.
     """
 
-    if date_obj.day == 31:
-        # day is already on maximum value, so we dont need to
-        # calculate anything here.
-        return date_obj.day
+    if date_obj.month in (1, 2, 3, 4, 5, 6):
+        return 31
 
-    last_day_value = date_obj.day
+    if date_obj.month == 12:
+        # leap year
+        leap_year_consts = (1, 5, 9, 13, 17, 22, 26, 30)
+        if date_obj.year % 33 in leap_year_consts:
+            return 30
 
-    while last_day_value < 31:
-        last_day_value = date_obj.day
-        date_obj += jdatetime.timedelta(days=1)
-        if date_obj.day == 1:
-            return last_day_value
-
-    raise RuntimeError(
-        "last_day_value passed 31 and your logic couldn't find "
-        "the last day of month, Abort!"
-    )
+        return 29
 
 
 def create_jdate_from_str(str_date: str) -> jdatetime.date:
