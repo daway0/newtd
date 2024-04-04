@@ -188,7 +188,7 @@ def time_left_til_specific_date_verbose(
     if days:
         final_string.append(f"{days} روز")
 
-    return " ,".join(final_string)
+    return " و ".join(final_string)
 
 
 def omit_null_fields(data: dict, omitabale_fields: list[str]) -> dict:

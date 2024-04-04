@@ -40,31 +40,44 @@ class PersianBooleanField(serializers.BooleanField):
         return "بله" if val else "خیر"
 
 
+class SeperatedCharField(serializers.CharField):
+    def __init__(self, threshold: int, **kwargs):
+        self.threshold = threshold
+        super().__init__(**kwargs)
+
+    def to_representation(self, value):
+        value = super().to_representation(value)
+        value = str(value)
+        seperator = "-" if self.threshold == 4 else ","
+
+        final_number = list()
+        for index, bit in enumerate(reversed(value)):
+            if (index + 1) % self.threshold == 1 and index + 1 != 1:
+                final_number.append(seperator)
+
+            final_number.append(bit)
+
+        return "".join(final_number[::-1])
+
+
 class SpecificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.TagSpecefication
         fields = ["parent", "title"]
 
 
-class PeopleDetailsSerializer(
-    TranslatedSerializer, serializers.ModelSerializer
-):
-    class Meta:
-        model = m.PeopleDetailedInfo
-        fields = [
-            "get_detail_type_display",
-            "address",
-            "phone_number",
-            "card_number",
-            "note",
-        ]
+class PeopleDetailsSerializer(TranslatedSerializer):
+    detail_type = serializers.CharField(source="get_detail_type_display")
+    address = serializers.CharField()
+    card_number = SeperatedCharField(threshold=4)
+    note = serializers.CharField()
 
     translated_fields = {
-        "get_detail_type_display": "نوع رکورد",
+        "detail_type": "نوع رکورد",
         "address": "مقدار",
         "phone_number": "مقدار",
         "card_number": "مقدار",
-        "note": "نوت",
+        "note": "یادداشت",
     }
 
     def to_representation(self, instance):
@@ -73,7 +86,7 @@ class PeopleDetailsSerializer(
         return utils.omit_null_fields(data, omitabale_keys)
 
 
-class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
+class PeopleSerializer(DynamicFieldSerializer):
     def __init__(self, *args, **kwargs):
         fields = kwargs.pop("fields", [])
         common_fields = [
@@ -91,8 +104,24 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
 
         super().__init__(*args, **kwargs, fields=common_fields)
 
-    specifications = SpecificationSerializer(many=True)
+    joined_at = serializers.CharField()
+    national_code = serializers.CharField()
     membership_period = serializers.SerializerMethodField()
+    fullname_with_prefix = serializers.CharField()
+    people_type = serializers.CharField(source="get_people_type_display")
+    gender_type = serializers.CharField(source="get_gender_display")
+    birthdate = serializers.CharField()
+    age = serializers.IntegerField()
+    specifications = SpecificationSerializer(many=True)
+    contract_date = serializers.CharField()
+    end_contract_date = serializers.CharField()
+    total_client_orders = serializers.IntegerField()
+    total_client_contracts = serializers.IntegerField()
+    total_client_debt = SeperatedCharField(threshold=3)
+    total_personnel_orders = serializers.IntegerField()
+    total_personnel_contracts = serializers.IntegerField()
+    total_healthcare_debt_to_personnel = SeperatedCharField(threshold=3)
+    note = serializers.CharField()
 
     translated_fields = {
         "joined_at": "تاریخ عضویت",
@@ -104,7 +133,7 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
         "get_gender_display": "جنسیت",
         "birthdate": "تاریخ تولد",
         "age": "سن",
-        "note": "نوت",
+        "note": "یادداشت",
         "contract_date": "شروع قرارداد",
         "end_contract_date": "پایان قرارداد",
         "specifications": "صفت‌ها",
@@ -122,29 +151,6 @@ class PeopleSerializer(DynamicFieldSerializer, serializers.ModelSerializer):
         return utils.time_left_til_specific_date_verbose(
             date_obj, jdatetime.date.today()
         )
-
-    class Meta:
-        model = m.People
-        fields = [
-            "joined_at",
-            "national_code",
-            "membership_period",
-            "fullname_with_prefix",
-            "get_people_type_display",
-            "get_gender_display",
-            "birthdate",
-            "age",
-            "specifications",
-            "note",
-            "contract_date",
-            "end_contract_date",
-            "total_client_orders",
-            "total_client_contracts",
-            "total_client_debt",
-            "total_personnel_orders",
-            "total_personnel_contracts",
-            "total_healthcare_debt_to_personnel",
-        ]
 
 
 class PeopleMinimalSerializer(serializers.Serializer):
@@ -166,13 +172,13 @@ class OrderSerializer(DynamicFieldSerializer):
     service_location = serializers.CharField(source="service_location.address")
     referral_people = PeopleMinimalSerializer()
     referral_other = ReferralOtherSerializer()
-    client_debt = serializers.IntegerField()
+    client_debt = SeperatedCharField(threshold=3)
     client_payment_status = serializers.CharField()
-    debt_to_personnel = serializers.IntegerField()
+    debt_to_personnel = SeperatedCharField(threshold=3)
     personnel_payment_status = serializers.CharField()
-    total_cost = serializers.IntegerField()
-    total_franchise = serializers.IntegerField()
-    discount = serializers.IntegerField()
+    total_cost = SeperatedCharField(threshold=3)
+    total_franchise = SeperatedCharField(threshold=3)
+    discount = SeperatedCharField(threshold=3)
     link = serializers.CharField(source="get_absolute_url_api")
 
     translated_fields = {
@@ -216,12 +222,12 @@ class ContractSerializer(DynamicFieldSerializer):
     end_hour = serializers.CharField()
     end_verbose = serializers.SerializerMethodField()
     include_holidays = PersianBooleanField()
-    personnel_monthly_salary = serializers.IntegerField()
+    personnel_monthly_salary = SeperatedCharField(threshold=3)
     personnel_salary_payment_time = serializers.CharField(
         source="get_personnel_salary_payment_time_display"
     )
-    healthcare_franchise_amount = serializers.IntegerField()
-    client_debt = serializers.IntegerField()
+    healthcare_franchise_amount = SeperatedCharField(threshold=3)
+    client_debt = SeperatedCharField(threshold=3)
     client_payment_status = serializers.CharField()
     referral_people = PeopleMinimalSerializer()
     referral_other = ReferralOtherSerializer()
@@ -288,7 +294,7 @@ class PaymentSerializer(DynamicFieldSerializer):
     source = PeopleSerializer()
     destination = PeopleSerializer()
     payment_type = serializers.SerializerMethodField()
-    amount = serializers.IntegerField()
+    amount = SeperatedCharField(threshold=3)
     order = OrderSerializer()
     contract = ContractSerializer()
     reason = serializers.SerializerMethodField()
@@ -301,7 +307,7 @@ class PaymentSerializer(DynamicFieldSerializer):
         "amount": "مقدار",
         "paid_at": "تاریخ پرداخت",
         "reason": "علت پرداخت",
-        "note": "نوت",
+        "note": "یادداشت",
     }
 
     def to_representation(self, instance):
@@ -346,16 +352,18 @@ class PreviewSerializer(serializers.Serializer):
 
 class ServiceSerializer(TranslatedSerializer):
     title = serializers.CharField(source="service.title")
-    cost = serializers.IntegerField()
+    cost = SeperatedCharField(threshold=3)
 
     translated_fields = {"title": "عنوان", "cost": "هزینه"}
 
 
 class CallSerializer(DynamicFieldSerializer):
     called_at = serializers.CharField()
+    reason = serializers.SerializerMethodField()
     call_direction = serializers.CharField(source="get_call_direction_display")
     from_number = serializers.CharField()
     to_number = serializers.CharField()
+    who_called = serializers.SerializerMethodField()
     response_status = serializers.CharField(
         source="get_response_status_display"
     )
@@ -363,13 +371,22 @@ class CallSerializer(DynamicFieldSerializer):
 
     translated_fields = {
         "called_at": "تاریخ تماس",
+        "reason": "علت تماس",
         "call_direction": "نوع تماس",
-        "from_number": "از شماره",
-        "to_number": "به شماره",
+        "from_number": "شماره",
+        "to_number": "شماره",
+        "who_called": "طرفین",
         "response_status": "وضعیت پاسخ",
-        "note": "نوت",
+        "note": "یادداشت",
     }
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
         return utils.omit_null_fields(data, ["from_number", "to_number"])
+
+    def get_who_called(self, obj: m.Call):
+        client = obj.from_people or obj.to_people
+        return client.full_name
+
+    def get_reason(self, obj: m.Call):
+        return obj.order.__str__() or obj.contract.__str__()

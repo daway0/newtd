@@ -494,7 +494,9 @@ def order_preview(request, id):
             {
                 "title": "تماس‌ها",
                 "icon": "call icon",
-                "data": s.CallSerializer(order.call_set.all(), many=True),
+                "data": s.CallSerializer(
+                    order.call_set.all(), many=True, exclude=["reason"]
+                ),
             },
         ],
     }
@@ -567,6 +569,7 @@ def contract_preview(request, id):
                 "data": s.CallSerializer(
                     contract.call_set.all(),
                     many=True,
+                    exclude=["reason"]
                 ),
             },
         ],
@@ -679,8 +682,7 @@ def client_preview(request, id):
                 "title": "تماس‌ها",
                 "icon": "call icon",
                 "data": s.CallSerializer(
-                    client_calls,
-                    many=True,
+                    client_calls, many=True, exclude=["who_called"]
                 ),
             },
         ],
@@ -789,8 +791,7 @@ def personnel_preview(request, id):
                 "title": "تماس‌ها",
                 "icon": "call icon",
                 "data": s.CallSerializer(
-                    personnel_calls,
-                    many=True,
+                    personnel_calls, many=True, exclude=["who_called"]
                 ),
             },
         ],
