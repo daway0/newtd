@@ -435,38 +435,38 @@ def order_preview(request, id):
         "buttons": [
             {
                 "title": "حذف خدمت",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "trash",
+                "link": "",
             },
             {
                 "title": "ویرایش خدمت",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "edit",
+                "link": "",
             },
             {
                 "title": "چاپ خدمت",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "print",
+                "link": "",
             },
             {
                 "title": "تماس پرسنل",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "",
+                "link": "",
             },
             {
                 "title": "تماس کارفرما",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "",
+                "link": "",
             },
             {
                 "title": "پرداخت کارفرما",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "",
+                "link": "",
             },
             {
                 "title": "پرداخت پرسنل",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "",
+                "link": "",
             },
         ],
         "table": s.OrderSerializer(order, exclude=["link"]),
@@ -515,33 +515,33 @@ def contract_preview(request, id):
         "buttons": [
             {
                 "title": "حذف قرارداد",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "trash",
+                "link": "",
             },
             {
                 "title": "ویرایش قرارداد",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "edit",
+                "link": "",
             },
             {
                 "title": "چاپ قرارداد",
-                "icon": "first button icon",
-                "link": "https://test.com/",
-            },
-            {
-                "title": "پرداخت کارفرما",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "print",
+                "link": "",
             },
             {
                 "title": "تماس پرسنل",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "",
+                "link": "",
             },
             {
                 "title": "تماس کارفرما",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "",
+                "link": "",
+            },
+            {
+                "title": "پرداخت کارفرما",
+                "icon": "",
+                "link": "",
             },
         ],
         "table": s.ContractSerializer(contract, exclude=["link"]),
@@ -592,33 +592,33 @@ def client_preview(request, id):
         "buttons": [
             {
                 "title": "حذف کارفرما",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "trash",
+                "link": "",
             },
             {
                 "title": "ویرایش کارفرما",
-                "icon": "first button icon",
-                "link": "https://test.com/",
-            },
-            {
-                "title": "خدمت جدید",
-                "icon": "first button icon",
-                "link": "https://test.com/",
-            },
-            {
-                "title": "قرارداد جدید",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "edit",
+                "link": "",
             },
             {
                 "title": "تماس",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "call",
+                "link": "",
             },
             {
-                "title": "ارسال SMS",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "title": "ارسال پیامک",
+                "icon": "sms",
+                "link": "",
+            },
+            {
+                "title": "خدمت جدید",
+                "icon": "",
+                "link": "",
+            },
+            {
+                "title": "قرارداد جدید",
+                "icon": "",
+                "link": "",
             },
         ],
         "table": s.PeopleSerializer(
@@ -706,18 +706,18 @@ def personnel_preview(request, id):
         "buttons": [
             {
                 "title": "حذف پرسنل",
-                "icon": "first button icon",
-                "link": "https://test.com/",
-            },
-            {
-                "title": "ارسال SMS",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "trash",
+                "link": "",
             },
             {
                 "title": "تماس",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "call",
+                "link": "",
+            },
+            {
+                "title": "ارسال پیامک",
+                "icon": "sms",
+                "link": "",
             },
         ],
         "table": s.PeopleSerializer(
@@ -813,8 +813,13 @@ def patient_preview(request, id):
         "buttons": [
             {
                 "title": "حذف مددجو",
-                "icon": "first button icon",
-                "link": "https://test.com/",
+                "icon": "trash",
+                "link": "",
+            },
+            {
+                "title": "ویرایش مددجو",
+                "icon": "edit",
+                "link": "",
             },
         ],
         "table": s.PeopleSerializer(patient, exclude=["link"]),

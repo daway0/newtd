@@ -2,7 +2,8 @@
 
 
 {% block content %}
-<div class="flex flex-row w-full gap-2">
+{{ block.super }}
+<div id="main-container" class="hidden flex flex-row w-full gap-2">
     {% with icon="svg/notif.html" %}
     {% include "base/data_table_pane.html" %}
     {% endwith %}

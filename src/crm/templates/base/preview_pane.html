@@ -4,7 +4,11 @@
 {% block title %}جزییات{% endblock title %}
 {% block content %}
     <div id="preview-container" class="flex flex-col gap-2">
-        
+        <div class="flex flex-col justify-center items-center gap-5">
+            <img class="w-24 h-24" src="{% static 'svg/preview.svg' %}" alt="">  
+            <span class="text-primary">برای مشاهده جزییات روی رکورد مورد نظر کلیک کنید</span>
+            <span></span>
+        </div>
     </div>
     <script src="{% static 'js/preview.js' %}"></script>
 

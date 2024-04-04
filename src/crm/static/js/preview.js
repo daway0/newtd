@@ -38,7 +38,7 @@ function makePreview(data) {
         <div class="bg-white rounded-md shadow-md p-4 h-fit text-primarytext flex flex-col gap-2 w-full">
             <div class="flex flex-row gap-2 font-semibold">
                 <span>
-                    جزییات
+                    اطلاعات ${persianize(data.description)}
                 </span>
             </div>
             <div class="flex flex-row w-full">
@@ -62,7 +62,15 @@ function makePreview(data) {
 }
 
 function makeButton(title, icon, link) {
-    return `<a class="p-2 text-sm bg-successbg  text-successtext rounded-md" href="${link}">${title}</a>`
+    let displayButton = undefined
+    if (icon!==""){
+        displayButton = `<img class="h-4 w-4 fill-successtext" src="/static/svg/${icon}.svg" alt="${title}"/>`
+    } else {
+        displayButton = `${title}`
+    }
+    return `<a class="p-2 text-sm bg-successbg  text-successtext rounded-md" href="${link}">
+        ${displayButton}
+    </a>`
 }
 
 function makeButtonSet(buttonsData) {
@@ -103,7 +111,7 @@ function makeInfoTable(data) {
 
         }
     }
-    for (let i = totalDataCount - rowNeeded + 1; i < totalDataCount; i++) {
+    for (let i = totalDataCount - rowNeeded; i < totalDataCount; i++) {
         if (i % 2 === 0) {
             secondTableHTML += makeRow(listData[i], true)
         } else {
@@ -226,11 +234,22 @@ function loadNewPreview(url) {
     })
 }
 
+function addDataTableRowSelectionStyle(row) {
+    row.css({
+        "background-color" : "rgb(203, 213, 225 )"
+    })
+}
+
+function removeDataTableRowsSelectionStyle() {
+    $("table.dataTable tr").removeAttr("style")
+}
 
 $(document).ready(function () {
 
     $(document).on('click', "table.dataTable tr[data-link]", function () {
         let url = $(this).attr("data-link")
         loadNewPreview(url)
+        removeDataTableRowsSelectionStyle()
+        addDataTableRowSelectionStyle($(this))
     });
 });
