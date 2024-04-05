@@ -111,6 +111,11 @@ def translate_serializer_fields(
     return new_data
 
 
+def is_leap_year(year: int) -> bool:
+    leap_year_consts = (1, 5, 9, 13, 17, 22, 26, 30)
+    return year % 33 in leap_year_consts
+
+
 def get_last_day_of_month(date_obj: jdatetime.date) -> int:
     """
     Calculating last day of the given date and returning it.
@@ -127,11 +132,11 @@ def get_last_day_of_month(date_obj: jdatetime.date) -> int:
 
     if date_obj.month == 12:
         # leap year
-        leap_year_consts = (1, 5, 9, 13, 17, 22, 26, 30)
-        if date_obj.year % 33 in leap_year_consts:
+        if is_leap_year(date_obj.year):
             return 30
-
         return 29
+
+    return 30
 
 
 def create_jdate_from_str(str_date: str) -> jdatetime.date:

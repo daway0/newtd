@@ -69,6 +69,7 @@ class SpecificationSerializer(serializers.ModelSerializer):
 class PeopleDetailsSerializer(TranslatedSerializer):
     detail_type = serializers.CharField(source="get_detail_type_display")
     address = serializers.CharField()
+    phone_number = serializers.CharField()
     card_number = SeperatedCharField(threshold=4)
     note = serializers.CharField()
 
@@ -389,4 +390,5 @@ class CallSerializer(DynamicFieldSerializer):
         return client.full_name
 
     def get_reason(self, obj: m.Call):
-        return obj.order.__str__() or obj.contract.__str__()
+        reason = obj.order or obj.contract
+        return reason.__str__()
