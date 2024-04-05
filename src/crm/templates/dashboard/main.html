@@ -1,22 +1,338 @@
 {% extends "base/base.html" %}
+{% load static %}
 {% load crm_extras %}
 {% block breadcrumb %}
 {% make_breadcrumb "داشبورد" %}
 {% endblock breadcrumb %}
 
+{% block scripts %}
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+{% endblock scripts %}
+
 {% block content %}
-
-
-
 <div class="bg-white rounded-md shadow-sm p-4 h-fit text-primarytext flex flex-row gap-2">
-    
-{% for card in static_cards %}
+    {% for card in static_cards %}
     {% include "dashboard/stats_card.html" with title=card.title icon=card.icon number=card.this_month_number growth=card.growth money_word=card.summarize_tooman_postfix_word %}
 {% endfor %}
-   
-
 </div>
+<div class="flex flex-col gap-2">
+    <div class="flex flex-row gap-2">
+        <div class="basis-1/2">
+            <div class="rounded rounded-md" id="container-3"></div>
+        </div>
+        <div class="flex flex-row basis-1/2 gap-2">
+            <div class="basis-1/2">
+                <div class="rounded rounded-md" id="container-1"></div>
+            </div>
+            <div class="basis-1/2">
+                <div class="rounded rounded-md" id="container-2"></div>
+            </div>
+        </div>
+    </div>
+    <div class="flex flex-row gap-2">
+        <div class="basis-1/2">
+            <div class="rounded rounded-md" id="container-0"></div>
+        </div>
+        <div class="flex flex-row basis-1/2 gap-2 bg-white rounded-md py-4 px-8">
+            <table id="preview-contract" class="w-full">
+                <thead>
+                    <tr>
+                        <td>کارفرما</td>
+                        <td>تاریخ عقد قرارداد</td>
+                        <td>فرانشیز مرکز</td>
+                        <td>وضعیت پرداخت</td>
+                        <td>سررسید قرارداد</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/data_tabels.js' %}"></script>
+<script>
+    Highcharts.setOptions({
+        chart: {
+            style: {
+                fontFamily: 'Vazirmatn'
+            }
+        }
+    });
+
+    // bar chart
+    Highcharts.chart('container-0', {
+        chart: {
+            type: 'column',
+        },
+        title: {
+            text: 'تعداد خدمات موردی ارایه شده',
+            align: 'right'
+        },
+        xAxis: {
+            categories: [
+                'تزریق',
+                'سرم تراپی',
+                'واکسن کرونا',
+                'سوراخ کردن گوش',
+                'همراه بیمار در بیمارستان',
+                'چکاپ دوره ای',
+                'گچ گرفتن',
+                'سونوگرافی',
+                'ساکشن',
+                'رادیولوژی',
+            ]
+            ,
+            crosshair: true,
+            accessibility: {
+                description: 'خدمات'
+            }
+        },
+        yAxis: {
+            min: 0,
+            title: {
+                text: 'تعداد ارایه'
+            }
+        },
+        plotOptions: {
+            column: {
+                pointPadding: 0.2,
+                borderWidth: 0
+            }
+        },
+        series: [
+            {
+                name: 'ماه جاری',
+                data: [25, 22, 15, 14, 12, 12, 8,2,1,1],
+                color: "#478DBD"
+            },
+            {
+                name: 'ماه گذشته',
+                data: [35, 12, 18, 14, 15, 8, 5,1,3,3],
+                color:"#C2D8EB"
+                
+            }
+        ],
+        exporting: {
+            enabled: false
+          }
+    });
 
 
+    // pie chart
+    Highcharts.chart('container-1', {
+    chart: {
+        type: 'pie'
+    },
+    title: {
+        text: 'معرف'
+    },
+    tooltip: {
+        valueSuffix: '%'
+    },
+    plotOptions: {
+        series: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: [{
+                enabled: true,
+                distance: 20
+            }, {
+                enabled: true,
+                distance: -40,
+                format: '{point.percentage:.1f}%',
+                style: {
+                    fontSize: '1.2em',
+                    textOutline: 'none',
+                    opacity: 0.7
+                },
+                filter: {
+                    operator: '>',
+                    property: 'percentage',
+                    value: 10
+                }
+            }]
+        }
+    },
+    series: [
+        {
+            name: 'Percentage',
+            colorByPoint: true,
+            data: [
+                {
+                    name: 'بدون معرف',
+                    y: 55.02,
+                    color: "#003057",
+                },
+                {
+                    name: 'کارفرمای سابق',
+                    color: "#26468D",
+                    sliced: true,
+                    selected: true,
+                    y: 26.71
+                },
+                {
+                    color: "#3C63BD",
+                    name: 'پرسنل مرکز',
+                    y: 1.09
+                },
+                {
+                    color: "#79A0D1",
+                    name: 'سایت',
+                    y: 15.5
+                },
+                {
+                    color: "#AEC6EF",
+                    name: 'تبلیغات',
+                    y: 1.68
+                }
+            ]
+        }
+    ],
+    exporting: {
+        enabled: false
+      }
+});
 
+
+// pie chart
+Highcharts.chart('container-2', {
+    chart: {
+        type: 'pie'
+    },
+    title: {
+        text: 'پرسنل مرکز'
+    },
+    tooltip: {
+        valueSuffix: '%'
+    },
+    plotOptions: {
+        series: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: [{
+                enabled: true,
+                distance: 20
+            }, {
+                enabled: true,
+                distance: -40,
+                format: '{point.percentage:.1f}%',
+                style: {
+                    fontSize: '1.2em',
+                    textOutline: 'none',
+                    opacity: 0.7
+                },
+                filter: {
+                    operator: '>',
+                    property: 'percentage',
+                    value: 10
+                }
+            }]
+        }
+    },
+    series: [
+        {
+            name: 'Percentage',
+            colorByPoint: true,
+            data: [
+                {
+                    name: 'پزشک',
+                    y: 4,
+                    color: "#EBF5FF"
+                },
+                {
+                    name: 'پرستار',
+                    color:'#C7E2F5',
+                    sliced: true,
+                    selected: true,
+                    y: 44
+                },
+                {
+                    name: 'بهیار',
+                    y: 29,
+                    color:"#8BAADF",
+                },
+                {
+                    name: 'کمک بهیار',
+                    color: '#5D8BDB',
+                    y: 7
+                },
+                {
+                    name: 'مراقب',
+                    color:'#2E649E',
+                    y: 16
+                }
+            ]
+        }
+    ],
+    exporting: {
+        enabled: false
+      }
+
+});
+
+Highcharts.chart('container-3', {
+    chart: {
+        type: 'area'
+    },
+    title: {
+        text: 'درآمد هزینه و سود',
+        align: 'right'
+    },
+
+    xAxis: {
+        categories: [
+            "فروردین",
+            "اردیبهشت",
+            "خرداد",
+            "تیر",
+            "مرداد",
+            "شهریور",
+            "مهر",
+            "آبان",
+            "آذر",
+            "دی",
+            "بهمن",
+            "اسفند"
+        ]
+    },
+    yAxis: {
+        title: {
+            text: 'تومان'
+        }
+    },
+    credits: {
+        enabled: false
+    },
+    series: [{
+        color: "#B2C2CF",
+        name: 'درآمد',
+        data: [25000000, 28000000, 20000000, 32000000, 16000000, 18000000 , 24000000, 32000000, 33000000, 36000000, 41000000]
+    }, {
+        color: "#83A1C0",
+        name: 'هزینه',
+        data: [18000000, 22000000, 16000000, 8000000, 12000000, 19000000 , 18000000, 26000000, 26000000, 20000000, 25000000]
+        
+    }, {
+        color: "#5480B3",
+        name: 'سود',
+        data: [7000000, 6000000, 4000000, 24000000, 4000000, -1000000 , 6000000, 6000000, 7000000, 16000000, 16000000]
+
+    }],
+    exporting: {
+        enabled: false
+      }
+});
+
+</script>
 {% endblock content %}

@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "datatables.net-dt": "^2.0.2",
+    "highcharts": "^11.4.1",
     "jquery": "^3.7.1"
   }
 }

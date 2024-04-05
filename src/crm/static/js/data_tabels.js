@@ -25,6 +25,7 @@ $(document).ready( function () {
     $('#ClientPaymentsTable').DataTable(informTable);
     $('#ClientServicesTable').DataTable(informTable);
     $('#ClientCallsTable').DataTable(informTable);
+    $('#preview-contract').DataTable(informTable);
 
     // persianize
     $('.dataTable').find('td, th').css('text-align', 'right');

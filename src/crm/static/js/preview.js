@@ -4,7 +4,7 @@
 let previewUrlStack = Array()
 
 function persianize(value) {
-    if (value===null || value===undefined)return
+    if (value === null || value === undefined) return
     const persianNumbers = {
         "0": "۰",
         "1": "۱",
@@ -257,12 +257,12 @@ $(document).ready(function () {
     $(document).on('click', "div[id^='tab-container'] table.dataTable tr[data-link]", function () {
         let url = $(this).attr("data-link")
         if (url == "" || url === undefined) return
-        
+
         // flush preview url stack and hide back button
         previewUrlStack = Array()
         $("div[id='preview-container']").parent().find(".preview-back").addClass("hidden")
-        
-        
+
+
         loadNewPreview(url)
         removeDataTableRowsSelectionStyle()
         addDataTableRowSelectionStyle($(this))
@@ -292,4 +292,7 @@ $(document).ready(function () {
 
         loadNewPreview(previousUrl)
     });
+
+
+    
 });
