@@ -715,7 +715,7 @@ def client_preview(request, id):
                 "data": s.OrderSerializer(
                     referraled_orders,
                     many=True,
-                    fields=["order_at", "client", "services"],
+                    fields=["order_at", "client", "services", "link"],
                 ),
             },
             {
@@ -724,7 +724,7 @@ def client_preview(request, id):
                 "data": s.ContractSerializer(
                     referraled_contracts,
                     many=True,
-                    fields=["contract_at", "client", "patients"],
+                    fields=["contract_at", "client", "patients", "link"],
                 ),
             },
         ],
@@ -846,7 +846,7 @@ def personnel_preview(request, id):
                 "data": s.OrderSerializer(
                     referraled_orders,
                     many=True,
-                    fields=["order_at", "client", "services"],
+                    fields=["order_at", "client", "services", "link"],
                 ),
             },
             {
@@ -855,7 +855,7 @@ def personnel_preview(request, id):
                 "data": s.ContractSerializer(
                     referraled_contracts,
                     many=True,
-                    fields=["contract_at", "client", "patients"],
+                    fields=["contract_at", "client", "patients", "link"],
                 ),
             },
         ],
@@ -869,10 +869,6 @@ def personnel_preview(request, id):
 def patient_preview(request, id):
     patient = get_object_or_404(
         models.People, pk=id, people_type=models.PeopleTypeChoices.PATIENT
-    )
-    referraled_orders = models.Order.objects.filter(referral_people=patient)
-    referraled_contracts = models.Contract.objects.filter(
-        referral_people=patient
     )
 
     data = {
@@ -905,24 +901,6 @@ def patient_preview(request, id):
                         "link",
                     ],
                     many=True,
-                ),
-            },
-            {
-                "title": "خدمات معرفی شده",
-                "icon": "referral icon",
-                "data": s.OrderSerializer(
-                    referraled_orders,
-                    many=True,
-                    fields=["order_at", "client", "services"],
-                ),
-            },
-            {
-                "title": "قراردادهای معرفی شده",
-                "icon": "referral icon",
-                "data": s.ContractSerializer(
-                    referraled_contracts,
-                    many=True,
-                    fields=["contract_at", "client", "patients"],
                 ),
             },
         ],
