@@ -61,7 +61,7 @@ function makePreview(data) {
 
 function makeButton(title, icon, link) {
     let displayButton = undefined
-    if (icon!==""){
+    if (icon !== "") {
         displayButton = `<img class="h-4 w-4 fill-successtext" src="/static/svg/${icon}.svg" alt="${title}"/>`
     } else {
         displayButton = `${title}`
@@ -144,7 +144,11 @@ function makeDataTableRow(obj) {
             HTML += `<td>${persianize(displayData)}</td>`
         }
     }
-    return `<tr>${HTML}</tr>`
+    if (obj.link !== undefined && obj.link != "") {
+        return `<tr data-link="${obj.link}">${HTML}</tr>`
+    } else {
+        return `<tr>${HTML}</tr>`
+    }
 }
 function makeDataTableRows(obj) {
     let HTML = ""
@@ -173,7 +177,6 @@ function makeDataTable(tablesData) {
     let counter = 0
     tablesData.forEach(function (obj) {
         if (obj.data.length === 0) {
-            
             // HTML += previewPane(
             //     obj.title,
             //     undefined,
@@ -235,7 +238,7 @@ function loadNewPreview(url) {
 
 function addDataTableRowSelectionStyle(row) {
     row.css({
-        "background-color" : "rgb(203, 213, 225 )"
+        "background-color": "rgb(203, 213, 225 )"
     })
 }
 
@@ -247,6 +250,7 @@ $(document).ready(function () {
 
     $(document).on('click', "table.dataTable tr[data-link]", function () {
         let url = $(this).attr("data-link")
+        if (url == "" || url === undefined) return
         loadNewPreview(url)
         removeDataTableRowsSelectionStyle()
         addDataTableRowSelectionStyle($(this))
