@@ -1,5 +1,6 @@
 from typing import Any
 
+import jdatetime
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Q, Sum, Value
@@ -319,6 +320,30 @@ class Service(Log):
     parent = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True
     )
+
+    @property
+    def healthcare_franchise_in_tooman(self):
+        return int(self.base_price / 100 * self.healthcare_franchise)
+
+    @property
+    def personnel_franchise(self):
+        return 100 - self.healthcare_franchise
+
+    @property
+    def personnel_franchise_in_tooman(self):
+        return int(self.base_price / 100 * self.personnel_franchise)
+
+    @property
+    def total_orders(self):
+        return self.order_set.count()
+
+    @property
+    def total_orders_in_passed_month(self):
+        start, end = utils.get_month_start_end(1)
+
+        return self.order_set.filter(
+            order_at__range=[start, end]
+        ).count()
 
     def get_absolute_url(self):
         return reverse("crm:get_service", kwargs={"id": self.pk})

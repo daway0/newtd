@@ -1,5 +1,4 @@
 import jdatetime
-import jdatetime as jdt
 from django.db.models import QuerySet
 
 
@@ -13,18 +12,24 @@ def get_diff_in_percentage(now: int, before: int) -> float:
         return None
 
 
-def gdate_to_jdate(date: jdt.date) -> str:
-    jdate = jdt.GregorianToJalali(date.year, date.month, date.day)
+def gdate_to_jdate(date: jdatetime.date) -> str:
+    jdate = jdatetime.GregorianToJalali(date.year, date.month, date.day)
     return f"{jdate.jyear}/{jdate.jmonth}/{jdate.jday}"
 
 
-def get_month_start_end(month_count: int) -> tuple[jdt.date, jdt.date]:
+def get_month_start_end(
+    month_count: int,
+) -> tuple[jdatetime.date, jdatetime.date]:
     """for example if we are in 1402/05/06
     get_month_start_end(2) returns  (1402/03/06, 1402/04/06)
     """
     assert month_count != 0
-    start = jdt.datetime.now() - jdt.timedelta(days=30 * month_count)
-    end = jdt.datetime.now() - jdt.timedelta(days=30 * (month_count - 1))
+    start = jdatetime.datetime.now() - jdatetime.timedelta(
+        days=30 * month_count
+    )
+    end = jdatetime.datetime.now() - jdatetime.timedelta(
+        days=30 * (month_count - 1)
+    )
 
     format = "%Y/%m/%d"
 
@@ -212,3 +217,17 @@ def omit_null_fields(data: dict, omitabale_fields: list[str]) -> dict:
         new_data[key] = value
 
     return new_data
+
+
+def seperate_numbers(threshold: int, number: str) -> str:
+    assert number.isdigit()
+    seperator = "-" if threshold == 4 else ","
+
+    final_number = list()
+    for index, bit in enumerate(reversed(number)):
+        if (index + 1) % threshold == 1 and index + 1 != 1:
+            final_number.append(seperator)
+
+        final_number.append(bit)
+
+    return "".join(final_number[::-1])

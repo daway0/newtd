@@ -469,12 +469,12 @@ def order_preview(request, id):
                 "link": "",
             },
         ],
-        "table": s.OrderSerializer(order, exclude=["link"]),
+        "table": s.OrderSerializer(order, exclude=["title", "link"]),
         "data_tables": [
             {
                 "title": "خدمات",
                 "icon": "services icon",
-                "data": s.ServiceSerializer(services, many=True),
+                "data": s.OrderServiceSerializer(services, many=True),
             },
             {
                 "title": "پرداختی‌ها",
@@ -495,7 +495,17 @@ def order_preview(request, id):
                 "title": "تماس‌ها",
                 "icon": "call icon",
                 "data": s.CallSerializer(
-                    order.call_set.all(), many=True, exclude=["reason"]
+                    order.call_set.all(),
+                    many=True,
+                    fields=[
+                        "called_at",
+                        "call_direction",
+                        "from_number",
+                        "to_number",
+                        "who_called",
+                        "response_status",
+                        "note",
+                    ],
                 ),
             },
         ],
@@ -567,7 +577,17 @@ def contract_preview(request, id):
                 "title": "تماس‌ها",
                 "icon": "call icon",
                 "data": s.CallSerializer(
-                    contract.call_set.all(), many=True, exclude=["reason"]
+                    contract.call_set.all(),
+                    many=True,
+                    fields=[
+                        "called_at",
+                        "call_direction",
+                        "from_number",
+                        "to_number",
+                        "who_called",
+                        "response_status",
+                        "note",
+                    ],
                 ),
             },
         ],
@@ -849,7 +869,9 @@ def patient_preview(request, id):
         models.People, pk=id, people_type=models.PeopleTypeChoices.PATIENT
     )
     referraled_orders = models.Order.objects.filter(referral_people=patient)
-    referraled_contracts = models.Contract.objects.filter(referral_people=patient)
+    referraled_contracts = models.Contract.objects.filter(
+        referral_people=patient
+    )
 
     data = {
         "title": "بیمار",
@@ -905,4 +927,38 @@ def patient_preview(request, id):
     }
 
     serializer = s.PreviewSerializer(data).data
+    return Response(serializer)
+
+
+@api_view(["GET"])
+def service_preview(request, id):
+    service = get_object_or_404(models.Service, pk=id)
+    related_orders = models.Order.objects.filter(services=service)
+
+    data = {
+        "title": "سرویس",
+        "icon": "service icon",
+        "description": service.__str__(),
+        "table": s.ServiceSerializer(service),
+        "data_tables": [
+            {
+                "title": "خدمات",
+                "icon": "order icon",
+                "data": s.OrderSerializer(
+                    related_orders,
+                    many=True,
+                    fields=[
+                        "order_at",
+                        "title",
+                        "service_cost",
+                        "total_cost",
+                        "link",
+                    ],
+                    context={"service": service},
+                ),
+            },
+        ],
+    }
+    serializer = s.PreviewSerializer(data).data
+
     return Response(serializer)

@@ -38,12 +38,15 @@ urlpatterns = [
     path("people/patient/<int:id>/delete/", views.delete_patient, name="delete_patient"),
     
     # REST
+    # previews
     path("search/", views.search, name="search"),
     path("api/orders/<int:id>/", views.order_preview, name="order_preview"),
     path("api/contracts/<int:id>/", views.contract_preview, name="contract_preview"),
     path("api/clients/<int:id>/", views.client_preview, name="client_preview"),
     path("api/personnel/<int:id>/", views.personnel_preview, name="personnel_preview"),
     path("api/patients/<int:id>/", views.patient_preview, name="patient_preview"),
+    path("api/services/<int:id>/", views.service_preview, name="service_preview")
+    # previews end
     # REST end
     # fmt: on
 ]

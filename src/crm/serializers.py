@@ -48,16 +48,8 @@ class SeperatedCharField(serializers.CharField):
     def to_representation(self, value):
         value = super().to_representation(value)
         value = str(value)
-        seperator = "-" if self.threshold == 4 else ","
 
-        final_number = list()
-        for index, bit in enumerate(reversed(value)):
-            if (index + 1) % self.threshold == 1 and index + 1 != 1:
-                final_number.append(seperator)
-
-            final_number.append(bit)
-
-        return "".join(final_number[::-1])
+        return utils.seperate_numbers(self.threshold, value)
 
 
 class SpecificationSerializer(serializers.ModelSerializer):
@@ -167,6 +159,7 @@ class ReferralOtherSerializer(TranslatedSerializer):
 
 class OrderSerializer(DynamicFieldSerializer):
     order_at = serializers.CharField()
+    title = serializers.CharField(source="__str__")
     client = PeopleMinimalSerializer()
     services = serializers.CharField(source="services_list")
     assigned_personnel = PeopleMinimalSerializer()
@@ -180,10 +173,12 @@ class OrderSerializer(DynamicFieldSerializer):
     total_cost = SeperatedCharField(threshold=3)
     total_franchise = SeperatedCharField(threshold=3)
     discount = SeperatedCharField(threshold=3)
+    service_cost = serializers.SerializerMethodField()
     link = serializers.CharField(source="get_absolute_url_api")
 
     translated_fields = {
         "order_at": "تاریخ خدمت",
+        "title": "عنوان خدمت",
         "client": "کارفرما",
         "services": "خدمت‌ها",
         "assigned_personnel": "پرسنل",
@@ -197,10 +192,21 @@ class OrderSerializer(DynamicFieldSerializer):
         "total_cost": "هزینه با تخفیف",
         "total_franchise": "فرانشیز مرکز",
         "discount": "تخفیف",
+        "service_cost": "قیمت سرویس",
     }
 
     def to_representation(self, instance):
         return super().to_representation(instance, exclude=["link"])
+
+    def get_service_cost(self, obj: m.Order):
+        assert self.context.get(
+            "service"
+        ), "you forget to pass the service in context."
+
+        service = self.context["service"]
+        obj_service = obj.orderservices_set.get(service=service)
+
+        return utils.seperate_numbers(3, str(obj_service.cost))
 
 
 class ContractSerializer(DynamicFieldSerializer):
@@ -343,7 +349,7 @@ class PreviewSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=250)
     icon = serializers.CharField(max_length=250)
     description = serializers.CharField(max_length=250)
-    buttons = ButtonSerializer(many=True)
+    buttons = ButtonSerializer(many=True, required=False)
     table = serializers.SerializerMethodField()
     data_tables = DataTableSerializer(many=True)
 
@@ -351,7 +357,7 @@ class PreviewSerializer(serializers.Serializer):
         return obj["table"].data
 
 
-class ServiceSerializer(TranslatedSerializer):
+class OrderServiceSerializer(DynamicFieldSerializer):
     title = serializers.CharField(source="service.title")
     cost = SeperatedCharField(threshold=3)
 
@@ -369,6 +375,7 @@ class CallSerializer(DynamicFieldSerializer):
         source="get_response_status_display"
     )
     note = serializers.CharField()
+    link = serializers.SerializerMethodField()
 
     translated_fields = {
         "called_at": "تاریخ تماس",
@@ -382,7 +389,7 @@ class CallSerializer(DynamicFieldSerializer):
     }
 
     def to_representation(self, instance):
-        data = super().to_representation(instance)
+        data = super().to_representation(instance, exclude=["link"])
         return utils.omit_null_fields(data, ["from_number", "to_number"])
 
     def get_who_called(self, obj: m.Call):
@@ -392,3 +399,29 @@ class CallSerializer(DynamicFieldSerializer):
     def get_reason(self, obj: m.Call):
         reason = obj.order or obj.contract
         return reason.__str__()
+
+    def get_link(self, obj: m.Call):
+        call_reason_obj = obj.order or obj.contract
+        return call_reason_obj.get_absolute_url_api()
+
+
+class ServiceSerializer(DynamicFieldSerializer):
+    title = serializers.CharField()
+    base_price = SeperatedCharField(threshold=3)
+    healthcare_franchise = SeperatedCharField(threshold=3)
+    healthcare_franchise_in_tooman = SeperatedCharField(threshold=3)
+    personnel_franchise = serializers.CharField()
+    personnel_franchise_in_tooman = SeperatedCharField(threshold=3)
+    total_orders = serializers.IntegerField()
+    total_orders_in_passed_month = serializers.IntegerField()
+
+    translated_fields = {
+        "title": "عنوان خدمت",
+        "base_price": "مبلغ پایه",
+        "healthcare_franchise": "فرانشیز مرکز",
+        "healthcare_franchise_in_tooman": "فرانشیز مرکز به تومان",
+        "personnel_franchise": "فرانشیز پرسنل",
+        "personnel_franchise_in_tooman": "فرانشیز پرسنل به تومان",
+        "total_orders": "کل خدمات",
+        "total_orders_in_passed_month": "کل خدمات ماه گذشته",
+    }
