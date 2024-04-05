@@ -348,6 +348,9 @@ class Service(Log):
     def get_absolute_url(self):
         return reverse("crm:get_service", kwargs={"id": self.pk})
 
+    def get_absolute_url_api(self):
+        return reverse("crm:service_preview", kwargs={"id": self.pk})
+
     def __str__(self) -> str:
         return f"{self.title}"
 

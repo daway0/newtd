@@ -1,7 +1,7 @@
 {% load crm_extras %}
 
-<tr data-link="{{row.get_absolute_url}}">
+<tr data-link="{{row.get_absolute_url_api}}">
     <td>{{row.title}}</td>
     <td>{{row.healthcare_franchise|persianize}}</td>
-    <td>{{row.base_price|persianize}}</td>
+    <td>{{row.base_price|tooman_separator|persianize}}</td>
 </tr>

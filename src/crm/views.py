@@ -469,7 +469,9 @@ def order_preview(request, id):
                 "link": "",
             },
         ],
-        "table": s.OrderSerializer(order, exclude=["title", "link"]),
+        "table": s.OrderSerializer(
+            order, exclude=["title", "link", "service_cost"]
+        ),
         "data_tables": [
             {
                 "title": "خدمات",

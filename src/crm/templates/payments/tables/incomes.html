@@ -4,6 +4,6 @@
     <td>{{row.paid_at|persianize}}</td>
     <td><a href="{{row.source.get_absolute_url}}">{{row.source}}</a></td>
     <td><a href="{{row.payment_for.get_absolute_url}}">{{row.payment_for|persianize}}</a></td>
-    <td>{{row.amount|persianize}}</td>
+    <td>{{row.amount|tooman_separator|persianize}}</td>
     <td>{{row.note|persianize}}</td>
 </tr>

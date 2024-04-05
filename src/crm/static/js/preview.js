@@ -1,6 +1,8 @@
 // import "jquery"
 // import { ajax } from "jquery"
 
+let previewUrlStack = Array()
+
 function persianize(value) {
     const persianNumbers = {
         "0": "۰",
@@ -73,6 +75,7 @@ function makeButton(title, icon, link) {
 
 function makeButtonSet(buttonsData) {
     let html = ""
+    if (buttonsData === undefined) { return "" }
     buttonsData.forEach(function (button) {
         html += makeButton(
             button.title,
@@ -229,6 +232,7 @@ function loadNewPreview(url) {
             url: url,
         }
     ).done(function (data) {
+        previewUrlStack.push(url)
         new_preview = makePreview(data)
         flushCurrentPreview()
         replaceNewPreview(new_preview.previewContainer)
@@ -243,16 +247,48 @@ function addDataTableRowSelectionStyle(row) {
 }
 
 function removeDataTableRowsSelectionStyle() {
-    $("table.dataTable tr").removeAttr("style")
+    $('div[id^="tab-container"]').find('tr').removeAttr("style")
 }
 
 $(document).ready(function () {
 
-    $(document).on('click', "table.dataTable tr[data-link]", function () {
+    // click on datatable beside preview pane
+    $(document).on('click', "div[id^='tab-container'] table.dataTable tr[data-link]", function () {
         let url = $(this).attr("data-link")
         if (url == "" || url === undefined) return
+        
+        // flush preview url stack and hide back button
+        previewUrlStack = Array()
+        $("div[id='preview-container']").parent().find(".preview-back").addClass("hidden")
+        
+        
         loadNewPreview(url)
         removeDataTableRowsSelectionStyle()
         addDataTableRowSelectionStyle($(this))
+    });
+
+    // click on preview datatables
+    $(document).on('click', "div[id='preview-container'] table.dataTable tr[data-link]", function () {
+
+        if (previewUrlStack.length >= 1) {
+            $("#preview-container").parent().find(".preview-back").removeClass("hidden")
+        }
+
+        let url = $(this).attr("data-link")
+        if (url == "" || url === undefined) return
+        loadNewPreview(url)
+        addDataTableRowSelectionStyle($(this))
+    });
+
+    $("div[id='preview-container']").parent().find(".preview-back").on('click', function () {
+        previewUrlStack.pop()
+        previousUrl = previewUrlStack.pop()
+
+        // hidden back if it was last URL
+        if (previewUrlStack.length === 0) {
+            $(this).addClass("hidden")
+        }
+
+        loadNewPreview(previousUrl)
     });
 });

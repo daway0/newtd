@@ -62,3 +62,8 @@ def get_people_url(people, action: str):
     ], "invalid action"
 
     return people.get_absolute_url(action.lower())
+
+
+@register.filter(name="tooman_separator")
+def tooman_separator(value):
+    return f"{int(value):,}"

@@ -1,9 +1,13 @@
 <div class="bg-white rounded-md shadow-sm p-4 h-fit text-primarytext flex flex-col gap-6 w-full">
-    <div class="flex flex-row gap-2 font-semibold">
-        {% include icon with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
-        <span>
-            {% block title %}{% endblock title %}
-        </span>
+    <div class="flex flex-row gap-2 justify-between font-semibold">
+        <div class="flex flex-row gap-2">
+            {% include icon with fillcolor="fill-primarytext" height="w-6" width="w-6" %}
+            <span>{% block title %}{% endblock title %}</span>
+        </div>
+        <div class="preview-back hidden cursor-pointer select-none flex flex-row gap-2">
+            <span >بازگشت</span>
+            {% include "svg/back.html" with fillcolor="fill-primarytext" height="w-4" width="w-4" %}
+        </div>
     </div>
         {% block content %}{% endblock content %}
 </div>
