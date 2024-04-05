@@ -4,6 +4,7 @@
 let previewUrlStack = Array()
 
 function persianize(value) {
+    if (value===null || value===undefined)return
     const persianNumbers = {
         "0": "۰",
         "1": "۱",
@@ -87,10 +88,10 @@ function makeButtonSet(buttonsData) {
 }
 
 function makeRow(dataObj, color = false) {
-    let displayText = dataObj.link ? `<a href="${dataObj.link}">${dataObj.value || "-"}</a>` : dataObj.value || "-"
+    let displayText = dataObj.link ? `<a href="${dataObj.link}">${persianize(dataObj.value) || "-"}</a>` : persianize(dataObj.value) || "-"
     return `<tr class="${color ? 'bg-searchbox' : ''}">
         <td class="p-2 text-sm font-semibold text-primary rounded rounded-md">${dataObj.title}</td>
-        <td class="p-2 text-sm">${persianize(displayText)}</td>
+        <td class="p-2 text-sm">${displayText}</td>
     </tr>`
 }
 

@@ -1,6 +1,5 @@
 from typing import Any
 
-import jdatetime
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import F, Q, Sum, Value
@@ -301,7 +300,7 @@ class PeopleDetailedInfo(Log):
         related_name="details",
     )
     address = models.CharField(max_length=250, null=True, blank=True)
-    phone_number = models.CharField(max_length=10, null=True, blank=True)
+    phone_number = models.CharField(max_length=11, null=True, blank=True)
     card_number = models.CharField(max_length=16, null=True, blank=True)
     note = models.TextField(null=True, blank=True)
 
