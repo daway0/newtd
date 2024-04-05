@@ -30,13 +30,11 @@ function makePreview(data) {
     let dataTablesHTML = makeDataTable(dataTablesData)
 
     previewContainer = `
-    <div class="flex flex-row-reverse gap-2">
+    <div class="flex flex-row-reverse gap-2 ">
         ${buttonsHTML}
     </div>
-        
-            
         <div class="bg-white rounded-md shadow-md p-4 h-fit text-primarytext flex flex-col gap-2 w-full">
-            <div class="flex flex-row gap-2 font-semibold">
+            <div class="flex flex-row gap-2 font-semibold bg-primary text-white p-2 rounded-md">
                 <span>
                     اطلاعات ${persianize(data.description)}
                 </span>
@@ -175,11 +173,12 @@ function makeDataTable(tablesData) {
     let counter = 0
     tablesData.forEach(function (obj) {
         if (obj.data.length === 0) {
-            HTML += previewPane(
-                obj.title,
-                undefined,
-                `<span class="align-middle text-failed">داده یافت نشد</span>`
-            )
+            
+            // HTML += previewPane(
+            //     obj.title,
+            //     undefined,
+            //     `<span class="align-middle text-failed">داده یافت نشد</span>`
+            // )
         } else {
             let headersHTML = makeDataTableHeaders(obj)
             let body = makeDataTableRows(obj)
