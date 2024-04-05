@@ -360,8 +360,12 @@ class PreviewSerializer(serializers.Serializer):
 class OrderServiceSerializer(DynamicFieldSerializer):
     title = serializers.CharField(source="service.title")
     cost = SeperatedCharField(threshold=3)
+    link = serializers.CharField(source="service.get_absolute_url_api")
 
     translated_fields = {"title": "عنوان", "cost": "هزینه"}
+
+    def to_representation(self, instance):
+        return super().to_representation(instance, exclude=["link"])
 
 
 class CallSerializer(DynamicFieldSerializer):
