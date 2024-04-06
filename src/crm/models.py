@@ -340,9 +340,7 @@ class Service(Log):
     def total_orders_in_passed_month(self):
         start, end = utils.get_month_start_end(1)
 
-        return self.order_set.filter(
-            order_at__range=[start, end]
-        ).count()
+        return self.order_set.filter(order_at__range=[start, end]).count()
 
     def get_absolute_url(self):
         return reverse("crm:get_service", kwargs={"id": self.pk})
@@ -730,3 +728,17 @@ class OrderPayment(models.Model):
     class Meta:
         managed = False
         db_table = "order_payment"
+
+
+class DebtorClient(models.Model):
+    client = models.ForeignKey(
+        People, on_delete=models.CASCADE, related_name="debt"
+    )
+    full_name = models.CharField()
+    order_debt = models.PositiveBigIntegerField()
+    contract_debt = models.PositiveBigIntegerField()
+    total_debt = models.PositiveBigIntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "debtor_client"
