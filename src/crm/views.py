@@ -918,7 +918,7 @@ def service_preview(request, id):
     data = {
         "title": "سرویس",
         "icon": "service icon",
-        "description": service.__str__(),
+        "description": f"سرویس {service.__str__()}",
         "table": s.ServiceSerializer(service),
         "data_tables": [
             {

@@ -1,5 +1,6 @@
 from django.urls import path
 
+from . import report_views as rv
 from . import views
 
 app_name = "crm"
@@ -45,8 +46,13 @@ urlpatterns = [
     path("api/clients/<int:id>/", views.client_preview, name="client_preview"),
     path("api/personnel/<int:id>/", views.personnel_preview, name="personnel_preview"),
     path("api/patients/<int:id>/", views.patient_preview, name="patient_preview"),
-    path("api/services/<int:id>/", views.service_preview, name="service_preview")
+    path("api/services/<int:id>/", views.service_preview, name="service_preview"),
     # previews end
+
+    # reports
+    path("api/reports/most_requested_services/", rv.most_requested_services, name="most_requested_services"),
+    path("api/reports/debtor_clients/", rv.debtor_clients, name="debtor_clients"),
+    # reports end
     # REST end
     # fmt: on
 ]
