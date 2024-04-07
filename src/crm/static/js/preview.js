@@ -192,7 +192,7 @@ function makeDataTable(tablesData) {
             HTML += previewPane(
                 obj.title,
                 undefined,
-                `<table class="text-black text-sm" id="dt-${counter}">${headersHTML + body}</table>`
+                `<table class="display  compact text-black text-sm" id="dt-${counter}">${headersHTML + body}</table>`
             )
             dataTableIds.push(counter)
             counter++

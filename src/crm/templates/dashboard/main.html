@@ -36,25 +36,124 @@
         <div class="basis-1/2">
             <div class="rounded rounded-md" id="container-0"></div>
         </div>
-        <div class="flex flex-row basis-1/2 gap-2 bg-white rounded-md py-4 px-8">
-            <table id="preview-contract" class="w-full">
+        <div class="flex flex-row basis-1/2 gap-2 bg-white rounded-md py-4 px-8 w-full">
+            <table id="preview-contract" class="display">
                 <thead>
                     <tr>
-                        <td>کارفرما</td>
-                        <td>تاریخ عقد قرارداد</td>
-                        <td>فرانشیز مرکز</td>
-                        <td>وضعیت پرداخت</td>
-                        <td>سررسید قرارداد</td>
+                        <th>کارفرما</th>
+                        <th>تاریخ عقد قرارداد</th>
+                        <th>فرانشیز مرکز</th>
+                        <th>وضعیت پرداخت</th>
+                        <th>سررسید قرارداد</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                <tbody class="text-sm">
+                    <tr class="select-none cursor-pointer">
+                        <td>جمال تالش</td>
+                        <td>{{"1402/08/10"|persianize}}</td>
+                        <td>{{1775000|tooman_separator|persianize}}</td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-secondary rounded-full text-primarytext w-fit px-2">
+                                {% include "svg/moeny.html" with fillcolor="fill-primarytext" height="w-4" width="w-4" %}
+                                <span class="font-bold">پرداخت کامل</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-errortext rounded-full text-white w-fit px-2">
+                                {% include "svg/clock.html" with fillcolor="fill-white" height="w-3" width="w-3" %}
+                                <span class="font-bold">{{"فردا"|persianize}}</span>
+                            </div>
+                        </td>
                     </tr>
+                    <tr class="select-none cursor-pointer">
+                        <td>سمیه تاجر</td>
+                        <td>{{"1402/12/06"|persianize}}</td>
+                        <td>{{2900000|tooman_separator|persianize}}</td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-secondary rounded-full text-primarytext w-fit px-2">
+                                {% include "svg/moeny.html" with fillcolor="fill-primarytext" height="w-4" width="w-4" %}
+                                <span class="font-bold">پرداخت کامل</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-errortext rounded-full text-white w-fit px-2">
+                                {% include "svg/clock.html" with fillcolor="fill-white" height="w-3" width="w-3" %}
+                                <span class="font-bold">{{"2 روز دیگر"|persianize}}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr class="select-none cursor-pointer">
+                        <td>مینو گلچین</td>
+                        <td>{{"1402/12/28"|persianize}}</td>
+                        <td>{{1200000|tooman_separator|persianize}}</td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-seperatorline rounded-full text-black w-fit px-2">
+                                {% include "svg/moeny.html" with fillcolor="fill-black" height="w-4" width="w-4" %}
+                                <span class="font-bold">پرداخت جزیی</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-seperatorline rounded-full text-black w-fit px-2">
+                                {% include "svg/clock.html" with fillcolor="fill-black" height="w-3" width="w-3" %}
+                                <span class="font-bold">{{"13 روز دیگر"|persianize}}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="select-none cursor-pointer">
+                        <td>سید پدرام اخوان</td>
+                        <td>{{"1402/11/01"|persianize}}</td>
+                        <td>{{2500000|tooman_separator|persianize}}</td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-secondary rounded-full text-primarytext w-fit px-2">
+                                {% include "svg/moeny.html" with fillcolor="fill-primarytext" height="w-4" width="w-4" %}
+                                <span class="font-bold">پرداخت کامل</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-seperatorline rounded-full text-black w-fit px-2">
+                                {% include "svg/clock.html" with fillcolor="fill-black" height="w-3" width="w-3" %}
+                                <span class="font-bold">{{"1 ماه و 1 روز"|persianize}}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="select-none cursor-pointer">
+                        <td>سید پدرام اخوان</td>
+                        <td>{{"1402/11/01"|persianize}}</td>
+                        <td>{{2500000|tooman_separator|persianize}}</td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-secondary rounded-full text-primarytext w-fit px-2">
+                                {% include "svg/moeny.html" with fillcolor="fill-primarytext" height="w-4" width="w-4" %}
+                                <span class="font-bold">پرداخت کامل</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-seperatorline rounded-full text-black w-fit px-2">
+                                {% include "svg/clock.html" with fillcolor="fill-black" height="w-3" width="w-3" %}
+                                <span class="font-bold">{{"1 ماه و 1 روز"|persianize}}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="select-none cursor-pointer">
+                        <td>رایان میراحمدی</td>
+                        <td>{{"1402/03/15"|persianize}}</td>
+                        <td>{{6750000|tooman_separator|persianize}}</td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-secondary rounded-full text-primarytext w-fit px-2">
+                                {% include "svg/moeny.html" with fillcolor="fill-primarytext" height="w-4" width="w-4" %}
+                                <span class="font-bold">پرداخت کامل</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="flex flex-row gap-1 bg-seperatorline rounded-full text-black w-fit px-2">
+                                {% include "svg/clock.html" with fillcolor="fill-black" height="w-3" width="w-3" %}
+                                <span class="font-bold">{{"2 ماه و 25 روز دیگر"|persianize}}</span>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    
+                    
                 </tbody>
             </table>
         </div>
@@ -317,16 +416,16 @@ Highcharts.chart('container-3', {
     series: [{
         color: "#B2C2CF",
         name: 'درآمد',
-        data: [25000000, 28000000, 20000000, 32000000, 16000000, 18000000 , 24000000, 32000000, 33000000, 36000000, 41000000]
+        data: [25000000, 28000000, 20000000, 32000000, 16000000, 18000000 , 24000000, 32000000, 33000000, 36000000, 41000000, 51000000]
     }, {
         color: "#83A1C0",
         name: 'هزینه',
-        data: [18000000, 22000000, 16000000, 8000000, 12000000, 19000000 , 18000000, 26000000, 26000000, 20000000, 25000000]
+        data: [18000000, 22000000, 16000000, 8000000, 12000000, 19000000 , 18000000, 26000000, 26000000, 20000000, 25000000, 27000000]
         
     }, {
         color: "#5480B3",
         name: 'سود',
-        data: [7000000, 6000000, 4000000, 24000000, 4000000, -1000000 , 6000000, 6000000, 7000000, 16000000, 16000000]
+        data: [7000000, 6000000, 4000000, 24000000, 4000000, -1000000 , 6000000, 6000000, 7000000, 16000000, 16000000, 24000000]
 
     }],
     exporting: {
