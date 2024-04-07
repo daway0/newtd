@@ -14,17 +14,7 @@ function hideAllTabExceptFirst() {
 $(document).ready( function () {
     findTabTabels()
     hideAllTabExceptFirst()
-    $('#UserTable').DataTable({
-        select:true,
-        paging:true,
-        direction:"right",
-        language: lang
-    });
-    $('#AddressesTable').DataTable(informTable);
-    $('#PhoneNumbersTable').DataTable(informTable);
-    $('#ClientPaymentsTable').DataTable(informTable);
-    $('#ClientServicesTable').DataTable(informTable);
-    $('#ClientCallsTable').DataTable(informTable);
+
     $('#preview-contract').DataTable({...informTable, order:[]});
     $('#preview-contract_wrapper').addClass("w-full")
 
