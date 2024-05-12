@@ -47,6 +47,7 @@ urlpatterns = [
     path("api/personnel/<int:id>/", views.personnel_preview, name="personnel_preview"),
     path("api/patients/<int:id>/", views.patient_preview, name="patient_preview"),
     path("api/services/<int:id>/", views.service_preview, name="service_preview"),
+    path("api/national-code/<str:national_code>/", views.black_list, name="black_list"),
     # previews end
 
     # reports

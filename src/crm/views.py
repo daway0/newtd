@@ -1,12 +1,12 @@
-from django.contrib import messages as msg
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, render
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from . import models
 from . import serializers as s
-from . import utils
+from . import utils, validators
 from .forms import TestForm
 
 
@@ -942,3 +942,12 @@ def service_preview(request, id):
     serializer = s.PreviewSerializer(data).data
 
     return Response(serializer)
+
+
+@api_view(["GET"])
+def black_list(request, national_code):
+    if not validators.national_code(national_code):
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    is_black_listed = models.BlackList.is_black_listed(national_code)
+    return Response({"isBlackList": is_black_listed})
