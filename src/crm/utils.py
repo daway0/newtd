@@ -1,3 +1,5 @@
+from math import ceil
+
 import jdatetime
 from django.db.models import QuerySet
 
@@ -153,45 +155,39 @@ def create_jdate_from_str(str_date: str) -> jdatetime.date:
 
 
 def time_left_til_specific_date_verbose(
-    start_date_obj: jdatetime.date, unitl_date_obj: jdatetime.date
+    start_date_obj: jdatetime.date, until_date_obj: jdatetime.date
 ) -> str:
     """
     Calculating remaining time from an specific date to another one
     in persian verbose format.
 
+    Suffix will be choosed based on if 'start_date_obj' is smaller or
+    bigger.
+
     Args:
         start_date_obj: start date
-        unitl_date_obj: end date
+        until_date_obj: end date
 
     Returns:
         str: Persian verbose format of remaining time.
-
-    Raises:
-        ValueError: if start_date_obj is bigger than unitl_date_obj.
     """
 
-    if start_date_obj > unitl_date_obj:
-        raise ValueError(
-            "'start_date_obj' value is bigger than 'unitl_date_obj' value, "
-            "your data is wrong logically, Abort!"
+    if start_date_obj > until_date_obj:
+        suffix = "قبل"
+    else:
+        suffix = "دیگر"
+
+    difference = abs((until_date_obj - start_date_obj).days)
+
+    if difference >= 365:
+        # using 365.25 cause of leap years.
+        time_left = (
+            f"{difference // 365} سال و {ceil(difference % 365.25)} روز"
         )
+    else:
+        time_left = f"{difference} روز"
 
-    difference = (unitl_date_obj - start_date_obj).days
-    years = difference // 365
-    months = (difference % 365) // 30
-    days = (difference % 365) % 30
-
-    final_string = list()
-    if years:
-        final_string.append(f"{years} سال")
-
-    if months:
-        final_string.append(f"{months} ماه")
-
-    if days:
-        final_string.append(f"{days} روز")
-
-    return " و ".join(final_string)
+    return f"{time_left} {suffix}"
 
 
 def omit_null_fields(data: dict, omitabale_fields: list[str]) -> dict:
