@@ -3,9 +3,9 @@ def trim_string(v):
     return
 
 
-def national_code(v):
+def national_code(national_code: str) -> bool:
     """validate iranian national code"""
-    return
+    return len(national_code) == 10
 
 
 def blacklist_national_codes(v):

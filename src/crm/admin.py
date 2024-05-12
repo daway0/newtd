@@ -11,6 +11,7 @@ admin.site.register(
         models.Payment,
         models.Call,
         models.TagSpecefication,
+        models.BlackList,
     ]
 )
 

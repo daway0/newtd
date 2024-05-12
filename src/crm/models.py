@@ -712,6 +712,20 @@ class Call(Log):
         return self.called_at
 
 
+class BlackList(models.Model):
+    national_code = models.CharField(
+        max_length=10,
+        validators=[
+            validators.national_code,
+        ],
+        unique=True,
+    )
+
+    @staticmethod
+    def is_black_listed(national_code: str) -> bool:
+        return BlackList.objects.filter(national_code=national_code).exists()
+
+
 class OrderPayment(models.Model):
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name="order_payment"
@@ -730,15 +744,15 @@ class OrderPayment(models.Model):
         db_table = "order_payment"
 
 
-class DebtorClient(models.Model):
-    client = models.ForeignKey(
-        People, on_delete=models.CASCADE, related_name="debt"
-    )
-    full_name = models.CharField()
-    order_debt = models.PositiveBigIntegerField()
-    contract_debt = models.PositiveBigIntegerField()
-    total_debt = models.PositiveBigIntegerField()
+# class DebtorClient(models.Model):
+#     client = models.ForeignKey(
+#         People, on_delete=models.CASCADE, related_name="debt"
+#     )
+#     full_name = models.CharField()
+#     order_debt = models.PositiveBigIntegerField()
+#     contract_debt = models.PositiveBigIntegerField()
+#     total_debt = models.PositiveBigIntegerField()
 
-    class Meta:
-        managed = False
-        db_table = "debtor_client"
+#     class Meta:
+#         managed = False
+#         db_table = "debtor_client"
