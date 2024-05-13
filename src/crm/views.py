@@ -951,3 +951,56 @@ def black_list(request, national_code):
 
     is_black_listed = models.BlackList.is_black_listed(national_code)
     return Response({"isBlackList": is_black_listed})
+
+
+@api_view(["POST", "PUT", "DELETE"])
+def edit_phone_number(request):
+    sz = s.EditPhoneNumberSerializer(
+        data=request.data, context={"request": request}
+    )
+    if not sz.is_valid():
+        return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
+
+    pn = sz.validated_data["phone_number"]
+
+    if request.method == "POST":
+        try:
+            models.PeopleDetailedInfo.validate_phone_number(pn, request.method)
+        except ValueError as e:
+            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+
+        models.PeopleDetailedInfo.objects.create(
+            people=sz.validated_data["person"],
+            detail_type=models.PeopleDetailTypeChoices.PHONE_NUMBER,
+            phone_number=pn,
+        )
+        return Response(status=status.HTTP_201_CREATED)
+
+    elif request.method == "DELETE":
+        try:
+            current_phone_number = (
+                models.PeopleDetailedInfo.validate_phone_number(
+                    pn, request.method
+                )
+            )
+        except ValueError as e:
+            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+
+        current_phone_number.delete()
+        return Response(status=status.HTTP_202_ACCEPTED)
+
+    else:
+        new_pn = sz.validated_data["new_phone_number"]
+        
+        try:
+            current_phone_number = (
+                models.PeopleDetailedInfo.validate_phone_number(
+                    pn, request.method, new_pn
+                )
+            )
+        except ValueError as e:
+            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+
+        current_phone_number.phone_number = new_pn
+        current_phone_number.save()
+        return Response(status=status.HTTP_200_OK)

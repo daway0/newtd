@@ -13,7 +13,8 @@ def blacklist_national_codes(v):
     ...
 
 
-def telephone_number(v): ...
+def phone_number(phone_number: str) -> bool:
+    return len(phone_number) == 11
 
 
 def jdate_string_validator(v): ...

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -307,6 +307,52 @@ class PeopleDetailedInfo(Log):
     def __str__(self) -> str:
         detail = self.address or self.phone_number or self.card_number
         return f"{self.detail_type} {detail}"
+
+    @staticmethod
+    def validate_phone_number(
+        phone_number: str,
+        request_method: str,
+        new_phone_number: str = None,
+    ) -> Optional["PeopleDetailedInfo"]:
+        """
+        Validating phone number based on request method.
+
+        'POST' means adding a phone number for specific user, thus we have
+        to check phone number is unique.
+
+        'PUT; means editing an existing phone number so we have to check
+        there is a phone number obj with that value is already exists.
+
+        'DELETE' is deleting an existing phone number thus we again have to
+        check if phone number already exists.
+
+        In 'PUT' and 'DELETE' methods, we return current phone_number obj
+        to avoid additional queries again.
+
+        Raises:
+            'ValueError': If data is invalid, along with the reason.
+        """
+        current_phone_number = PeopleDetailedInfo.objects.filter(
+            phone_number=phone_number
+        )
+
+        if request_method == "POST":
+            if current_phone_number.exists():
+                raise ValueError("phone number already exists.")
+        else:
+            # Both DELETE and PUT
+            if not current_phone_number.exists():
+                raise ValueError("phone number does not exists.")
+
+            if request_method == "PUT":
+                if PeopleDetailedInfo.objects.filter(
+                    phone_number=new_phone_number
+                ).exists():
+                    raise ValueError(
+                        "new phone number already exists."
+                    )
+
+            return current_phone_number.first()
 
 
 class Service(Log):

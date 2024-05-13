@@ -2,7 +2,7 @@ import jdatetime
 from rest_framework import serializers
 
 from . import models as m
-from . import utils
+from . import utils, validators
 
 
 class TranslatedSerializer(serializers.Serializer):
@@ -429,3 +429,52 @@ class ServiceSerializer(DynamicFieldSerializer):
         "total_orders": "کل خدمات",
         "total_orders_in_passed_month": "کل خدمات ماه گذشته",
     }
+
+
+class EditPhoneNumberSerializer(serializers.Serializer):
+    person = serializers.IntegerField()
+    phone_number = serializers.CharField(max_length=11, min_length=11)
+    new_phone_number = serializers.CharField(
+        max_length=11, min_length=11, required=False
+    )
+
+    def validate_person(self, person_id: int):
+        person = m.People.objects.filter(id=person_id)
+        if not person.exists():
+            raise serializers.ValidationError({"error": "invalid person id."})
+
+        return person.first()
+
+    def validate(self, attrs: dict):
+        attrs = super().validate(attrs)
+        
+        new_pn = attrs.get("new_phone_number")
+        if self.context["request"].method == "PUT" and new_pn is None:
+            raise serializers.ValidationError(
+                {"error": "invalid new phone number"}
+            )
+
+        is_pn_valid = validators.phone_number(attrs["phone_number"])
+        if not is_pn_valid:
+            raise serializers.ValidationError(
+                {"error": "invalid phone number."}
+            )
+
+        new_phone_number = attrs.get("new_phone_number")
+
+        if new_phone_number is not None:
+            if attrs["phone_number"] == new_phone_number:
+                raise serializers.ValidationError(
+                    {"error": "both phone numbers are equall."}
+                )
+
+            is_new_pn_valid = validators.phone_number(
+                attrs["new_phone_number"]
+            )
+
+            if not is_new_pn_valid:
+                raise serializers.ValidationError(
+                    {"error": "invalid new phone number."}
+                )
+
+        return attrs
