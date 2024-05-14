@@ -7,6 +7,12 @@ from .models import People, PeopleDetailedInfo
 
 
 class Info(ABC):
+    """
+    Abstract class for add/remove/editing people's infos.
+
+    Each info type must have its own set of methods in order to
+    correctly do its functionality.
+    """
 
     def __init__(self, info: str) -> None:
         self.info = info
@@ -14,6 +20,14 @@ class Info(ABC):
 
     @staticmethod
     def fetch_model_required(func: Callable):
+        """
+        Some methods need to access current info obj in order to
+        do some operations like delete or change,
+        thus we need to fetch the obj for them.
+
+        Use this decorator for those methods.
+        """
+
         @wraps(func)
         def wrapper(self: "Info", *args, **kwargs):
             if self.model is None:
@@ -46,6 +60,11 @@ class PhoneNumber(Info):
         return validators.phone_number(self.info)
 
     def fetch_model(self) -> None:
+        """
+        Raises:
+            'ValueError': if info does not exists on db.
+        """
+
         current_obj = PeopleDetailedInfo.objects.filter(
             phone_number=self.info
         ).first()
@@ -56,6 +75,11 @@ class PhoneNumber(Info):
         self.model = current_obj
 
     def add(self, person: People):
+        """
+        Raises:
+            'ValueError': if phone number already exists.
+        """
+
         if PeopleDetailedInfo.objects.filter(phone_number=self.info).exists():
             raise ValueError("phone number already exists.")
 
@@ -65,8 +89,12 @@ class PhoneNumber(Info):
 
     @Info.fetch_model_required
     def change(self, new_info: str) -> None:
-        if self.model is None:
-            self.fetch_model()
+        """
+        Raises:
+            'ValueError': if both phone numbers are equal,
+            if new number already exists,
+            if new phone number is invalid.
+        """
 
         if self.model.phone_number == new_info:
             raise ValueError("both phone numbers are the same")
