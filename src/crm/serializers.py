@@ -454,27 +454,4 @@ class EditPhoneNumberSerializer(serializers.Serializer):
                 {"error": "invalid new phone number"}
             )
 
-        is_pn_valid = validators.phone_number(attrs["phone_number"])
-        if not is_pn_valid:
-            raise serializers.ValidationError(
-                {"error": "invalid phone number."}
-            )
-
-        new_phone_number = attrs.get("new_phone_number")
-
-        if new_phone_number is not None:
-            if attrs["phone_number"] == new_phone_number:
-                raise serializers.ValidationError(
-                    {"error": "both phone numbers are equall."}
-                )
-
-            is_new_pn_valid = validators.phone_number(
-                attrs["new_phone_number"]
-            )
-
-            if not is_new_pn_valid:
-                raise serializers.ValidationError(
-                    {"error": "invalid new phone number."}
-                )
-
         return attrs

@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from . import models
 from . import serializers as s
 from . import utils, validators
+from .business import PhoneNumber
 from .forms import TestForm
 
 
@@ -961,46 +962,37 @@ def edit_phone_number(request):
     if not sz.is_valid():
         return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
 
-    pn = sz.validated_data["phone_number"]
+    phone_number = PhoneNumber(sz.validated_data["phone_number"])
 
+    err_res = lambda err_message: Response(
+        {"error": str(err_message)}, status.HTTP_400_BAD_REQUEST
+    )
+
+    if not phone_number.is_valid():
+        return err_res("invalid phone number")
+    
     if request.method == "POST":
         try:
-            models.PeopleDetailedInfo.validate_phone_number(pn, request.method)
-        except ValueError as e:
-            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+            phone_number.add(sz.validated_data["person"])
+            return Response(status=status.HTTP_201_CREATED)
 
-        models.PeopleDetailedInfo.objects.create(
-            people=sz.validated_data["person"],
-            detail_type=models.PeopleDetailTypeChoices.PHONE_NUMBER,
-            phone_number=pn,
-        )
-        return Response(status=status.HTTP_201_CREATED)
+        except ValueError as e:
+            return err_res(e)
 
     elif request.method == "DELETE":
         try:
-            current_phone_number = (
-                models.PeopleDetailedInfo.validate_phone_number(
-                    pn, request.method
-                )
-            )
-        except ValueError as e:
-            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+            phone_number.delete()
+            return Response(status=status.HTTP_202_ACCEPTED)
 
-        current_phone_number.delete()
-        return Response(status=status.HTTP_202_ACCEPTED)
+        except ValueError as e:
+            return err_res(e)
 
     else:
         new_pn = sz.validated_data["new_phone_number"]
-        
         try:
-            current_phone_number = (
-                models.PeopleDetailedInfo.validate_phone_number(
-                    pn, request.method, new_pn
-                )
-            )
+            phone_number.change(new_pn)
+            return Response(status=status.HTTP_200_OK)
+        
         except ValueError as e:
-            return Response({"error": str(e)}, status.HTTP_400_BAD_REQUEST)
+            return err_res(e)
 
-        current_phone_number.phone_number = new_pn
-        current_phone_number.save()
-        return Response(status=status.HTTP_200_OK)
