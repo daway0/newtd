@@ -299,14 +299,11 @@ class PeopleDetailedInfo(Log):
         on_delete=models.CASCADE,
         related_name="details",
     )
-    address = models.CharField(max_length=250, null=True, blank=True)
-    phone_number = models.CharField(max_length=11, null=True, blank=True)
-    card_number = models.CharField(max_length=16, null=True, blank=True)
+    value = models.CharField(max_length=250)
     note = models.TextField(null=True, blank=True)
 
     def __str__(self) -> str:
-        detail = self.address or self.phone_number or self.card_number
-        return f"{self.detail_type} {detail}"
+        return f"{self.detail_type} {self.value}"
 
 
 class Service(Log):

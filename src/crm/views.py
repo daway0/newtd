@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from . import models
 from . import serializers as s
 from . import utils, validators
-from .business import PhoneNumber
+from .business import Info
 from .forms import TestForm
 
 
@@ -962,7 +962,10 @@ def edit_phone_number(request):
     if not sz.is_valid():
         return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
 
-    phone_number = PhoneNumber(sz.validated_data["phone_number"])
+    phone_number = Info(
+        sz.validated_data["phone_number"],
+        type=models.PeopleDetailTypeChoices.PHONE_NUMBER,
+    )
 
     err_res = lambda err_message: Response(
         {"error": str(err_message)}, status.HTTP_400_BAD_REQUEST
@@ -970,7 +973,7 @@ def edit_phone_number(request):
 
     if not phone_number.is_valid():
         return err_res("invalid phone number")
-    
+
     if request.method == "POST":
         try:
             phone_number.add(sz.validated_data["person"])
@@ -992,7 +995,6 @@ def edit_phone_number(request):
         try:
             phone_number.change(new_pn)
             return Response(status=status.HTTP_200_OK)
-        
+
         except ValueError as e:
             return err_res(e)
-

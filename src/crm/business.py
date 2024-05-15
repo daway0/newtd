@@ -1,24 +1,27 @@
-from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Callable
 
 from . import validators
-from .models import People, PeopleDetailedInfo
+from .models import People, PeopleDetailedInfo, PeopleDetailTypeChoices
 
 
-class Info(ABC):
+class Info:
     """
-    Abstract class for add/remove/editing people's infos.
-
-    Each info type must have its own set of methods in order to
-    correctly do its functionality.
+    Class for add/remove/editing people's infos.
     """
 
-    def __init__(self, info: str) -> None:
+    def __init__(self, info: str, type: PeopleDetailTypeChoices.names) -> None:
+        """
+        Args:
+            'info': The info which you want to modify / add.
+            'type': Type of info you are modifing / adding, choose from
+                PeopleDetailTypeChoices enum consts.
+        """
+
         self.info = info
+        self.type = type
         self.model: PeopleDetailedInfo = None
 
-    @staticmethod
     def fetch_model_required(func: Callable):
         """
         Some methods need to access current info obj in order to
@@ -37,42 +40,27 @@ class Info(ABC):
 
         return wrapper
 
-    @abstractmethod
-    def is_valid(self) -> bool:
-        raise NotImplementedError
-
-    @abstractmethod
     def fetch_model(self):
-        raise NotImplementedError
-
-    @abstractmethod
-    def change(self, new_info: str):
-        raise NotImplementedError
-
-    @fetch_model_required
-    def delete(self):
-        self.model.delete()
-
-
-class PhoneNumber(Info):
-
-    def is_valid(self):
-        return validators.phone_number(self.info)
-
-    def fetch_model(self) -> None:
         """
         Raises:
             'ValueError': if info does not exists on db.
         """
 
-        current_obj = PeopleDetailedInfo.objects.filter(
-            phone_number=self.info
+        model = PeopleDetailedInfo.objects.filter(
+            detail_type=self.type, value=self.info
         ).first()
 
-        if current_obj is None:
-            raise ValueError("phone number does not exists.")
+        if model is None:
+            raise ValueError(f"{self.type.name.lower()} does not exists.")
 
-        self.model = current_obj
+        self.model = model
+
+    def is_valid(self) -> bool:
+        if self.type == PeopleDetailTypeChoices.ADDRESS:
+            if not validators.phone_number(self.info):
+                raise ValueError("invalid phone number.")
+
+        return True
 
     def add(self, person: People):
         """
@@ -80,30 +68,41 @@ class PhoneNumber(Info):
             'ValueError': if phone number already exists.
         """
 
-        if PeopleDetailedInfo.objects.filter(phone_number=self.info).exists():
-            raise ValueError("phone number already exists.")
+        if PeopleDetailedInfo.objects.filter(
+            detail_type=self.type, value=self.info
+        ).exists():
+            raise ValueError(f"{self.type.name.lower()} already exists.")
 
         PeopleDetailedInfo.objects.create(
-            phone_number=self.info, people=person
+            people=person, detail_type=self.type, value=self.info
         )
 
-    @Info.fetch_model_required
+    @fetch_model_required
     def change(self, new_info: str) -> None:
         """
         Raises:
-            'ValueError': if both phone numbers are equal,
-            if new number already exists,
-            if new phone number is invalid.
+            'ValueError': if both values are equal,
+            if new value already exists,
+            if new value is invalid.
         """
 
-        if self.model.phone_number == new_info:
-            raise ValueError("both phone numbers are the same")
+        if self.info == new_info:
+            raise ValueError(f"both {self.type.name.lower()} are the same")
 
-        if PeopleDetailedInfo.objects.filter(phone_number=new_info).exists():
-            raise ValueError("new phone number already exists.")
+        if PeopleDetailedInfo.objects.filter(value=new_info).exists():
+            raise ValueError(f"new {self.type.name.lower()} already exists.")
 
         if not validators.phone_number(new_info):
-            raise ValueError("invalid new phone number")
+            raise ValueError(f"invalid {self.type.name.lower()}")
 
-        self.model.phone_number = new_info
+        self.model.value = new_info
         self.model.save()
+
+    @fetch_model_required
+    def delete(self):
+        """
+        Raises:
+            'ValueError': if phone number already exists.
+        """
+
+        self.model.delete()
