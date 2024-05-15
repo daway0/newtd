@@ -60,23 +60,14 @@ class SpecificationSerializer(serializers.ModelSerializer):
 
 class PeopleDetailsSerializer(TranslatedSerializer):
     detail_type = serializers.CharField(source="get_detail_type_display")
-    address = serializers.CharField()
-    phone_number = serializers.CharField()
-    card_number = SeperatedCharField(threshold=4)
+    value = serializers.CharField()
     note = serializers.CharField()
 
     translated_fields = {
         "detail_type": "نوع رکورد",
-        "address": "مقدار",
-        "phone_number": "مقدار",
-        "card_number": "مقدار",
+        "value": "مقدار",
         "note": "یادداشت",
     }
-
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        omitabale_keys = ["address", "phone_number", "card_number"]
-        return utils.omit_null_fields(data, omitabale_keys)
 
 
 class PeopleSerializer(DynamicFieldSerializer):
@@ -163,7 +154,7 @@ class OrderSerializer(DynamicFieldSerializer):
     client = PeopleMinimalSerializer()
     services = serializers.CharField(source="services_list")
     assigned_personnel = PeopleMinimalSerializer()
-    service_location = serializers.CharField(source="service_location.address")
+    service_location = serializers.CharField(source="service_location.value")
     referral_people = PeopleMinimalSerializer()
     referral_other = ReferralOtherSerializer()
     client_debt = SeperatedCharField(threshold=3)
@@ -218,7 +209,7 @@ class ContractSerializer(DynamicFieldSerializer):
         source="get_relationship_with_patient_display"
     )
     personnel = PeopleMinimalSerializer()
-    service_location = serializers.CharField(source="service_location.address")
+    service_location = serializers.CharField(source="service_location.value")
     shift = serializers.CharField(source="get_shift_display")
     shift_days = serializers.SerializerMethodField()
     shift_start = serializers.IntegerField()
@@ -447,7 +438,7 @@ class EditPhoneNumberSerializer(serializers.Serializer):
 
     def validate(self, attrs: dict):
         attrs = super().validate(attrs)
-        
+
         new_pn = attrs.get("new_phone_number")
         if self.context["request"].method == "PUT" and new_pn is None:
             raise serializers.ValidationError(
