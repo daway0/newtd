@@ -10,7 +10,7 @@ admin.site.register(
         models.PeopleDetailedInfo,
         models.Payment,
         models.Call,
-        models.TagSpecefication,
+        models.Catalog,
         models.BlackList,
     ]
 )

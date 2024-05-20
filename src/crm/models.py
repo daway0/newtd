@@ -57,11 +57,13 @@ class GenderChoices(models.TextChoices):
     FEMALE = "F", "زن"
 
 
-class TagSpecefication(Log):
+class Catalog(Log):
     parent = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True
     )
     title = models.CharField(max_length=150)
+    code = models.CharField(max_length=150)
+    rate = models.IntegerField()
 
     def __str__(self) -> str:
         return self.title
@@ -130,7 +132,9 @@ class People(Log):
     # specific to personnel
     contract_date = models.CharField(max_length=10, null=True, blank=True)
     end_contract_date = models.CharField(max_length=10, null=True, blank=True)
-    specifications = models.ManyToManyField(TagSpecefication, blank=True)
+    specifications = models.ManyToManyField(
+        Catalog, blank=True
+    )
     personnel_role = models.CharField(
         max_length=4,
         choices=PersonnelRoleChoices.choices,

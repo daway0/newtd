@@ -54,7 +54,7 @@ class SeperatedCharField(serializers.CharField):
 
 class SpecificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = m.TagSpecefication
+        model = m.Catalog
         fields = ["parent", "title"]
 
 
