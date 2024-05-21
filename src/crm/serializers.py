@@ -422,12 +422,10 @@ class ServiceSerializer(DynamicFieldSerializer):
     }
 
 
-class EditPhoneNumberSerializer(serializers.Serializer):
+class EditInfoSerializer(serializers.Serializer):
     person = serializers.IntegerField()
-    phone_number = serializers.CharField(max_length=11, min_length=11)
-    new_phone_number = serializers.CharField(
-        max_length=11, min_length=11, required=False
-    )
+    info = serializers.CharField(max_length=11, min_length=11)
+    new_info = serializers.CharField(required=False)
 
     def validate_person(self, person_id: int):
         person = m.People.objects.filter(id=person_id)
@@ -439,10 +437,16 @@ class EditPhoneNumberSerializer(serializers.Serializer):
     def validate(self, attrs: dict):
         attrs = super().validate(attrs)
 
-        new_pn = attrs.get("new_phone_number")
-        if self.context["request"].method == "PUT" and new_pn is None:
+        new_info = attrs.get("new_data")
+        if self.context["request"].method == "PUT" and new_info is None:
             raise serializers.ValidationError(
-                {"error": "invalid new phone number"}
+                {"error": "new info is required."}
             )
 
         return attrs
+
+
+class CatalogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = m.Catalog
+        fields = ["id", "title", "code"]

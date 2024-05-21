@@ -956,14 +956,14 @@ def black_list(request, national_code):
 
 @api_view(["POST", "PUT", "DELETE"])
 def edit_phone_number(request):
-    sz = s.EditPhoneNumberSerializer(
+    sz = s.EditInfoSerializer(
         data=request.data, context={"request": request}
     )
     if not sz.is_valid():
         return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
 
     phone_number = Info(
-        sz.validated_data["phone_number"],
+        sz.validated_data["info"],
         type=models.PeopleDetailTypeChoices.PHONE_NUMBER,
     )
 
@@ -991,10 +991,115 @@ def edit_phone_number(request):
             return err_res(e)
 
     else:
-        new_pn = sz.validated_data["new_phone_number"]
+        new_pn = sz.validated_data["new_info"]
         try:
             phone_number.change(new_pn)
             return Response(status=status.HTTP_200_OK)
 
         except ValueError as e:
             return err_res(e)
+        
+
+@api_view(["POST", "PUT", "DELETE"])
+def edit_card_number(request):
+    sz = s.EditInfoSerializer(
+        data=request.data, context={"request": request}
+    )
+    if not sz.is_valid():
+        return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
+
+    card_number = Info(
+        sz.validated_data["info"],
+        type=models.PeopleDetailTypeChoices.CARD_NUMBER,
+    )
+
+    err_res = lambda err_message: Response(
+        {"error": str(err_message)}, status.HTTP_400_BAD_REQUEST
+    )
+
+    if not card_number.is_valid():
+        return err_res("invalid card number.")
+
+    if request.method == "POST":
+        try:
+            card_number.add(sz.validated_data["person"])
+            return Response(status=status.HTTP_201_CREATED)
+
+        except ValueError as e:
+            return err_res(e)
+
+    elif request.method == "DELETE":
+        try:
+            card_number.delete()
+            return Response(status=status.HTTP_202_ACCEPTED)
+
+        except ValueError as e:
+            return err_res(e)
+
+    else:
+        new_card_number = sz.validated_data["new_info"]
+        try:
+            card_number.change(new_card_number)
+            return Response(status=status.HTTP_200_OK)
+
+        except ValueError as e:
+            return err_res(e)
+        
+
+@api_view(["POST", "PUT", "DELETE"])
+def edit_address(request):
+    sz = s.EditInfoSerializer(
+        data=request.data, context={"request": request}
+    )
+    if not sz.is_valid():
+        return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
+
+    address = Info(
+        sz.validated_data["info"],
+        type=models.PeopleDetailTypeChoices.ADDRESS,
+    )
+
+    err_res = lambda err_message: Response(
+        {"error": str(err_message)}, status.HTTP_400_BAD_REQUEST
+    )
+
+    if not address.is_valid():
+        return err_res("invalid address.")
+
+    if request.method == "POST":
+        try:
+            address.add(sz.validated_data["person"])
+            return Response(status=status.HTTP_201_CREATED)
+
+        except ValueError as e:
+            return err_res(e)
+
+    elif request.method == "DELETE":
+        try:
+            address.delete()
+            return Response(status=status.HTTP_202_ACCEPTED)
+
+        except ValueError as e:
+            return err_res(e)
+
+    else:
+        new_address = sz.validated_data["new_info"]
+        try:
+            address.change(new_address)
+            return Response(status=status.HTTP_200_OK)
+
+        except ValueError as e:
+            return err_res(e)
+
+
+@api_view(["GET"])
+def catalog(request):
+    q = request.query_params.get("q")
+
+    if q is None:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    catalogs = models.Catalog.objects.filter(code__contains=q)
+    serializer = s.CatalogSerializer(catalogs, many=True).data
+
+    return Response(serializer)

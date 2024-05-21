@@ -52,6 +52,9 @@ urlpatterns = [
     # Form related
     path("api/national-code/<str:national_code>/", views.black_list, name="black_list"),
     path("api/phone-number/", views.edit_phone_number, name="edit_phone_number"),
+    path("api/card-number/", views.edit_card_number, name="edit_card_number"),
+    path("api/address/", views.edit_address, name="edit_address"),
+    # Form related end
 
     # reports
     path("api/reports/most_requested_services/", rv.most_requested_services, name="most_requested_services"),

@@ -2,20 +2,23 @@ from functools import wraps
 from typing import Callable
 
 from . import validators
-from .models import People, PeopleDetailedInfo, PeopleDetailTypeChoices
+from .models import People, PeopleDetailedInfo
+from .models import PeopleDetailTypeChoices as pdc
 
 
+# TODO: validator for each info type, and map validators to types dynamically
+# instead of branching.
 class Info:
     """
     Class for add/remove/editing people's infos.
     """
 
-    def __init__(self, info: str, type: PeopleDetailTypeChoices.names) -> None:
+    def __init__(self, info: str, type: pdc.names) -> None:
         """
         Args:
             'info': The info which you want to modify / add.
             'type': Type of info you are modifing / adding, choose from
-                PeopleDetailTypeChoices enum consts.
+                pdc enum consts.
         """
 
         self.info = info
@@ -56,16 +59,15 @@ class Info:
         self.model = model
 
     def is_valid(self) -> bool:
-        if self.type == PeopleDetailTypeChoices.ADDRESS:
-            if not validators.phone_number(self.info):
-                raise ValueError("invalid phone number.")
+        if self.type == pdc.PHONE_NUMBER:
+            return validators.phone_number(self.info)
 
         return True
 
     def add(self, person: People):
         """
         Raises:
-            'ValueError': if phone number already exists.
+            'ValueError': if info already exists.
         """
 
         if PeopleDetailedInfo.objects.filter(
@@ -76,6 +78,12 @@ class Info:
         PeopleDetailedInfo.objects.create(
             people=person, detail_type=self.type, value=self.info
         )
+
+    def _validate_new_info(self, new_info):
+        if self.type == pdc.PHONE_NUMBER:
+            return validators.phone_number(new_info)
+
+        return True
 
     @fetch_model_required
     def change(self, new_info: str) -> None:
@@ -92,7 +100,7 @@ class Info:
         if PeopleDetailedInfo.objects.filter(value=new_info).exists():
             raise ValueError(f"new {self.type.name.lower()} already exists.")
 
-        if not validators.phone_number(new_info):
+        if self._validate_new_info(new_info):
             raise ValueError(f"invalid {self.type.name.lower()}")
 
         self.model.value = new_info
@@ -102,7 +110,7 @@ class Info:
     def delete(self):
         """
         Raises:
-            'ValueError': if phone number already exists.
+            'ValueError': if info already exists.
         """
 
         self.model.delete()
