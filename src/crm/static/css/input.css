@@ -1,3 +1,126 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+
+/* form container styles */
+
+.form-half-pane-container {
+    @apply flex flex-col w-full gap-2;
+}
+
+.form-section-container {
+    @apply flex flex-col h-fit w-full bg-white p-4 rounded-lg shadow-sm;
+}
+
+.form-section-inner-container {
+    @apply p-4 flex flex-col;
+}
+
+.form-row-container {
+    @apply flex flex-row gap-3;
+}
+
+.form-row-container-hidden {
+    @apply flex flex-row gap-3 hidden;
+}
+
+.form-input-container {
+    @apply mb-5 inline-block;
+}
+
+
+.form-radio-input-container {
+    @apply flex items-center ps-3;
+}
+
+
+
+.form-radio-group-ul {
+    @apply sm:flex items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg;
+}
+
+.form-radio-li-container {
+    @apply w-full border-b border-gray-200 sm:border-b-0;
+}
+
+
+/* form element style START*/
+
+.form-label {
+    @apply block mb-2 text-sm font-medium text-gray-900;
+}
+
+.form-radio-label {
+    @apply w-full py-3 ms-2 text-sm font-medium text-gray-900;
+}
+
+.form-text-input {
+    @apply w-full border text-sm rounded-lg p-2.5;
+}
+
+.form-select-input {
+    @apply text-sm rounded-lg block w-full p-2.5;
+}
+
+
+.form-number-input-pts {
+    /* input number used for points */
+    @apply w-min text-sm rounded-lg;
+}
+
+.form-radio-input {
+    @apply w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500;
+}
+
+.form-input-error {
+    @apply text-red-500 text-xs;
+}
+
+
+
+.form-input-normal-color {
+    @apply bg-gray-50 border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.form-input-success-color {
+    @apply bg-green-50 border-green-300 text-green-900 focus:ring-green-500 focus:border-green-500;
+}
+
+.form-input-error-color {
+    @apply bg-red-50 border-red-300 text-red-900 focus:ring-red-500 focus:border-red-500;
+}
+
+
+/* form buttons styles */
+.form-in-row-btn {
+    @apply p-2.5 text-xs font-medium text-center inline-flex items-center  rounded-lg;
+}
+
+.form-in-row-btn-red {
+    @apply text-red-500 hover:bg-red-100 active:bg-red-200;
+}
+
+.form-btn-red {
+    @apply text-white bg-red-700 hover:bg-red-800 active:bg-red-900;
+}
+
+.form-btn-blue {
+    @apply text-white bg-blue-700 hover:bg-blue-800 active:bg-blue-900;
+}
+
+.form-btn-green {
+    @apply text-white bg-green-700 hover:bg-green-800 active:bg-green-900;
+}
+
+.form-btn-container {
+    @apply py-0 flex flex-col w-fit;
+}
+
+.form-btn {
+    @apply px-3 py-2 text-xs font-medium text-center inline-flex items-center rounded-lg;
+}
+
+
+/* form element style END*/

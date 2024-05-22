@@ -1,100 +1,84 @@
 {% load static %}
-
-
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/vazir.css' %}">
-    <link rel="stylesheet" href="{% static 'css/dataTables.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/custom.css' %}" />
-    <link href="{% static 'css/output.css' %}" rel="stylesheet">
-    <script src="{% static 'js/jquery-3.7.1.js' %}"></script>
-    {% block scripts %}{% endblock scripts %}
-    <style>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{% static 'css/vazir.css' %}">
+        <link rel="stylesheet" href="{% static 'css/dataTables.css' %}">
+        <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+        <link rel="stylesheet" href="{% static 'css/flowbite.min.css' %}">
+        <link rel="stylesheet" href="{% static 'css/jquery.toast.min.css' %}">
+        <link rel="stylesheet" href="{% static 'css/persian-datepicker.min.css' %}">
+        <link rel="stylesheet" href="{% static 'css/select2.css' %}">
+        <link rel="stylesheet" href="{% static 'css/output.css' %}">
+        <script src="{% static 'js/jquery-3.7.1.js' %}"></script>
+        {% block scripts %}{% endblock scripts %}
+        <style>
         body {
             font-family: "Vazirmatn", sans-serif;
         }
-    </style>
+        </style>
+        <title>
+            {% block title %}{% endblock title %}
+        </title>
+    </head>
+    <body style="direction:rtl" class=".vazirmatn-<uniquifier>">
+        <div class="flex flex-row h-screen">
+            {% comment %} Toast {% endcomment %}
+            {% comment %} {% include "base/toast.html" %} {% endcomment %}
 
-    <title>
-        {% block title %}{% endblock title %}
-    </title>
-</head>
-
-<body style="direction:rtl" class=".vazirmatn-<uniquifier>">
-    <div class="flex flex-row h-screen">
-        
-        {% comment %} right menu {% endcomment %}
-        <div id="sidemenu" class="flex flex-col gap-16 basis-1/6 bg-primary p-8 hidden">
-
-            {% comment %} logo and title {% endcomment %}
+            {% comment %} right menu {% endcomment %}
+            <div id="sidemenu" class="flex flex-col gap-16 basis-1/6 bg-primary p-8">
+                {% comment %} logo and title {% endcomment %}
             {% include "base/logo.html" %}
 
             {% comment %} menu {% endcomment %}
             {% include "base/menu.html" %}
-
-        </div>
-
-        
-        {% comment %} right menu {% endcomment %}
-        <div id="sidemenu-minimized" class="flex flex-col gap-16 bg-primary p-4 pt-8 hidden">
-
-            {% with minimized=True %}
+            </div>
+            {% comment %} right menu {% endcomment %}
+            <div id="sidemenu-minimized" class="flex flex-col gap-16 bg-primary p-4 pt-8 hidden">
+                {% with minimized=True %}
                 {% comment %} logo and title {% endcomment %}
                 {% include "base/logo.html" %}
 
                 {% comment %} menu {% endcomment %}
                 {% include "base/menu.html" %}
             {% endwith %}
-
-        </div>
-
-
-        {% comment %} left pane {% endcomment %}
-        <div class="bg-secondary flex flex-col items-start w-full overflow-y-auto">
-
-            {% comment %} top menu {% endcomment %}
-            <div class="flex justify-between p-8 w-full bg-white">
-  
-                {% comment %} breadcrumb {% endcomment %}
-                <div class="flex w-8/12  items-center">
-                  
-                    <ul class="flex flex-wrap gap-2 font-semibold">
-                      {% block breadcrumb %}{% endblock breadcrumb %}
-                    </ul>
-              
-                </div>
-                
-                {% comment %} profile and search bar {% endcomment %}
-                <div class="flex flex-row-reverse w-full items-center gap-5">
-                  <div class="flex flex-row items-center gap-4">
-                    <span class="text-primarytext">
-                      شهرام شقایق
-                      <span>
-                        (مدیرمرکز)
-                      </span>
-                    </span>
-              
-                    <div class="flex items-center justify-center rounded-full bg-secondary w-10 h-10">
-                      {% include "svg/users.html" with fillcolor="fill-primary" width="w-4" height="w-4" %}
+            </div>
+            {% comment %} left pane {% endcomment %}
+            <div class="bg-secondary flex flex-col items-start w-full overflow-y-auto">
+                {% comment %} top menu {% endcomment %}
+                <div class="flex justify-between p-8 w-full bg-white">
+                    {% comment %} breadcrumb {% endcomment %}
+                    <div class="flex w-8/12 gap-2 items-center">
+                        <ul class="flex flex-wrap gap-2 font-semibold">
+                            {% block breadcrumb %}{% endblock breadcrumb %}
+                        </ul>
+                        {% block section_main_action %}{% endblock section_main_action %}
                     </div>
-                  </div>
-                  <div class="border-seperatorline h-full border-l">&nbsp;</div>
-                
-                  <div class="flex flex-row gap-4">
-                    <input class="p-2 px-5 bg-searchbox mr-5 rounded-full w-auto" type="text" placeholder="جستجو..." />
-              
-                    {% include "svg/notif.html" with fillcolor="fill-primarytext" width="w-5" height="w-5" %}
-                  </div>
+                    {% comment %} profile and search bar {% endcomment %}
+                    <div class="flex flex-row-reverse w-full items-center gap-5">
+                        <div class="flex flex-row items-center gap-4">
+                            <span class="text-primarytext">
+                                شهرام شقایق
+                                <span>
+                                    (مدیرمرکز)
+                                </span>
+                            </span>
+                            <div class="flex items-center justify-center rounded-full bg-secondary w-10 h-10">
+                                {% include "svg/users.html" with fillcolor="fill-primary" width="w-4" height="w-4" %}
+                            </div>
+                        </div>
+                        <div class="border-seperatorline h-full border-l">&nbsp;</div>
+                        <div class="flex flex-row gap-4">
+                            <input class="p-2 px-5 bg-searchbox mr-5 rounded-full w-auto" type="text" placeholder="جستجو...">
+                            {% include "svg/notif.html" with fillcolor="fill-primarytext" width="w-5" height="w-5" %}
+                        </div>
+                    </div>
                 </div>
-              </div>
-
-            <div class="w-full p-8 flex flex-col gap-2">
-
-                {% comment %} backend messgaes block {% endcomment %}
+                <div class="w-full p-8 flex flex-col gap-2">
+                    {% comment %} backend messgaes block {% endcomment %}
                 {% if messages %}
                 
                     {% block messages %}
@@ -105,8 +89,7 @@
                             {% if msg_level == 'error' %}bg-errorbg text-errortext border-errortext{% endif %}
                             {% if msg_level == 'info' %}bg-infobg text-infotext border-infotext{% endif %}
                             {% if msg_level == 'success' %}bg-successbg text-successtext border-successtext {% endif %}
-                            p-2 flex flex-row gap-2 items-center rounded-r-md"
-                    >
+                            p-2 flex flex-row gap-2 items-center rounded-r-md">
                         {% include path %}
                         <span>{{msg}}</span>
                     </div>
@@ -118,24 +101,34 @@
 
                 {% comment %} content block {% endcomment %}
                 {% block content %}
-                <div id="spinner" class="flex flex-row justify-center">
-                  <div class="lds-ellipsis align-middle"><div></div><div></div><div></div><div></div></div>
+                    <div id="spinner" class="flex flex-row justify-center">
+                        <div class="lds-ellipsis align-middle">
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                            <div></div>
+                        </div>
+                    </div>
+                    {% endblock content %}
                 </div>
-                {% endblock content %}
-
+                
             </div>
-
-        </div>
-        <script src="{% static 'js/base.js' %}"></script>
-        <script src="{% static 'js/dataTables.js' %}"></script>
-        <script src="{% static 'js/side_bar.js' %}"></script>
-        <script>
+            <script src="{% static 'js/base.js' %}"></script>
+            <script src="{% static 'js/dataTables.js' %}"></script>
+            <script src="{% static 'js/side_bar.js' %}"></script>
+            <script src="{% static 'js/flowbite.min.js' %}"></script>
+            <script src="{% static 'js/jquery.toast.min.js' %}"></script>
+            <script src="{% static 'js/test.js' %}"></script>
+            <script src="{% static 'js/persian-date.min.js' %}"></script>
+            <script src="{% static 'js/persian-datepicker.min.js' %}"></script>
+            <script src="{% static 'js/select2.js' %}"></script>
+            <script src="{% static 'js/forms/validators.js' %}"></script>
+            {% block custom_js %}{% endblock custom_js %}
+            <script>
           setTimeout(function() {
             $("#main-container").removeClass("hidden")
             $("#spinner").addClass("hidden")
           }, 500);
-        </script>
-
-</body>
-
-</html>
+            </script>
+        </body>
+    </html>

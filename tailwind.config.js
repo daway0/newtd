@@ -1,11 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["**/*.html",],
+  content: ["**/*.html"],
   theme: {
     extend: {
       colors: {
         // Existing Tailwind colors (optional)
-        gray: '#99a3b2', // Example: Override gray color
+        // gray: '#99a3b2', // Example: Override gray color
 
         // Your custom colors
         primary: '#075C95',
@@ -37,5 +37,4 @@ module.exports = {
     },
 
   },
-  plugins: [],
 }

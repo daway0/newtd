@@ -1,0 +1,322 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% load crm_extras %}
+{% block breadcrumb %}
+{% make_breadcrumb "کارفرما و پرسنل / افزودن پرسنل جدید" %}
+{% endblock breadcrumb %}
+
+{% block content %}
+
+{{ block.super }}
+<div id="main-container" class="hidden flex flex-row w-full gap-2">
+    <div class="flex flex-col w-full gap-2">
+        <div class="w-full flex flex-row-reverse items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
+            <button type="button" class="form-btn form-btn-green form-save">
+                {% include "svg/save.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                <span class="mr-2">ذخیره تغییرات</span>
+            </button>
+            <button type="button" class="form-btn form-btn-red">
+                {% include "svg/trashcan.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                <span class="mr-2">حذف کردن پرسنل</span>
+            </button>
+            <button type="button" class="form-btn form-btn-blue">
+                {% include "svg/history.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                <span class="mr-2">تاریخچه تغییرات</span>
+            </button>
+        </div>
+        <div class="flex flex-row gap-2">
+            <div class="form-half-pane-container">
+                <div class="form-section-container">
+                    <div>اطلاعات فردی</div>
+                    <div class="form-section-inner-container">
+                        <div class="form-row-container">
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">کد ملی</label>
+                                <input
+                                    disabled
+                                    type="text"
+                                    id="national-code"
+                                    class="form-text-input form-input-normal-color"
+                                    placeholder="کد ملی را وارد کنید"
+                                    required
+                                >
+                            </div>
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">نام</label>
+                                <input
+                                    type="text"
+                                    id="firstname"
+                                    class="form-text-input form-input-normal-color"
+                                    placeholder="نام را وارد کنید"
+                                    required
+                                >
+                            </div>
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">نام خانوادگی</label>
+                                <input
+                                    type="text"
+                                    id="lastname"
+                                    class="form-text-input form-input-normal-color"
+                                    placeholder="نام خانوادگی را وارد کنید"
+                                    required
+                                >
+                            </div>
+                        </div>
+                        <div class="form-row-container">
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">تاریخ تولد</label>
+                                <input
+                                    type="text"
+                                    id="birthdate"
+                                    class="form-text-input form-input-normal-color datePicker"
+                                    placeholder="تاریخ تولد را وارد کنید"
+                                    required
+                                >
+                            </div>
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">جنسیت</label>
+                                <ul class="form-radio-group-ul">
+                                    <li class="form-radio-li-container">
+                                        <div class="form-radio-input-container">
+                                            <input id="female" type="radio" name="gender" class="form-radio-input">
+                                            <label class="form-radio-label">زن</label>
+                                        </div>
+                                    </li>
+                                    <li class="form-radio-li-container sm:border-r ">
+                                        <div class="form-radio-input-container">
+                                            <input id="male" type="radio" name="gender" class="form-radio-input">
+                                            <label class="form-radio-label">مرد</label>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="form-row-container">
+                            <div class="form-input-container w-full">
+                                <label class="form-label">محل سکونت</label>
+                                <input
+                                    type="text"
+                                    id="address"
+                                    class="form-text-input form-input-normal-color"
+                                    placeholder="آدرس را وارد کنید"
+                                    required
+                                >
+                            </div>
+                        </div>
+                        <div class="form-row-container">
+                            <div class="form-input-container w-full">
+                                <label class="form-label">شماره کارت فعال</label>
+                                <input
+                                    type="text"
+                                    id="active-card-number"
+                                    class="form-text-input form-input-normal-color"
+                                    placeholder="شماره کارت را وارد کنید"
+                                    required
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section-container">
+                    <div>اطلاعات تماس</div>
+                    <div class="form-section-inner-container">
+                        <div class="form-row-container-hidden">
+                            <div class="form-input-container w-1/2">
+                                <input
+                                    type="text"
+                                    id="phone-number-0"
+                                    class="form-text-input form-input-normal-color dynamic-row"
+                                    placeholder="شماره تماس را وارد کنید"
+                                    required
+                                >
+                            </div>
+                            <div class="form-input-container w-1/2">
+                                <input
+                                    type="text"
+                                    id="phone-number-note-0"
+                                    class="form-text-input form-input-normal-color dynamic-row"
+                                    placeholder="برای این شماره یادداشتی بگذارید..."
+                                    required
+                                >
+                                
+                            </div>
+                            <div class="form-input-container">
+                                <button type="button" class="form-in-row-btn form-in-row-btn-red in-row-delete ">
+                                    {% include "svg/trashcan.html" with fillcolor="fill-red-500" width="w-4" height="h-4" %}
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-btn-container">
+                            <button id="add-phone-number" type="button" class="form-btn form-btn-blue">
+                                {% include "svg/plus.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                                <span class="mr-2">اضافه کردن شماره تماس جدید</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-half-pane-container">
+                <div class="form-section-container">
+                    <div>اطلاعات قرارداد همکاری</div>
+                    <div class="form-section-inner-container">
+                        <div class="form-row-container">
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">نقش پرسنل در مرکز</label>
+                                <select id="personnel-role" class="personnel-role-select2 p-4 " name="states[]" multiple="multiple">
+                                    <option value="-1">Alabama</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                </select>
+                            </div>
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">محدوده های خدمت رسانی</label>
+                                <select class="js-example-basic-multiple p-4 " name="states[]" multiple="multiple">
+                                    <option value="-1">Alabama</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row-container">
+                            <div class="form-input-container w-1/2">
+                                <label class=" form-label">شروع همکاری</label>
+                                <input
+                                    type="text"
+                                    id="contract-start"
+                                    class="form-text-input form-input-normal-color datePicker"
+                                    placeholder="تاریخ شروع همکاری را وارد کنید"
+                                    required
+                                >
+                            </div>
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">پایان همکاری</label>
+                                <input
+                                    type="text"
+                                    id="contract-end"
+                                    class="form-text-input form-input-normal-color datePicker"
+                                    placeholder="تاریخ پایان همکاری را وارد کنید"
+                                    required
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section-container">
+                    <div>ویژگی و مهارت ها</div>
+                    <div class="form-section-inner-container">
+                        <div class="form-row-container">
+                            <div class="form-input-container w-full">
+                                <label class="form-label">برچسب ها</label>
+                                <select class="js-example-basic-multiple p-4 " name="states[]" multiple="multiple">
+                                    <option value="-1">Alabama</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">سیگاری</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">ساکشن</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                    <option value="WY">Wyoming</option>
+                                </select>
+                            </div>
+                        </div>
+                        <label class="form-label">مهارت ها</label>
+                        <div class="form-row-container-hidden">
+                            <div class="form-input-container w-full h-auto">
+                                <select id="skill-0" class="form-select-input form-input-normal-color dynamic-row" name="state">
+                                    <option value="US">United States</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="FR">France</option>
+                                    <option value="DE">Germany</option>
+                                </select>
+                            </div>
+                            <div class="form-input-container w-min ">
+                                <input
+                                    type="text"
+                                    id="skill-pts-0"
+                                    class="form-number-input-pts form-input-normal-color dynamic-row"
+                                    placeholder="امتیاز"
+                                    required
+                                >
+                            </div>
+                            <div class="form-input-container">
+                                <button type="button" class="form-in-row-btn form-in-row-btn-red in-row-delete ">
+                                    {% include "svg/trashcan.html" with fillcolor="fill-red-500" width="w-4" height="h-4" %}
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-btn-container">
+                            <button type="button" class="form-btn form-btn-blue">
+                                {% include "svg/plus.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                                <span class="mr-2">اضافه کردن مهارت جدید</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock content %}
+
+{% block custom_js %}
+    <script src="{% static 'js/forms/common.js' %}"></script>
+    <script src="{% static 'js/forms/personnel.js' %}"></script>
+    {% endblock custom_js %}

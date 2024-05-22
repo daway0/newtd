@@ -190,25 +190,26 @@ def settings_section(request):
 
 
 def create_client(request):
-    form = TestForm()
+    # form = TestForm()
     return render(
-        request,
-        "people/create_change/client.html",
-        context=dict(section="people", form=form),
+        request, "people/forms/client.html",
+        context=dict(section="people",)
     )
 
 
 def create_personnel(request):
-    form = TestForm()
+    # form = TestForm()
     return render(
-        request, "users/create_change/client.html", context=dict(form=form)
+        request, "people/forms/personnel.html",
+        context=dict(section="people",)
     )
 
 
 def create_patient(request):
-    form = TestForm()
+    # form = TestForm()
     return render(
-        request, "users/create_change/client.html", context=dict(form=form)
+        request, "people/forms/patient.html",
+        context=dict(section="people",)
     )
 
 
