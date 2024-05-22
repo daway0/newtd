@@ -452,7 +452,46 @@ class CatalogSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "code"]
 
 
-class PersonnelFormSerializer(serializers.ModelSerializer):
+class FormSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        type = kwargs.pop("type")
+
+        super().__init__(*args, **kwargs)
+
+        current_fields = set(self.fields)
+
+        look_up = {
+            m.PeopleTypeChoices.PERSONNEL: FormSerializer.personnel_fields,
+            m.PeopleTypeChoices.CLIENT: FormSerializer.client_fields,
+            m.PeopleTypeChoices.PATIENT: FormSerializer.patinet_fields,
+        }
+
+        for field in current_fields.difference(look_up[type]):
+            self.fields.pop(field)
+
+    common_fields = [
+        "national_code",
+        "firstname",
+        "lastname",
+        "gender",
+        "birthdate",
+        "address",
+        "phone_numbers",
+    ]
+
+    personnel_fields = common_fields + [
+        "card_number",
+        "contract_date",
+        "end_contract_date",
+        "service_locations",
+        "tags",
+        "skills",
+    ]
+
+    client_fields = common_fields + []
+
+    patinet_fields = common_fields + ["tags"]
+
     address = serializers.SerializerMethodField()
     card_number = serializers.SerializerMethodField()
     phone_numbers = serializers.SerializerMethodField()
@@ -467,17 +506,17 @@ class PersonnelFormSerializer(serializers.ModelSerializer):
 
         return data.value if data is not None else None
 
+    def get_phone_numbers(self, obj: m.People):
+        return obj.details.filter(
+            detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER
+        ).values("id", "value", "note")
+
     def get_card_number(self, obj: m.People):
         data = obj.details.filter(
             detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER
         ).first()
 
         return data.value if data is not None else None
-
-    def get_phone_numbers(self, obj: m.People):
-        return obj.details.filter(
-            detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER
-        ).values("id", "value", "note")
 
     def get_service_locations(self, obj: m.People):
         return obj.specifications.filter(
@@ -503,10 +542,10 @@ class PersonnelFormSerializer(serializers.ModelSerializer):
             "gender",
             "birthdate",
             "address",
+            "phone_numbers",
             "card_number",
             "contract_date",
             "end_contract_date",
-            "phone_numbers",
             "service_locations",
             "tags",
             "skills",

@@ -192,24 +192,33 @@ def settings_section(request):
 def create_client(request):
     # form = TestForm()
     return render(
-        request, "people/forms/client.html",
-        context=dict(section="people",)
+        request,
+        "people/forms/client.html",
+        context=dict(
+            section="people",
+        ),
     )
 
 
 def create_personnel(request):
     # form = TestForm()
     return render(
-        request, "people/forms/personnel.html",
-        context=dict(section="people",)
+        request,
+        "people/forms/personnel.html",
+        context=dict(
+            section="people",
+        ),
     )
 
 
 def create_patient(request):
     # form = TestForm()
     return render(
-        request, "people/forms/patient.html",
-        context=dict(section="people",)
+        request,
+        "people/forms/patient.html",
+        context=dict(
+            section="people",
+        ),
     )
 
 
@@ -1103,14 +1112,51 @@ def catalog(request):
 @api_view(["GET", "POST"])
 def personnel_form(request, personnel_id):
     if request.method == "GET":
+        type = models.PeopleTypeChoices.PERSONNEL
 
-        person = models.People.objects.filter(id=personnel_id).first()
-        if person is None:
-            return Response(
-                {"error": "personnel not found."}, status.HTTP_404_NOT_FOUND
-            )
+        person = get_object_or_404(
+            models.People,
+            pk=personnel_id,
+            people_type=type,
+        )
 
-        serializer = s.PersonnelFormSerializer(person).data
+        serializer = s.FormSerializer(person, type=type).data
+
+        return Response(serializer)
+
+    pass
+
+
+@api_view(["GET", "POST"])
+def client_form(request, client_id):
+    if request.method == "GET":
+        type = models.PeopleTypeChoices.CLIENT
+
+        person = get_object_or_404(
+            models.People,
+            pk=client_id,
+            people_type=type,
+        )
+
+        serializer = s.FormSerializer(person, type=type).data
+
+        return Response(serializer)
+
+    pass
+
+
+@api_view(["GET", "POST"])
+def patient_form(request, patient_id):
+    if request.method == "GET":
+        type = models.PeopleTypeChoices.PATIENT
+
+        person = get_object_or_404(
+            models.People,
+            pk=patient_id,
+            people_type=type,
+        )
+
+        serializer = s.FormSerializer(person, type=type).data
 
         return Response(serializer)
 
