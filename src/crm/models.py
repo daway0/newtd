@@ -68,6 +68,18 @@ class Catalog(Log):
     def __str__(self) -> str:
         return self.title
 
+    @staticmethod
+    def service_location_code() -> str:
+        return "LOC"
+
+    @staticmethod
+    def tags_code() -> str:
+        return "TAG"
+
+    @staticmethod
+    def skills_code() -> str:
+        return "SKL"
+
 
 class ClientManager(models.Manager):
     def get_queryset(self) -> models.QuerySet:
@@ -132,9 +144,7 @@ class People(Log):
     # specific to personnel
     contract_date = models.CharField(max_length=10, null=True, blank=True)
     end_contract_date = models.CharField(max_length=10, null=True, blank=True)
-    specifications = models.ManyToManyField(
-        Catalog, blank=True
-    )
+    specifications = models.ManyToManyField(Catalog, blank=True)
     personnel_role = models.CharField(
         max_length=4,
         choices=PersonnelRoleChoices.choices,

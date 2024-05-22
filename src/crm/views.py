@@ -957,9 +957,7 @@ def black_list(request, national_code):
 
 @api_view(["POST", "PUT", "DELETE"])
 def edit_phone_number(request):
-    sz = s.EditInfoSerializer(
-        data=request.data, context={"request": request}
-    )
+    sz = s.EditInfoSerializer(data=request.data, context={"request": request})
     if not sz.is_valid():
         return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -999,13 +997,11 @@ def edit_phone_number(request):
 
         except ValueError as e:
             return err_res(e)
-        
+
 
 @api_view(["POST", "PUT", "DELETE"])
 def edit_card_number(request):
-    sz = s.EditInfoSerializer(
-        data=request.data, context={"request": request}
-    )
+    sz = s.EditInfoSerializer(data=request.data, context={"request": request})
     if not sz.is_valid():
         return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -1045,13 +1041,11 @@ def edit_card_number(request):
 
         except ValueError as e:
             return err_res(e)
-        
+
 
 @api_view(["POST", "PUT", "DELETE"])
 def edit_address(request):
-    sz = s.EditInfoSerializer(
-        data=request.data, context={"request": request}
-    )
+    sz = s.EditInfoSerializer(data=request.data, context={"request": request})
     if not sz.is_valid():
         return Response(sz.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -1104,3 +1098,20 @@ def catalog(request):
     serializer = s.CatalogSerializer(catalogs, many=True).data
 
     return Response(serializer)
+
+
+@api_view(["GET", "POST"])
+def personnel_form(request, personnel_id):
+    if request.method == "GET":
+
+        person = models.People.objects.filter(id=personnel_id).first()
+        if person is None:
+            return Response(
+                {"error": "personnel not found."}, status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = s.PersonnelFormSerializer(person).data
+
+        return Response(serializer)
+
+    pass

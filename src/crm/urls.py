@@ -50,6 +50,7 @@ urlpatterns = [
     # previews end
 
     # Form related
+    path("api/forms/personnel/<int:personnel_id>/", views.personnel_form, name="personnel_form"),
     path("api/national-code/<str:national_code>/", views.black_list, name="black_list"),
     path("api/phone-number/", views.edit_phone_number, name="edit_phone_number"),
     path("api/card-number/", views.edit_card_number, name="edit_card_number"),

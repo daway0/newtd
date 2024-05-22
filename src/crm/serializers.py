@@ -450,3 +450,64 @@ class CatalogSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.Catalog
         fields = ["id", "title", "code"]
+
+
+class PersonnelFormSerializer(serializers.ModelSerializer):
+    address = serializers.SerializerMethodField()
+    card_number = serializers.SerializerMethodField()
+    phone_numbers = serializers.SerializerMethodField()
+    service_locations = serializers.SerializerMethodField()
+    tags = serializers.SerializerMethodField()
+    skills = serializers.SerializerMethodField()
+
+    def get_address(self, obj: m.People):
+        data = obj.details.filter(
+            detail_type=m.PeopleDetailTypeChoices.ADDRESS
+        ).first()
+
+        return data.value if data is not None else None
+
+    def get_card_number(self, obj: m.People):
+        data = obj.details.filter(
+            detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER
+        ).first()
+
+        return data.value if data is not None else None
+
+    def get_phone_numbers(self, obj: m.People):
+        return obj.details.filter(
+            detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER
+        ).values("id", "value", "note")
+
+    def get_service_locations(self, obj: m.People):
+        return obj.specifications.filter(
+            code__contains=m.Catalog.service_location_code()
+        ).values_list("id", flat=True)
+
+    def get_tags(self, obj: m.People):
+        return obj.specifications.filter(
+            code__contains=m.Catalog.tags_code()
+        ).values_list("id", flat=True)
+
+    def get_skills(self, obj: m.People):
+        return obj.specifications.filter(
+            code__contains=m.Catalog.skills_code()
+        ).values("id", "rate")
+
+    class Meta:
+        model = m.People
+        fields = [
+            "national_code",
+            "firstname",
+            "lastname",
+            "gender",
+            "birthdate",
+            "address",
+            "card_number",
+            "contract_date",
+            "end_contract_date",
+            "phone_numbers",
+            "service_locations",
+            "tags",
+            "skills",
+        ]
