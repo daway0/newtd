@@ -319,6 +319,20 @@ class PeopleDetailedInfo(Log):
     def __str__(self) -> str:
         return f"{self.detail_type} {self.value}"
 
+    def bulk_phone_numbers(
+        phone_numbers: list[dict],
+        person: People,
+    ):
+        return [
+            PeopleDetailedInfo(
+                detail_type=PeopleDetailTypeChoices.PHONE_NUMBER,
+                value=number_obj["number"],
+                people=person,
+                note=number_obj["note"],
+            )
+            for number_obj in phone_numbers
+        ]
+
 
 class Service(Log):
     title = models.CharField(max_length=250)

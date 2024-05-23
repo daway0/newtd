@@ -1110,9 +1110,10 @@ def catalog(request):
 
 
 @api_view(["GET", "POST"])
-def personnel_form(request, personnel_id):
+def personnel_form(request, personnel_id=None):
+    type = models.PeopleTypeChoices.PERSONNEL
+
     if request.method == "GET":
-        type = models.PeopleTypeChoices.PERSONNEL
 
         person = get_object_or_404(
             models.People,
@@ -1124,7 +1125,13 @@ def personnel_form(request, personnel_id):
 
         return Response(serializer)
 
-    pass
+    serializer = s.CreatePersonnelSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    
+    serializer.save()
+    return Response(status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET", "POST"])

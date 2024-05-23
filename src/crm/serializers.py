@@ -1,7 +1,9 @@
 import jdatetime
+from django.db import transaction
 from rest_framework import serializers
 
 from . import models as m
+from . import serializer_validators as sv
 from . import utils, validators
 
 
@@ -454,7 +456,7 @@ class CatalogSerializer(serializers.ModelSerializer):
 
 class FormSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
-        type = kwargs.pop("type")
+        self.type = kwargs.pop("type")
 
         super().__init__(*args, **kwargs)
 
@@ -466,7 +468,7 @@ class FormSerializer(serializers.ModelSerializer):
             m.PeopleTypeChoices.PATIENT: FormSerializer.patinet_fields,
         }
 
-        for field in current_fields.difference(look_up[type]):
+        for field in current_fields.difference(look_up[self.type]):
             self.fields.pop(field)
 
     common_fields = [
@@ -550,3 +552,62 @@ class FormSerializer(serializers.ModelSerializer):
             "tags",
             "skills",
         ]
+
+
+class CreatePersonnelSerializer(serializers.Serializer):
+    national_code = serializers.CharField(validators=[sv.national_code])
+    first_name = serializers.CharField(source="firstname")
+    last_name = serializers.CharField(source="lastname")
+    gender = serializers.CharField(validators=[sv.gender])
+    birthdate = serializers.CharField(validators=[sv.date])
+    address = serializers.CharField()
+    card_number = serializers.CharField(validators=[sv.card_number])
+    contract_start = serializers.CharField(
+        validators=[sv.date], source="contract_date"
+    )
+    contract_end = serializers.CharField(
+        validators=[sv.date], source="end_contract_date", required=False
+    )
+    numbers = serializers.ListField(validators=[sv.numbers])
+    roles = serializers.ListField()
+    service_locations = serializers.ListField()
+    tags = serializers.ListField(required=False)
+    skills = serializers.ListField(required=False)
+
+    def create(self, validated_data: dict):
+        address = validated_data.pop("address")
+        card_number = validated_data.pop("card_number")
+        numbers = validated_data.pop("numbers")
+        roles = validated_data.pop("roles")
+        service_locations = validated_data.pop("service_locations")
+        skills = validated_data.pop("skills", [])
+        tags = validated_data.pop("tags", [])
+
+        obj = m.People(
+            **validated_data, people_type=m.PeopleTypeChoices.PERSONNEL
+        )
+
+        infos: list = m.PeopleDetailedInfo.bulk_phone_numbers(numbers, obj)
+        infos.append(
+            m.PeopleDetailedInfo(
+                detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER,
+                people=obj,
+                value=card_number
+            )
+        )
+        infos.append(
+            m.PeopleDetailedInfo(
+                detail_type=m.PeopleDetailTypeChoices.ADDRESS,
+                people=obj,
+                value=address
+            )
+        )
+
+        with transaction.atomic():
+            obj.save()
+
+            m.PeopleDetailedInfo.objects.bulk_create(infos)
+            
+            obj.specifications.add(*service_locations, *skills, *tags)
+
+        return obj

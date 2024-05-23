@@ -51,6 +51,7 @@ urlpatterns = [
 
     # Form related
     path("api/forms/personnel/<int:personnel_id>/", views.personnel_form, name="personnel_form"),
+    path("api/forms/personnel/", views.personnel_form, name="personnel_form"),
     path("api/forms/clients/<int:client_id>/", views.client_form, name="client_form"),
     path("api/forms/patients/<int:patient_id>/", views.patient_form, name="patient_form"),
     path("api/national-code/<str:national_code>/", views.black_list, name="black_list"),
