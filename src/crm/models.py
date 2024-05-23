@@ -62,6 +62,8 @@ class Catalog(Log):
         "self", on_delete=models.CASCADE, null=True, blank=True
     )
     title = models.CharField(max_length=150)
+    
+    # must be in upper case
     code = models.CharField(max_length=50)
     rate = models.IntegerField(null=True, blank=True)
 
