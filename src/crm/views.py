@@ -1103,7 +1103,7 @@ def catalog(request):
     if q is None:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
-    catalogs = models.Catalog.objects.filter(code__contains=q)
+    catalogs = models.Catalog.objects.filter(code__contains=q.upper())
     serializer = s.CatalogSerializer(catalogs, many=True).data
 
     return Response(serializer)
