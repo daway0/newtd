@@ -37,10 +37,3 @@ def card_number(cn: str) -> str:
         raise ValidationError({"error": "invalid card number."})
 
     return cn
-
-
-def numbers(n: list[dict]) -> str:
-    for num_obj in n:
-        phone_number(num_obj["number"])
-
-    return n

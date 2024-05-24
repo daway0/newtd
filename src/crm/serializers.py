@@ -4,7 +4,48 @@ from rest_framework import serializers
 
 from . import models as m
 from . import serializer_validators as sv
-from . import utils, validators
+from . import utils
+
+
+def merge_infos(
+    person: m.People,
+    numbers: list[dict] = None,
+    card_numbers: list[dict] = None,
+    addresses: list[dict] = None,
+) -> list[m.PeopleDetailedInfo]:
+    infos = []
+
+    for data in card_numbers:
+        infos.append(
+            m.PeopleDetailedInfo(
+                detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER,
+                people=person,
+                value=data["card_number"],
+                note=data.get("note"),
+            )
+        )
+
+    for data in numbers:
+        infos.append(
+            m.PeopleDetailedInfo(
+                detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER,
+                people=person,
+                value=data["number"],
+                note=data.get("note"),
+            )
+        )
+
+    for data in addresses:
+        infos.append(
+            m.PeopleDetailedInfo(
+                detail_type=m.PeopleDetailTypeChoices.ADDRESS,
+                people=person,
+                value=data["address"],
+                note=data.get("note"),
+            )
+        )
+
+    return infos
 
 
 class TranslatedSerializer(serializers.Serializer):
@@ -554,60 +595,121 @@ class FormSerializer(serializers.ModelSerializer):
         ]
 
 
-class CreatePersonnelSerializer(serializers.Serializer):
+class CreatePersonSerializer(serializers.Serializer):
     national_code = serializers.CharField(validators=[sv.national_code])
     first_name = serializers.CharField(source="firstname")
     last_name = serializers.CharField(source="lastname")
     gender = serializers.CharField(validators=[sv.gender])
     birthdate = serializers.CharField(validators=[sv.date])
-    address = serializers.CharField()
+    note = serializers.CharField(max_length=255, required=False)
+
+    def create(self, validated_data) -> m.People:
+        my_fields = {
+            "national_code",
+            "firstname",
+            "lastname",
+            "gender",
+            "birthdate",
+            "note",
+        }
+
+        my_validated_data = dict()
+        for field in my_fields.intersection(validated_data):
+            my_validated_data[field] = validated_data[field]
+
+        return m.People(**my_validated_data)
+
+
+class CardNumberSerializer(serializers.Serializer):
     card_number = serializers.CharField(validators=[sv.card_number])
+    note = serializers.CharField(max_length=255, required=False)
+
+
+class PhoneNumberSerializer(serializers.Serializer):
+    number = serializers.CharField(validators=[sv.phone_number])
+    note = serializers.CharField(max_length=255, required=False)
+
+
+class AddressSerializer(serializers.Serializer):
+    address = serializers.CharField()
+    note = serializers.CharField(max_length=255, required=False)
+
+
+class CreatePersonnelSerializer(CreatePersonSerializer):
     contract_start = serializers.CharField(
         validators=[sv.date], source="contract_date"
     )
     contract_end = serializers.CharField(
         validators=[sv.date], source="end_contract_date", required=False
     )
-    numbers = serializers.ListField(validators=[sv.numbers])
+    numbers = PhoneNumberSerializer(many=True)
+    card_numbers = CardNumberSerializer(many=True)
+    addresses = AddressSerializer(many=True)
     roles = serializers.ListField()
     service_locations = serializers.ListField()
     tags = serializers.ListField(required=False)
     skills = serializers.ListField(required=False)
 
     def create(self, validated_data: dict):
-        address = validated_data.pop("address")
-        card_number = validated_data.pop("card_number")
-        numbers = validated_data.pop("numbers")
-        roles = validated_data.pop("roles")
-        service_locations = validated_data.pop("service_locations")
-        skills = validated_data.pop("skills", [])
-        tags = validated_data.pop("tags", [])
+        person_obj: m.People = super().create(validated_data)
+        person_obj.people_type = m.PeopleTypeChoices.PERSONNEL
 
-        obj = m.People(
-            **validated_data, people_type=m.PeopleTypeChoices.PERSONNEL
-        )
-
-        infos: list = m.PeopleDetailedInfo.bulk_phone_numbers(numbers, obj)
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER,
-                people=obj,
-                value=card_number
-            )
-        )
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.ADDRESS,
-                people=obj,
-                value=address
-            )
+        infos = merge_infos(
+            person_obj,
+            validated_data["numbers"],
+            validated_data["card_numbers"],
+            validated_data["addresses"],
         )
 
         with transaction.atomic():
-            obj.save()
+            person_obj.save()
 
             m.PeopleDetailedInfo.objects.bulk_create(infos)
-            
-            obj.specifications.add(*service_locations, *skills, *tags)
 
-        return obj
+            person_obj.specifications.add(
+                *validated_data["service_locations"],
+                *validated_data.get("skills", []),
+                *validated_data.get("tags", [])
+            )
+
+        return person_obj
+
+
+class CreateClientSerializer(CreatePersonSerializer):
+    numbers = PhoneNumberSerializer(many=True)
+    addresses = AddressSerializer(many=True)
+    tags = serializers.ListField(required=False)
+
+    def create(self, validated_data) -> m.People:
+        person_obj: m.People = super().create()
+        person_obj.people_type = m.PeopleTypeChoices.CLIENT
+
+        infos = merge_infos(
+            person_obj,
+            validated_data["numbers"],
+            validated_data["addresses"],
+        )
+
+        with transaction.atomic():
+            person_obj.save()
+
+            m.PeopleDetailedInfo.objects.bulk_create(infos)
+
+            person_obj.specifications.add(*validated_data.get("tags", []))
+
+        return person_obj
+
+
+class CreatePatientSerializer(CreatePersonSerializer):
+    tags = serializers.ListField(required=False)
+
+    def create(self, validated_data) -> m.People:
+        person_obj: m.People = super().create()
+        person_obj.people_type = m.PeopleTypeChoices.CLIENT
+
+        with transaction.atomic():
+            person_obj.save()
+
+            person_obj.specifications.add(*validated_data.get("tags", []))
+
+        return person_obj

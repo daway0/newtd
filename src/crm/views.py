@@ -1129,7 +1129,7 @@ def personnel_form(request, personnel_id=None):
 
     if not serializer.is_valid():
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-    
+
     serializer.save()
     return Response(status=status.HTTP_201_CREATED)
 
@@ -1149,7 +1149,13 @@ def client_form(request, client_id):
 
         return Response(serializer)
 
-    pass
+    serializer = s.CreateClientSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    serializer.save()
+    return Response(status=status.HTTP_201_CREATED)
 
 
 @api_view(["GET", "POST"])
@@ -1167,4 +1173,10 @@ def patient_form(request, patient_id):
 
         return Response(serializer)
 
-    pass
+    serializer = s.CreatePatientSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    serializer.save()
+    return Response(status=status.HTTP_201_CREATED)
