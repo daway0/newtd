@@ -2,6 +2,8 @@ from math import ceil
 
 import jdatetime
 from django.db.models import QuerySet
+from rest_framework.response import Response
+from rest_framework.status import HTTP_400_BAD_REQUEST
 
 
 def get_diff_in_percentage(now: int, before: int) -> float:
@@ -227,3 +229,10 @@ def seperate_numbers(threshold: int, number: str) -> str:
         final_number.append(bit)
 
     return "".join(final_number[::-1])
+
+
+def err_response(err: str | dict) -> Response:
+    if isinstance(err, dict):
+        return Response(err, HTTP_400_BAD_REQUEST)
+
+    return Response({"error": err}, HTTP_400_BAD_REQUEST)

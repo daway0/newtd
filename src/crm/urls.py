@@ -57,9 +57,9 @@ urlpatterns = [
     path("api/forms/patients/<int:patient_id>/", views.patient_form, name="patient_form"),
     path("api/forms/patients/", views.patient_form, name="patient_form"),
     path("api/national-code/<str:national_code>/", views.black_list, name="black_list"),
-    path("api/phone-number/", views.edit_phone_number, name="edit_phone_number"),
-    path("api/card-number/", views.edit_card_number, name="edit_card_number"),
-    path("api/address/", views.edit_address, name="edit_address"),
+    path("api/phone-number/", views.edit_info, name="edit_phone_number"),
+    path("api/card-number/", views.edit_info, name="edit_card_number"),
+    path("api/address/", views.edit_info, name="edit_address"),
     # Form related end
 
     path("api/catalog/", views.catalog, name="catalog"),

@@ -463,28 +463,34 @@ class ServiceSerializer(DynamicFieldSerializer):
         "total_orders": "کل خدمات",
         "total_orders_in_passed_month": "کل خدمات ماه گذشته",
     }
+    
 
-
-class EditInfoSerializer(serializers.Serializer):
+class AddInfoSerializer(serializers.Serializer):
     person = serializers.IntegerField()
-    info = serializers.CharField(max_length=11, min_length=11)
-    new_info = serializers.CharField(required=False)
+    info = serializers.CharField()
+    note = serializers.CharField(required=False)
 
-    def validate_person(self, person_id: int):
-        person = m.People.objects.filter(id=person_id)
+    def validate_person(self, person_id):
+        person = m.People.objects.filter(pk=person_id)
         if not person.exists():
             raise serializers.ValidationError({"error": "invalid person id."})
 
         return person.first()
 
-    def validate(self, attrs: dict):
+
+class EditInfoSerializer(serializers.Serializer):
+    info_id = serializers.IntegerField()
+    new_info = serializers.CharField(required=False)
+    new_note = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
         attrs = super().validate(attrs)
 
-        new_info = attrs.get("new_data")
-        if self.context["request"].method == "PUT" and new_info is None:
-            raise serializers.ValidationError(
-                {"error": "new info is required."}
-            )
+        new_info = attrs.get("new_info")
+        new_note = attrs.get("new_note")
+
+        if new_info is None and new_note is None:
+            raise serializers.ValidationError({"error": "invalid data."})
 
         return attrs
 
