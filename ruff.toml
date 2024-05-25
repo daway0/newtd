@@ -1,0 +1,29 @@
+# Same as Black.
+line-length = 79
+indent-width = 4
+target-version = "py311"
+
+
+[lint]
+extend-select = ["E501"]
+exclude = [
+    "src/crm/migrations/*.py",
+    "src/config/*.py",
+    ]
+    
+[lint.per-file-ignores]
+"__init__.py" = ["E402"]
+"src/crm/urls.py" = ["E501"]
+
+[format]
+skip-magic-trailing-comma = false
+quote-style = "double"
+indent-style = "space"
+
+exclude = [
+    "src/crm/migrations/*.py",
+    "src/config/*.py",
+    ]
+
+
+
