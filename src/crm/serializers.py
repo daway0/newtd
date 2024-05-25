@@ -36,6 +36,9 @@ def merge_infos(
         )
 
     for data in addresses:
+        if data is None:
+            return infos
+
         infos.append(
             m.PeopleDetailedInfo(
                 detail_type=m.PeopleDetailTypeChoices.ADDRESS,
@@ -46,6 +49,17 @@ def merge_infos(
         )
 
     return infos
+
+
+def raise_validation_err(key: str, code: str, detail: list | str):
+    raise serializers.ValidationError(
+        {
+            key: {
+                "code": code,
+                "detail": detail,
+            }
+        }
+    )
 
 
 class TranslatedSerializer(serializers.Serializer):
@@ -613,11 +627,42 @@ class CreatePersonSerializer(serializers.Serializer):
         attrs = super().validate(attrs)
 
         if m.People.objects.filter(
-            national_code=attrs["national.code"]
+            national_code=attrs["national_code"]
         ).exists():
-            raise serializers.ValidationError(
-                {"error": "national_code already exists."}
+            raise_validation_err(
+                "national_code",
+                "DuplicateNationalCode",
+                attrs["national_code"],
             )
+
+        numbers = attrs.get("numbers")
+        if numbers is not None:
+            nums = []
+            for number in numbers:
+                
+                if number["number"] in nums:
+                    raise_validation_err(
+                        "numbers",
+                        "NumbersDuplicate",
+                        number["number"],
+                    )
+
+                nums.append(number["number"])
+
+            duplicates_numbers = m.PeopleDetailedInfo.objects.filter(
+                detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER,
+                value__in=nums,
+            )
+            if duplicates_numbers.exists():
+                raise_validation_err(
+                    "numbers",
+                    "NumbersDuplicate",
+                    list(duplicates_numbers.values_list("value", flat=True)),
+                )
+
+        tags = attrs.get("tags")
+        if tags is not None:
+            tags = set(tags)
 
         return attrs
 
@@ -671,11 +716,24 @@ class CreatePersonnelSerializer(CreatePersonSerializer):
     def validate(self, attrs):
         attrs = super().validate(attrs)
 
-        nums = []
-        for number in attrs["numbers"]:
-            nums.append(number["number"])
+        cn = m.PeopleDetailedInfo.objects.filter(
+            detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER,
+            value=attrs["card_number"],
+        )
+        if cn.exists():
+            raise_validation_err("card_number", "DuplicateCardNumber", cn)
 
-        # m.PeopleDetailTypeChoice
+        roles = attrs.get("roles")
+        if roles is not None:
+            attrs["roles"] = set(roles)
+
+        service_locations = attrs.get("service_locations")
+        if service_locations is not None:
+            attrs["service_locations"] = set(service_locations)
+
+        skills = attrs.get("skills")
+        if skills is not None:
+            attrs["skills"] = set(skills)
 
         return attrs
 
@@ -687,7 +745,7 @@ class CreatePersonnelSerializer(CreatePersonSerializer):
             person_obj,
             validated_data["numbers"],
             validated_data["card_number"],
-            [validated_data.get("address", [])],
+            [validated_data.get("address")],
         )
 
         with transaction.atomic():
