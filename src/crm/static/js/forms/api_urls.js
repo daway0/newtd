@@ -1,3 +1,4 @@
 const apiUrls = {
-    catalog : "/crm/api/catalog/"
+    catalog : "/crm/api/catalog/",
+    personnelInitiate : "/crm/api/forms/personnel/"
 }

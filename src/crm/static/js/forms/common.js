@@ -169,6 +169,7 @@ $(document).ready(function () {
     format: "L",
     autoClose: true,
     initialValue: false,
+    persianDigit:false
   });
 
   // inserting input error spans

@@ -33,8 +33,8 @@ const personnelAdvancedValidators = [
     validators: [genderSelection],
   },
   // {
-    // element: $("#skill"),
-    // validators: [skillDuplication],
+  // element: $("#skill"),
+  // validators: [skillDuplication],
   // }
 
 ]
@@ -136,21 +136,40 @@ $(document).ready(function () {
     flushFormErrorDisplay()
 
     // send data to server
-    // First, we need to gather data
+    // First, we need to gather data and transform it.
 
     let dataCallBacks = {
-      national_code: () => $("#national-code").val(),
-      firstname: () => $("#firstname").val(),
-      lastname: () => $("#lastname").val(),
-      birthdate: () => $("#birthdate").val(),
-      address: () => $("#address").val() || null,
-      active_card_number: () => $("#active-card-number").val() || null,
-      contract_date: () => $("#contract-start").val(),
-      end_contract_date: () => $("#contract-end").val() || null,
+      national_code: () => $("#national-code").val().trim(),
+      firstname: () => $("#firstname").val().trim(),
+      lastname: () => $("#lastname").val().trim(),
+      birthdate: () => convertPersianDigitsToEnglish($("#birthdate").val()),
+      address: () => {
+        const address = $("#address").val().trim()
+        if (address) {
+          return {
+            address: address,
+            note: null
+          }
+        }
+        return null
+      },
+      active_card_number: () => {
+        const card_number = $("#active-card-number").val().trim()
+        if (card_number) {
+          return {
+            card_number: card_number,
+            note: null
+          }
+        }
+        return null
+      },
+
+      contract_date: () => convertPersianDigitsToEnglish($("#contract-start").val()),
+      end_contract_date: () => convertPersianDigitsToEnglish($("#contract-end").val()) || null,
       gender: () => $("#male").is(":checked") ? "M" : "F",
       tags: () => $(".tags-select2").val(),
       numbers: () => {
-        value = []
+        let value = []
         $(".numbers-section .form-row-container").each(function () {
           const number = $(this).find(".phone-number").val().trim()
           const note = $(this).find(".phone-number-note").val().trim()
@@ -163,10 +182,10 @@ $(document).ready(function () {
         })
         return value
       },
-      roles: ()=> $(".personnel-role-select2").val(),
-      service_locations: ()=> $(".service-locations-select2").val(),
+      roles: () => $(".personnel-role-select2").val(),
+      service_locations: () => $(".service-locations-select2").val(),
       skills: () => {
-        value = []
+        let value = []
         $(".form-row-container.skill-section").each(function () {
           const skill = $(this).find(".skill").val().trim()
           const pts = $(this).find(".skill-pts").val().trim()
@@ -183,10 +202,26 @@ $(document).ready(function () {
     }
 
     let data = {}
-    for (const key in dataCallBacks){
+    for (const key in dataCallBacks) {
       data[key] = dataCallBacks[key]()
+      console.log(key);
+      console.log(dataCallBacks[key]());
     }
-    success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
+
+    // Second send data to server
+    $.ajax({
+      url: 'https://example.com/api', 
+      type: 'POST',
+      contentType: 'application/json', 
+      data: JSON.stringify(data), 
+      success: function(response) {
+          success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
+      },
+      error: function(error) {
+          error_toast("خطا", "خطایی در سرور رخ داده است")
+          console.error('Error:', error);
+      }
+  });
   });
 
 
