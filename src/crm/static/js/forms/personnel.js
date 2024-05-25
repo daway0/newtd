@@ -148,7 +148,6 @@ $(document).ready(function () {
         if (address) {
           return {
             address: address,
-            note: null
           }
         }
         return null
@@ -158,10 +157,9 @@ $(document).ready(function () {
         if (card_number) {
           return {
             card_number: card_number,
-            note: null
           }
         }
-        return []
+        return null
       },
 
       contract_start: () => convertPersianDigitsToEnglish($("#contract-start").val()),
@@ -173,12 +171,9 @@ $(document).ready(function () {
         $(".numbers-section .form-row-container").each(function () {
           const number = $(this).find(".phone-number").val().trim()
           const note = $(this).find(".phone-number-note").val().trim()
-          value.push(
-            {
-              number: number,
-              note: note || null
-            }
-          )
+          let obj = { number: number }
+          if (note) obj.note = note
+          value.push(obj)
         })
         return value
       },
@@ -203,25 +198,26 @@ $(document).ready(function () {
 
     let data = {}
     for (const key in dataCallBacks) {
-      data[key] = dataCallBacks[key]()
+      const val = dataCallBacks[key]()
+      if (val) data[key] = val
       console.log(key);
       console.log(dataCallBacks[key]());
     }
 
     // Second send data to server
     $.ajax({
-      url: apiUrls.personnelInitiate, 
+      url: apiUrls.personnelInitiate,
       type: 'POST',
-      contentType: 'application/json', 
-      data: JSON.stringify(data), 
-      success: function(response) {
-          success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
+      contentType: 'application/json',
+      data: JSON.stringify(data),
+      success: function (response) {
+        success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
       },
       error: function (xhr, status, error) {
-          error_toast("خطا", "خطایی در سرور رخ داده است")
-          console.error('Error:', xhr.responseJSON);
+        error_toast("خطا", "خطایی در سرور رخ داده است")
+        console.error('Error:', xhr.responseJSON);
       }
-  });
+    });
   });
 
 
