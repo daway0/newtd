@@ -140,8 +140,8 @@ $(document).ready(function () {
 
     let dataCallBacks = {
       national_code: () => $("#national-code").val().trim(),
-      firstname: () => $("#firstname").val().trim(),
-      lastname: () => $("#lastname").val().trim(),
+      first_name: () => $("#firstname").val().trim(),
+      last_name: () => $("#lastname").val().trim(),
       birthdate: () => convertPersianDigitsToEnglish($("#birthdate").val()),
       address: () => {
         const address = $("#address").val().trim()
@@ -153,7 +153,7 @@ $(document).ready(function () {
         }
         return null
       },
-      active_card_number: () => {
+      card_number: () => {
         const card_number = $("#active-card-number").val().trim()
         if (card_number) {
           return {
@@ -161,11 +161,11 @@ $(document).ready(function () {
             note: null
           }
         }
-        return null
+        return []
       },
 
-      contract_date: () => convertPersianDigitsToEnglish($("#contract-start").val()),
-      end_contract_date: () => convertPersianDigitsToEnglish($("#contract-end").val()) || null,
+      contract_start: () => convertPersianDigitsToEnglish($("#contract-start").val()),
+      contract_end: () => convertPersianDigitsToEnglish($("#contract-end").val()) || null,
       gender: () => $("#male").is(":checked") ? "M" : "F",
       tags: () => $(".tags-select2").val(),
       numbers: () => {
@@ -210,16 +210,16 @@ $(document).ready(function () {
 
     // Second send data to server
     $.ajax({
-      url: 'https://example.com/api', 
+      url: apiUrls.personnelInitiate, 
       type: 'POST',
       contentType: 'application/json', 
       data: JSON.stringify(data), 
       success: function(response) {
           success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
       },
-      error: function(error) {
+      error: function (xhr, status, error) {
           error_toast("خطا", "خطایی در سرور رخ داده است")
-          console.error('Error:', error);
+          console.error('Error:', xhr.responseJSON);
       }
   });
   });
