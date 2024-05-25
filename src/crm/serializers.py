@@ -9,9 +9,9 @@ from . import utils
 
 def merge_infos(
     person: m.People,
-    numbers: list[dict] = None,
-    card_numbers: list[dict] = None,
-    addresses: list[dict] = None,
+    numbers: list[dict] = [],
+    card_numbers: list[dict] = [],
+    addresses: list[dict] = [],
 ) -> list[m.PeopleDetailedInfo]:
     infos = []
 
@@ -649,8 +649,8 @@ class CreatePersonnelSerializer(CreatePersonSerializer):
         validators=[sv.date], source="end_contract_date", required=False
     )
     numbers = PhoneNumberSerializer(many=True)
-    card_numbers = CardNumberSerializer(many=True)
-    addresses = AddressSerializer(many=True)
+    card_number = CardNumberSerializer()
+    address = AddressSerializer(required=False)
     roles = serializers.ListField()
     service_locations = serializers.ListField()
     tags = serializers.ListField(required=False)
@@ -663,8 +663,8 @@ class CreatePersonnelSerializer(CreatePersonSerializer):
         infos = merge_infos(
             person_obj,
             validated_data["numbers"],
-            validated_data["card_numbers"],
-            validated_data["addresses"],
+            validated_data["card_number"],
+            validated_data.get("address", []),
         )
 
         with transaction.atomic():
