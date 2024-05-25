@@ -10,18 +10,18 @@ from . import utils
 def merge_infos(
     person: m.People,
     numbers: list[dict] = [],
-    card_numbers: list[dict] = [],
+    card_number: dict = None,
     addresses: list[dict] = [],
 ) -> list[m.PeopleDetailedInfo]:
     infos = []
 
-    for data in card_numbers:
+    if card_number is not None:
         infos.append(
             m.PeopleDetailedInfo(
                 detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER,
                 people=person,
-                value=data["card_number"],
-                note=data.get("note"),
+                value=card_number["card_number"],
+                note=card_number.get("note"),
             )
         )
 
@@ -463,7 +463,7 @@ class ServiceSerializer(DynamicFieldSerializer):
         "total_orders": "کل خدمات",
         "total_orders_in_passed_month": "کل خدمات ماه گذشته",
     }
-    
+
 
 class AddInfoSerializer(serializers.Serializer):
     person = serializers.IntegerField()
@@ -609,6 +609,18 @@ class CreatePersonSerializer(serializers.Serializer):
     birthdate = serializers.CharField(validators=[sv.date])
     note = serializers.CharField(max_length=255, required=False)
 
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        if m.People.objects.filter(
+            national_code=attrs["national.code"]
+        ).exists():
+            raise serializers.ValidationError(
+                {"error": "national_code already exists."}
+            )
+
+        return attrs
+
     def create(self, validated_data) -> m.People:
         my_fields = {
             "national_code",
@@ -652,9 +664,20 @@ class CreatePersonnelSerializer(CreatePersonSerializer):
     card_number = CardNumberSerializer()
     address = AddressSerializer(required=False)
     roles = serializers.ListField()
-    service_locations = serializers.ListField()
+    service_locations = serializers.ListField(required=False)
     tags = serializers.ListField(required=False)
     skills = serializers.ListField(required=False)
+
+    def validate(self, attrs):
+        attrs = super().validate(attrs)
+
+        nums = []
+        for number in attrs["numbers"]:
+            nums.append(number["number"])
+
+        # m.PeopleDetailTypeChoice
+
+        return attrs
 
     def create(self, validated_data: dict):
         person_obj: m.People = super().create(validated_data)
@@ -664,7 +687,7 @@ class CreatePersonnelSerializer(CreatePersonSerializer):
             person_obj,
             validated_data["numbers"],
             validated_data["card_number"],
-            validated_data.get("address", []),
+            [validated_data.get("address", [])],
         )
 
         with transaction.atomic():
