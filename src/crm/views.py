@@ -12,22 +12,21 @@ from .forms import TestForm
 
 
 def dashboard_section(request):
-
     # fmt: off
-    one_month_ago_client_number = models.People.get_clients_in_months_ago(1).count()
-    two_month_ago_client_number = models.People.get_clients_in_months_ago(2).count()
+    one_month_ago_client_number = models.People.get_clients_in_months_ago(1).count() # noqa: E501
+    two_month_ago_client_number = models.People.get_clients_in_months_ago(2).count() # noqa: E501
 
-    one_month_ago_calls_number = models.Call.get_all_calls_in_months_ago(1).count()
-    two_month_ago_calls_number = models.Call.get_all_calls_in_months_ago(2).count()
+    one_month_ago_calls_number = models.Call.get_all_calls_in_months_ago(1).count() # noqa: E501
+    two_month_ago_calls_number = models.Call.get_all_calls_in_months_ago(2).count() # noqa: E501
 
-    one_month_ago_order_number = models.Order.get_orders_in_month_ago(1).count()
-    two_month_ago_order_number = models.Order.get_orders_in_month_ago(2).count()
+    one_month_ago_order_number = models.Order.get_orders_in_month_ago(1).count() # noqa: E501
+    two_month_ago_order_number = models.Order.get_orders_in_month_ago(2).count() # noqa: E501
 
-    one_month_ago_contract_number = models.Contract.get_contracts_in_month_ago(1).count()
-    two_month_ago_contract_number = models.Contract.get_contracts_in_month_ago(2).count()
+    one_month_ago_contract_number = models.Contract.get_contracts_in_month_ago(1).count() # noqa: E501
+    two_month_ago_contract_number = models.Contract.get_contracts_in_month_ago(2).count() # noqa: E501
 
-    income_past_month = models.Payment.get_incomes_in_months_ago(1).aggregate(Sum("amount"))["amount__sum"]
-    income_past_2_month = models.Payment.get_incomes_in_months_ago(2).aggregate(Sum("amount"))["amount__sum"]
+    income_past_month = models.Payment.get_incomes_in_months_ago(1).aggregate(Sum("amount"))["amount__sum"] # noqa: E501
+    income_past_2_month = models.Payment.get_incomes_in_months_ago(2).aggregate(Sum("amount"))["amount__sum"] # noqa: E501
     # fmt: on
 
     card_stats = [
@@ -223,84 +222,39 @@ def create_patient(request):
 
 
 def edit_client(request, id):
-    form = TestForm()
-    return render(
-        request, "people/create_change/client.html", context=dict(form=form)
-    )
+    return render(request, "people/create_change/client.html")
 
 
 def edit_personnel(request, id):
-    form = TestForm()
-    return render(
-        request, "users/create_change/client.html", context=dict(form=form)
-    )
+    return render(request, "users/create_change/client.html")
 
 
 def edit_patient(request, id):
-    form = TestForm()
-    return render(
-        request, "users/create_change/client.html", context=dict(form=form)
-    )
+    return render(request, "users/create_change/client.html")
 
 
 def update_client(request, id):
-    form = TestForm()
-    return render(
-        request, "people/create_change/client.html", context=dict(form=form)
-    )
+    return render(request, "people/create_change/client.html")
 
 
 def update_personnel(request, id):
-    form = TestForm()
-    return render(
-        request, "users/create_change/client.html", context=dict(form=form)
-    )
+    return render(request, "users/create_change/client.html")
 
 
 def update_patient(request, id):
-    form = TestForm()
-    return render(
-        request, "users/create_change/client.html", context=dict(form=form)
-    )
+    return render(request, "users/create_change/client.html")
 
 
 def delete_client(request, id):
-    form = TestForm()
-    return render(
-        request, "people/create_change/client.html", context=dict(form=form)
-    )
+    return render(request, "people/create_change/client.html")
 
 
 def delete_personnel(request, id):
-    form = TestForm()
-    return render(
-        request, "users/create_change/client.html", context=dict(form=form)
-    )
+    return render(request, "users/create_change/client.html")
 
 
 def delete_patient(request, id):
-    form = TestForm()
-    return render(
-        request, "users/create_change/client.html", context=dict(form=form)
-    )
-
-
-def get_service(request, id):
-    service = get_object_or_404(models.Service, pk=id)
-    form = TestForm(service)
-    return render(request, "some_template", context={"form": form})
-
-
-def get_order(request, id):
-    order = get_object_or_404(models.Order, pk=id)
-    form = TestForm(order)
-    return render(request, "some_template", {"form": form})
-
-
-def get_contract(request, id):
-    contract = get_object_or_404(models.Contract, pk=id)
-    form = TestForm(contract)
-    return render(request, "some_template", {"form": form})
+    return render(request, "users/create_change/client.html")
 
 
 @api_view(["GET"])

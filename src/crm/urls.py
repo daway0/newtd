@@ -4,10 +4,8 @@ from . import report_views as rv
 from . import views
 
 app_name = "crm"
-
+# fmt: off
 urlpatterns = [
-    # fmt: off
-    
     # main sections
     path("dashboard/", views.dashboard_section, name="dashboard_section"),
     path("services/", views.services_section, name="services_section"),
@@ -17,9 +15,9 @@ urlpatterns = [
     path("settings/", views.settings_section, name="settings_section"),
     # main sections end
 
-    path("services/<int:id>/", views.get_service, name="get_service"),
-    path("orders/<int:id>/", views.get_order, name="get_order"),
-    path("contracts/<int:id>/", views.get_contract, name="get_contract"),
+    # path("services/<int:id>/", views.get_service, name="get_service"),
+    # path("orders/<int:id>/", views.get_order, name="get_order"),
+    # path("contracts/<int:id>/", views.get_contract, name="get_contract"),
 
     # client related
     path("people/client/create/", views.create_client, name="create_client"),
@@ -64,10 +62,10 @@ urlpatterns = [
 
     path("api/catalog/", views.catalog, name="catalog"),
     
-    # reports
-    path("api/reports/most_requested_services/", rv.most_requested_services, name="most_requested_services"),
-    path("api/reports/debtor_clients/", rv.debtor_clients, name="debtor_clients"),
+    # # reports
+    # path("api/reports/most_requested_services/", rv.most_requested_services, name="most_requested_services"),
+    # path("api/reports/debtor_clients/", rv.debtor_clients, name="debtor_clients"),
     # reports end
     # REST end
-    # fmt: on
 ]
+# fmt: on
