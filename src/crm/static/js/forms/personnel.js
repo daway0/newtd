@@ -106,7 +106,7 @@ $(document).ready(function () {
       $('.tags-select2').select2({ ...select2Tags, ...select2Props });
     })
     .catch(function (error) {
-      console.error('Failed to load service locations data:', error);
+      console.error('Failed to load tags data:', error);
     });
 
 
