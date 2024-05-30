@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -39,17 +39,17 @@ class Log(models.Model):
 
 
 class PeopleTypeChoices(models.TextChoices):
-    PERSONNEL = "PSN", "پرسنل"
-    CLIENT = "CLI", "کارفرما"
-    PATIENT = "PNT", "مددجو"
+    PERSONNEL = "PERSONNEL", "پرسنل"
+    CLIENT = "CLIENT", "کارفرما"
+    PATIENT = "PATIENT", "مددجو"
 
 
 class PersonnelRoleChoices(models.TextChoices):
-    DOCTOR = "DCTR", "پزشک"
-    NURSE = "NRS", "پرستار"
-    PRACTICAL_NURSE = "PNRS", "بهیار"
-    ASSISTANT_NURSE = "ANRS", "کمک بهیار"
-    HOME_CARE = "HCRE", "مراقب"
+    DOCTOR = "DOCTOR", "پزشک"
+    NURSE = "NURSE", "پرستار"
+    PRACTICAL_NURSE = "PRACTICAL_NURSE", "بهیار"
+    ASSISTANT_NURSE = "ASSISTANT_NURSE", "کمک بهیار"
+    HOME_CARE = "HOME_CARE", "مراقب"
 
 
 class GenderChoices(models.TextChoices):
@@ -62,10 +62,9 @@ class Catalog(Log):
         "self", on_delete=models.CASCADE, null=True, blank=True
     )
     title = models.CharField(max_length=150)
-    
+
     # must be in upper case
     code = models.CharField(max_length=50)
-    rate = models.IntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return self.title
@@ -82,13 +81,22 @@ class Catalog(Log):
     def skills_code() -> str:
         return "SKL"
 
+    @staticmethod
+    def roles_code() -> str:
+        return "ROL"
+
+    @staticmethod
+    def types_code() -> str:
+        return "TYP"
+
 
 class ClientManager(models.Manager):
     def get_queryset(self) -> models.QuerySet:
         return (
             super()
             .get_queryset()
-            .filter(people_type=PeopleTypeChoices.CLIENT)
+            .prefetch_related("types")
+            .filter(type__title="client")
             .order_by("-joined_at")
         )
 
@@ -98,7 +106,8 @@ class PersonnelManager(models.Manager):
         return (
             super()
             .get_queryset()
-            .filter(people_type=PeopleTypeChoices.PERSONNEL)
+            .prefetch_related("types")
+            .filter(type__title="personnel")
             .order_by("-joined_at")
         )
 
@@ -108,9 +117,33 @@ class PatientManager(models.Manager):
         return (
             super()
             .get_queryset()
-            .filter(people_type=PeopleTypeChoices.PATIENT)
+            .filter(type__title="patient")
             .order_by("-joined_at")
         )
+
+
+class PeopleCatalogs(models.Model):
+    people = models.ForeignKey("People", on_delete=models.CASCADE)
+    catalog = models.ForeignKey("Catalog", on_delete=models.CASCADE)
+
+    class Meta:
+        abstract = True
+
+
+class Specification(PeopleCatalogs):
+    rate = models.IntegerField(null=True, blank=True)
+
+
+class ServiceLocation(PeopleCatalogs):
+    pass
+
+
+class PeopleRole(PeopleCatalogs):
+    pass
+
+
+class PeopleType(PeopleCatalogs):
+    pass
 
 
 class People(Log):
@@ -138,20 +171,23 @@ class People(Log):
     )
     birthdate = models.CharField(max_length=10)
 
-    people_type = models.CharField(
-        max_length=3,
-        choices=PeopleTypeChoices.choices,
+    types = models.ManyToManyField(
+        Catalog, related_name="people_types", through=PeopleType
     )
 
     # specific to personnel
     contract_date = models.CharField(max_length=10, null=True, blank=True)
     end_contract_date = models.CharField(max_length=10, null=True, blank=True)
-    specifications = models.ManyToManyField(Catalog, blank=True)
-    personnel_role = models.CharField(
-        max_length=4,
-        choices=PersonnelRoleChoices.choices,
-        null=True,
-        blank=True,
+    specifications = models.ManyToManyField(
+        Catalog, related_name="people_specifications", through=Specification
+    )
+    roles = models.ManyToManyField(
+        Catalog, related_name="people_roles", through=PeopleRole
+    )
+    service_locations = models.ManyToManyField(
+        Catalog,
+        related_name="people_service_locations",
+        through=ServiceLocation,
     )
 
     note = models.TextField(null=True, blank=True)
@@ -174,8 +210,8 @@ class People(Log):
         return 52
 
     @property
-    def personnel_display_role(self):
-        return self.get_personnel_role_display()
+    def personnel_display_role(self) -> list:
+        return self.roles.all().values_list("ttile", flat=True)
 
     @property
     def total_personnel_orders(self):
@@ -249,6 +285,16 @@ class People(Log):
     def total_client_contracts(self):
         return Contract.objects.filter(client=self).count()
 
+    def get_types(self) -> list[str]:
+        return self.types.filter(code=Catalog.roles_code()).values_list(
+            "title", flat=True
+        )
+
+    def get_roles(self) -> list[str]:
+        return self.roles.filter(code=Catalog.types_code()).values_list(
+            "title", flat=True
+        )
+
     def spec_list(self) -> str:
         specs = []
         for spec in self.specifications.all():
@@ -257,24 +303,23 @@ class People(Log):
             return " ,".join(specs)
         return ""
 
-    def _get_people_type_label(self):
-        for enum in PeopleTypeChoices:
-            if enum.value == self.people_type:
-                return enum.name
+    # def get_absolute_url(self, action_type: str):
+    #     assert action_type.lower() in ["create", "edit", "update", "delete"]
 
-    def get_absolute_url(self, action_type: str):
-        assert action_type.lower() in ["create", "edit", "update", "delete"]
+    #     label = self.get_types()
+    #     path_name = f"crm:{action_type.lower()}_{label.lower()}"
 
-        label = self._get_people_type_label()
-        path_name = f"crm:{action_type.lower()}_{label.lower()}"
-
-        return reverse(path_name, kwargs={"id": self.id})
+    #     return reverse(path_name, kwargs={"id": self.id})
 
     def get_absolute_url_api(self):
-        label = self._get_people_type_label()
-        path_name = f"crm:{label.lower()}_preview"
+        types = self.get_types()
 
-        return reverse(path_name, kwargs={"id": self.id})
+        urls = []
+        for type in types:
+            path = f"crm:{type.lower()}_preview"
+            urls.append(reverse(path, kwargs={"id": self.id}))
+
+        return urls
 
     def get_clients_in_months_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)
@@ -289,9 +334,9 @@ class People(Log):
         )
 
     def __str__(self) -> str:
-        return (
-            f"{self.fullname_with_prefix} ({self.get_people_type_display()})"
-        )
+        types = [type.__str__() for type in self.types.all()]
+
+        return (f"{self.fullname_with_prefix} ({", ".join(types)})")
 
     objects = models.Manager()
     clients = ClientManager()
@@ -316,6 +361,7 @@ class PeopleDetailedInfo(Log):
         related_name="details",
     )
     value = models.CharField(max_length=250)
+    is_active = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)
 
     def __str__(self) -> str:

@@ -12,6 +12,10 @@ admin.site.register(
         models.Call,
         models.Catalog,
         models.BlackList,
+        models.Specification,
+        models.ServiceLocation,
+        models.PeopleRole,
+        models.PeopleType
     ]
 )
 

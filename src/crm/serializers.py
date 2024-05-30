@@ -639,7 +639,7 @@ class CreatePersonSerializer(serializers.Serializer):
         if numbers is not None:
             nums = []
             for number in numbers:
-                
+
                 if number["number"] in nums:
                     raise_validation_err(
                         "numbers",
@@ -739,7 +739,6 @@ class CreatePersonnelSerializer(CreatePersonSerializer):
 
     def create(self, validated_data: dict):
         person_obj: m.People = super().create(validated_data)
-        person_obj.people_type = m.PeopleTypeChoices.PERSONNEL
 
         infos = merge_infos(
             person_obj,
@@ -750,6 +749,9 @@ class CreatePersonnelSerializer(CreatePersonSerializer):
 
         with transaction.atomic():
             person_obj.save()
+            person_obj.types.set(
+                m.PeopleType.objects.get(type=m.PeopleTypeChoices.PERSONNEL)
+            )
 
             m.PeopleDetailedInfo.objects.bulk_create(infos)
 
@@ -769,7 +771,6 @@ class CreateClientSerializer(CreatePersonSerializer):
 
     def create(self, validated_data) -> m.People:
         person_obj: m.People = super().create()
-        person_obj.people_type = m.PeopleTypeChoices.CLIENT
 
         infos = merge_infos(
             person_obj,
@@ -779,6 +780,9 @@ class CreateClientSerializer(CreatePersonSerializer):
 
         with transaction.atomic():
             person_obj.save()
+            person_obj.types.set(
+                m.PeopleType.objects.get(type=m.PeopleTypeChoices.CLIENT)
+            )
 
             m.PeopleDetailedInfo.objects.bulk_create(infos)
 
@@ -792,10 +796,12 @@ class CreatePatientSerializer(CreatePersonSerializer):
 
     def create(self, validated_data) -> m.People:
         person_obj: m.People = super().create()
-        person_obj.people_type = m.PeopleTypeChoices.CLIENT
 
         with transaction.atomic():
             person_obj.save()
+            person_obj.types.set(
+                m.PeopleType.objects.get(type=m.PeopleTypeChoices.PATIENT)
+            )
 
             person_obj.specifications.add(*validated_data.get("tags", []))
 
