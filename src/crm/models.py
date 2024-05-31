@@ -64,7 +64,7 @@ class Catalog(Log):
     title = models.CharField(max_length=150)
 
     # must be in upper case
-    code = models.CharField(max_length=50)
+    code = models.CharField(max_length=50, unique=True)
 
     def __str__(self) -> str:
         return self.title
@@ -211,7 +211,7 @@ class People(Log):
 
     @property
     def personnel_display_role(self) -> list:
-        return self.roles.all().values_list("ttile", flat=True)
+        return self.roles.all().values_list("title", flat=True)
 
     @property
     def total_personnel_orders(self):
@@ -502,9 +502,6 @@ class Order(Log):
             Q(order_at__lte=end) & Q(order_at__gte=start)
         )
 
-    def get_absolute_url(self):
-        return reverse("crm:get_order", kwargs={"id": self.pk})
-
     def get_absolute_url_api(self):
         return reverse("crm:order_preview", kwargs={"id": self.pk})
 
@@ -640,10 +637,6 @@ class Contract(Log):
         return Contract.objects.filter(
             Q(contract_at__lte=end) & Q(contract_at__gte=start)
         )
-
-    def get_absolute_url(self):
-        # BUG
-        return reverse("crm:get_contract", kwargs={"id": self.pk})
 
     def get_absolute_url_api(self):
         return reverse("crm:contract_preview", kwargs={"id": self.pk})

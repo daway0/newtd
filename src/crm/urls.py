@@ -15,10 +15,6 @@ urlpatterns = [
     path("settings/", views.settings_section, name="settings_section"),
     # main sections end
 
-    # path("services/<int:id>/", views.get_service, name="get_service"),
-    # path("orders/<int:id>/", views.get_order, name="get_order"),
-    # path("contracts/<int:id>/", views.get_contract, name="get_contract"),
-
     # client related
     path("people/client/create/", views.create_client, name="create_client"),
     path("people/client/<int:id>/", views.edit_client, name="edit_client"),

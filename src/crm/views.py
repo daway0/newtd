@@ -566,9 +566,10 @@ def contract_preview(request, id):
 
 @api_view(["GET"])
 def client_preview(request, id):
-    client = get_object_or_404(
-        models.People, pk=id, people_type=models.PeopleTypeChoices.CLIENT
-    )
+    client = models.People.clients.filter(pk=id).first()
+    if not client:
+        return Response({"error": "client not found."})
+
     client_calls = models.Call.objects.filter(
         Q(from_people=client) | Q(to_people=client)
     )
@@ -701,9 +702,10 @@ def client_preview(request, id):
 
 @api_view(["GET"])
 def personnel_preview(request, id):
-    personnel = get_object_or_404(
-        models.People, pk=id, people_type=models.PeopleTypeChoices.PERSONNEL
-    )
+    personnel = models.People.personnels.filter(pk=id).first()
+    if not personnel:
+        return Response({"error": "personnel not found."})
+    
     personnel_calls = models.Call.objects.filter(
         Q(from_people=personnel) | Q(to_people=personnel)
     )
@@ -832,9 +834,9 @@ def personnel_preview(request, id):
 
 @api_view(["GET"])
 def patient_preview(request, id):
-    patient = get_object_or_404(
-        models.People, pk=id, people_type=models.PeopleTypeChoices.PATIENT
-    )
+    patient = models.People.patients.filter(pk=id).first()
+    if not patient:
+        return Response({"error": "patient not found."})
 
     data = {
         "title": "بیمار",
@@ -918,67 +920,67 @@ def black_list(request, national_code):
     return Response({"isBlackList": is_black_listed})
 
 
-@api_view(["POST", "PUT", "DELETE", "PATCH"])
-def edit_info(request):
-    request_url: str = request.get_full_path()
+# @api_view(["POST", "PUT", "DELETE", "PATCH"])
+# def edit_info(request):
+#     request_url: str = request.get_full_path()
 
-    if request_url.endswith("phone-number/"):
-        info_type = models.PeopleDetailTypeChoices.PHONE_NUMBER
+#     if request_url.endswith("phone-number/"):
+#         info_type = models.PeopleDetailTypeChoices.PHONE_NUMBER
 
-    elif request_url.endswith("card-number/"):
-        info_type = models.PeopleDetailTypeChoices.CARD_NUMBER
+#     elif request_url.endswith("card-number/"):
+#         info_type = models.PeopleDetailTypeChoices.CARD_NUMBER
 
-    elif request_url.endswith("address/"):
-        info_type = models.PeopleDetailTypeChoices.ADDRESS
+#     elif request_url.endswith("address/"):
+#         info_type = models.PeopleDetailTypeChoices.ADDRESS
 
-    else:
-        raise NotImplementedError(
-            "[!] Couldn't find url path in current "
-            "branchingf for info_type, please check the request url and "
-            f"fix it, url: {request_url}"
-        )
+#     else:
+#         raise NotImplementedError(
+#             "[!] Couldn't find url path in current "
+#             "branchingf for info_type, please check the request url and "
+#             f"fix it, url: {request_url}"
+#         )
 
-    if request.method == "POST":
-        serializer = s.AddInfoSerializer(data=request.data)
-        if not serializer.is_valid():
-            return utils.err_response(serializer.errors)
+#     if request.method == "POST":
+#         serializer = s.AddInfoSerializer(data=request.data)
+#         if not serializer.is_valid():
+#             return utils.err_response(serializer.errors)
 
-        info = AddInfo(
-            **serializer.validated_data,
-            type=info_type,
-        )
-        if not info.is_valid():
-            return utils.err_response(info.errors)
+#         info = AddInfo(
+#             **serializer.validated_data,
+#             type=info_type,
+#         )
+#         if not info.is_valid():
+#             return utils.err_response(info.errors)
 
-        info.add()
-        return Response(status=status.HTTP_201_CREATED)
+#         info.add()
+#         return Response(status=status.HTTP_201_CREATED)
 
-    elif request.method == "DELETE":
-        info_id = request.data.get("info_id")
-        if info_id is None:
-            return utils.err_response("info_id is required.")
+#     elif request.method == "DELETE":
+#         info_id = request.data.get("info_id")
+#         if info_id is None:
+#             return utils.err_response("info_id is required.")
 
-        info = DeleteInfo(info_id, type=info_type)
-        if not info.is_valid():
-            return utils.err_response(info.errors)
+#         info = DeleteInfo(info_id, type=info_type)
+#         if not info.is_valid():
+#             return utils.err_response(info.errors)
 
-        info.delete()
-        return Response(status=status.HTTP_202_ACCEPTED)
+#         info.delete()
+#         return Response(status=status.HTTP_202_ACCEPTED)
 
-    else:
-        serializer = s.EditInfoSerializer(data=request.data)
-        if not serializer.is_valid():
-            return utils.err_response(serializer.errors)
+#     else:
+#         serializer = s.EditInfoSerializer(data=request.data)
+#         if not serializer.is_valid():
+#             return utils.err_response(serializer.errors)
 
-        info = EditInfo(
-            **serializer.validated_data,
-            type=info_type,
-        )
-        if not info.is_valid():
-            return utils.err_response(info.errors)
+#         info = EditInfo(
+#             **serializer.validated_data,
+#             type=info_type,
+#         )
+#         if not info.is_valid():
+#             return utils.err_response(info.errors)
 
-        info.change()
-        return Response(status=status.HTTP_200_OK)
+#         info.change()
+#         return Response(status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])

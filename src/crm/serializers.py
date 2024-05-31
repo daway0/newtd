@@ -5,6 +5,7 @@ from rest_framework import serializers
 from . import models as m
 from . import serializer_validators as sv
 from . import utils
+from .business import ManipulateInfo
 
 
 def merge_infos(
@@ -60,6 +61,29 @@ def raise_validation_err(key: str, code: str, detail: list | str):
             }
         }
     )
+
+
+def unique_field(list_of_datas: list[dict], dict_key: str) -> list[dict]:
+    datas = []
+    unique_field_data = []
+
+    for data in list_of_datas:
+        if data[dict_key] in datas:
+            continue
+
+        datas.append(data[dict_key])
+        unique_field_data.append(data)
+
+    return unique_field_data
+
+
+def check_required_fields(required_fields: tuple[str], fields: dict):
+    for field in required_fields:
+        value = fields.get(field)
+        if value is None:
+            raise serializers.ValidationError(
+                {field: "this field is required."}
+            )
 
 
 class TranslatedSerializer(serializers.Serializer):
@@ -517,7 +541,7 @@ class CatalogSerializer(serializers.ModelSerializer):
 
 class FormSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
-        self.type = kwargs.pop("type")
+        types: list[str] = kwargs.pop("type")
 
         super().__init__(*args, **kwargs)
 
@@ -529,7 +553,10 @@ class FormSerializer(serializers.ModelSerializer):
             m.PeopleTypeChoices.PATIENT: FormSerializer.patinet_fields,
         }
 
-        for field in current_fields.difference(look_up[self.type]):
+        for type in types:
+            current_fields.update(look_up[type])
+
+        for field in current_fields.difference(FormSerializer.Meta.fields):
             self.fields.pop(field)
 
     common_fields = [
@@ -615,7 +642,26 @@ class FormSerializer(serializers.ModelSerializer):
         ]
 
 
+class CardNumberSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    card_number = serializers.CharField(validators=[sv.card_number])
+    note = serializers.CharField(max_length=255, required=False)
+
+
+class PhoneNumberSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    number = serializers.CharField(validators=[sv.phone_number])
+    note = serializers.CharField(max_length=255, required=False)
+
+
+class AddressSerializer(serializers.Serializer):
+    id = serializers.IntegerField(required=False)
+    address = serializers.CharField()
+    note = serializers.CharField(max_length=255, required=False)
+
+
 class CreatePersonSerializer(serializers.Serializer):
+    person_id = serializers.CharField(required=False)
     national_code = serializers.CharField(validators=[sv.national_code])
     first_name = serializers.CharField(source="firstname")
     last_name = serializers.CharField(source="lastname")
@@ -623,8 +669,81 @@ class CreatePersonSerializer(serializers.Serializer):
     birthdate = serializers.CharField(validators=[sv.date])
     note = serializers.CharField(max_length=255, required=False)
 
+    # NEW
+    types = serializers.ListField()
+    contract_start = serializers.CharField(
+        validators=[sv.date], source="contract_date", required=False
+    )
+    contract_end = serializers.CharField(
+        validators=[sv.date], source="end_contract_date", required=False
+    )
+    numbers = PhoneNumberSerializer(many=True)
+    card_number = CardNumberSerializer(required=False)
+    addresses = AddressSerializer(many=True, required=False)
+    roles = serializers.ListField()
+    service_locations = serializers.ListField(required=False)
+    tags = serializers.ListField(required=False)
+    skills = serializers.ListField(required=False)
+
+    def validate_person_id(self, id):
+        person_obj = m.People.objects.filter(pk=id).first()
+        if not person_obj:
+            raise_validation_err("person_id", "InvalidPersonId", id)
+
+        return person_obj
+
+    def validate_types(self, types):
+        for type in types:
+            if type not in ("personnel", "client", "patient"):
+                raise_validation_err("types", "InvalidTypes", type)
+
+    def personnel_validation(data: dict):
+        required_fields = (
+            "card_number",
+            "contract_date",
+            "end_contract_date",
+            "service_locations",
+            "tags",
+            "skills",
+        )
+        check_required_fields(required_fields, data)
+
+    def client_validation(data: dict):
+        required_fields = ("numbers", "addresses", "tags")
+        check_required_fields(required_fields, data)
+
+    def patient_validation(data: dict):
+        required_fields = "tags"
+        check_required_fields(required_fields, data)
+
     def validate(self, attrs):
         attrs = super().validate(attrs)
+        type_valdiators = {
+            "personnel": CreatePersonnelSerializer.personnel_validation,
+            "client": CreatePersonnelSerializer.client_validation,
+            "patient": CreatePersonnelSerializer.patient_validation,
+        }
+
+        for type in attrs["types"]:
+            type_valdiators[type](attrs)
+
+        numbers = attrs.get("numbers")
+        if numbers is not None:
+            numbers = unique_field(numbers, "number")
+
+        tags = attrs.get("tags")
+        if tags is not None:
+            tags = set(tags)
+
+        person = attrs.get("person_id")
+        if person is not None:
+            ManipulateInfo(
+                person,
+                addresses=attrs.get("addressed"),
+                numbers=attrs.get("numberes"),
+                card_number=attrs.get("card_number"),
+            )
+            return
 
         if m.People.objects.filter(
             national_code=attrs["national_code"]
@@ -635,67 +754,43 @@ class CreatePersonSerializer(serializers.Serializer):
                 attrs["national_code"],
             )
 
-        numbers = attrs.get("numbers")
-        if numbers is not None:
-            nums = []
-            for number in numbers:
-
-                if number["number"] in nums:
-                    raise_validation_err(
-                        "numbers",
-                        "NumbersDuplicate",
-                        number["number"],
-                    )
-
-                nums.append(number["number"])
-
-            duplicates_numbers = m.PeopleDetailedInfo.objects.filter(
-                detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER,
-                value__in=nums,
-            )
-            if duplicates_numbers.exists():
-                raise_validation_err(
-                    "numbers",
-                    "NumbersDuplicate",
-                    list(duplicates_numbers.values_list("value", flat=True)),
-                )
-
-        tags = attrs.get("tags")
-        if tags is not None:
-            tags = set(tags)
+        # if numbers is not None:
+        #     duplicates_numbers = m.PeopleDetailedInfo.objects.filter(
+        #         detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER,
+        #         value__in=nums,
+        #     )
+        #     if duplicates_numbers.exists():
+        #         raise_validation_err(
+        #             "numbers",
+        #             "NumbersDuplicate",
+        #             list(duplicates_numbers.values_list("value", flat=True)),
+        #         )
 
         return attrs
 
     def create(self, validated_data) -> m.People:
-        my_fields = {
-            "national_code",
-            "firstname",
-            "lastname",
-            "gender",
-            "birthdate",
-            "note",
-        }
+        person: m.People = validated_data.get("person_id")
+        if person:
+            common_fields = {
+                "firstname",
+                "lastname",
+                "gender",
+                "birthdate",
+                "note",
+            }
+            for field in common_fields:
+                value = validated_data[field]
+                if value != getattr(person, field):
+                    setattr(person, field, value)
 
-        my_validated_data = dict()
-        for field in my_fields.intersection(validated_data):
-            my_validated_data[field] = validated_data[field]
+            person.save()
+            return person
 
-        return m.People(**my_validated_data)
+        # my_validated_data = dict()
+        # for field in my_fields.intersection(validated_data):
+        #     my_validated_data[field] = validated_data[field]
 
-
-class CardNumberSerializer(serializers.Serializer):
-    card_number = serializers.CharField(validators=[sv.card_number])
-    note = serializers.CharField(max_length=255, required=False)
-
-
-class PhoneNumberSerializer(serializers.Serializer):
-    number = serializers.CharField(validators=[sv.phone_number])
-    note = serializers.CharField(max_length=255, required=False)
-
-
-class AddressSerializer(serializers.Serializer):
-    address = serializers.CharField()
-    note = serializers.CharField(max_length=255, required=False)
+        # return m.People(**my_validated_data)
 
 
 class CreatePersonnelSerializer(CreatePersonSerializer):

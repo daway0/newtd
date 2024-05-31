@@ -3,6 +3,7 @@ from math import ceil
 import jdatetime
 from django.db.models import QuerySet
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 from rest_framework.status import HTTP_400_BAD_REQUEST
 
 
@@ -236,3 +237,7 @@ def err_response(err: str | dict) -> Response:
         return Response(err, HTTP_400_BAD_REQUEST)
 
     return Response({"error": err}, HTTP_400_BAD_REQUEST)
+
+
+def raise_validation_err(code: str, value: str):
+    raise ValidationError({"code": code, "value": value})
