@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterable
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -96,7 +96,7 @@ class ClientManager(models.Manager):
             super()
             .get_queryset()
             .prefetch_related("types")
-            .filter(type__title="client")
+            .filter(types__title="client")
             .order_by("-joined_at")
         )
 
@@ -107,7 +107,7 @@ class PersonnelManager(models.Manager):
             super()
             .get_queryset()
             .prefetch_related("types")
-            .filter(type__title="personnel")
+            .filter(types__title="personnel")
             .order_by("-joined_at")
         )
 
@@ -117,7 +117,8 @@ class PatientManager(models.Manager):
         return (
             super()
             .get_queryset()
-            .filter(type__title="patient")
+            .prefetch_related("types")
+            .filter(types__title="patient")
             .order_by("-joined_at")
         )
 
@@ -125,6 +126,9 @@ class PatientManager(models.Manager):
 class PeopleCatalogs(models.Model):
     people = models.ForeignKey("People", on_delete=models.CASCADE)
     catalog = models.ForeignKey("Catalog", on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"{self.people.fullname_with_prefix} {self.catalog.title}"
 
     class Meta:
         abstract = True
@@ -350,6 +354,11 @@ class PeopleDetailTypeChoices(models.TextChoices):
     CARD_NUMBER = "C", "کارت بانکی"
 
 
+class ActiveInfosManager(models.Manager):
+    def get_queryset(self) -> models.QuerySet:
+        return super().get_queryset().filter(is_active=True)
+
+
 class PeopleDetailedInfo(Log):
     detail_type = models.CharField(
         max_length=1, choices=PeopleDetailTypeChoices.choices
@@ -364,8 +373,11 @@ class PeopleDetailedInfo(Log):
     is_active = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)
 
+    objects = models.Manager()
+    actives = ActiveInfosManager()
+
     def __str__(self) -> str:
-        return f"{self.detail_type} {self.value}"
+        return f"{self.people.fullname_with_prefix} {self.detail_type} {self.value}"
 
     def bulk_phone_numbers(
         phone_numbers: list[dict],

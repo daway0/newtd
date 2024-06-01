@@ -7,8 +7,6 @@ from rest_framework.response import Response
 from . import models
 from . import serializers as s
 from . import utils, validators
-from .business import AddInfo, DeleteInfo, EditInfo
-from .forms import TestForm
 
 
 def dashboard_section(request):
@@ -221,11 +219,15 @@ def create_patient(request):
     )
 
 
-def edit_client(request, id):
-    return render(request, "people/create_change/client.html")
-
-
 def edit_personnel(request, id):
+    return render(
+        request,
+        "people/forms/personnel.html",
+        context=dict(section="people", people_id=id),
+    )
+
+
+def edit_client(request, id):
     return render(request, "users/create_change/client.html")
 
 
@@ -705,7 +707,7 @@ def personnel_preview(request, id):
     personnel = models.People.personnels.filter(pk=id).first()
     if not personnel:
         return Response({"error": "personnel not found."})
-    
+
     personnel_calls = models.Call.objects.filter(
         Q(from_people=personnel) | Q(to_people=personnel)
     )
@@ -920,69 +922,6 @@ def black_list(request, national_code):
     return Response({"isBlackList": is_black_listed})
 
 
-# @api_view(["POST", "PUT", "DELETE", "PATCH"])
-# def edit_info(request):
-#     request_url: str = request.get_full_path()
-
-#     if request_url.endswith("phone-number/"):
-#         info_type = models.PeopleDetailTypeChoices.PHONE_NUMBER
-
-#     elif request_url.endswith("card-number/"):
-#         info_type = models.PeopleDetailTypeChoices.CARD_NUMBER
-
-#     elif request_url.endswith("address/"):
-#         info_type = models.PeopleDetailTypeChoices.ADDRESS
-
-#     else:
-#         raise NotImplementedError(
-#             "[!] Couldn't find url path in current "
-#             "branchingf for info_type, please check the request url and "
-#             f"fix it, url: {request_url}"
-#         )
-
-#     if request.method == "POST":
-#         serializer = s.AddInfoSerializer(data=request.data)
-#         if not serializer.is_valid():
-#             return utils.err_response(serializer.errors)
-
-#         info = AddInfo(
-#             **serializer.validated_data,
-#             type=info_type,
-#         )
-#         if not info.is_valid():
-#             return utils.err_response(info.errors)
-
-#         info.add()
-#         return Response(status=status.HTTP_201_CREATED)
-
-#     elif request.method == "DELETE":
-#         info_id = request.data.get("info_id")
-#         if info_id is None:
-#             return utils.err_response("info_id is required.")
-
-#         info = DeleteInfo(info_id, type=info_type)
-#         if not info.is_valid():
-#             return utils.err_response(info.errors)
-
-#         info.delete()
-#         return Response(status=status.HTTP_202_ACCEPTED)
-
-#     else:
-#         serializer = s.EditInfoSerializer(data=request.data)
-#         if not serializer.is_valid():
-#             return utils.err_response(serializer.errors)
-
-#         info = EditInfo(
-#             **serializer.validated_data,
-#             type=info_type,
-#         )
-#         if not info.is_valid():
-#             return utils.err_response(info.errors)
-
-#         info.change()
-#         return Response(status=status.HTTP_200_OK)
-
-
 @api_view(["GET"])
 def catalog(request):
     q = request.query_params.get("q")
@@ -996,74 +935,11 @@ def catalog(request):
     return Response(serializer)
 
 
-@api_view(["GET", "POST"])
-def personnel_form(request, personnel_id=None):
-    type = models.PeopleTypeChoices.PERSONNEL
-
-    if request.method == "GET":
-
-        person = get_object_or_404(
-            models.People,
-            pk=personnel_id,
-            people_type=type,
-        )
-
-        serializer = s.FormSerializer(person, type=type).data
-
-        return Response(serializer)
-
-    serializer = s.CreatePersonnelSerializer(data=request.data)
-
+@api_view(["POST"])
+def create_person_form(request):
+    serializer = s.CreatePersonSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
     serializer.save()
-    return Response(status=status.HTTP_201_CREATED)
-
-
-@api_view(["GET", "POST"])
-def client_form(request, client_id):
-    if request.method == "GET":
-        type = models.PeopleTypeChoices.CLIENT
-
-        person = get_object_or_404(
-            models.People,
-            pk=client_id,
-            people_type=type,
-        )
-
-        serializer = s.FormSerializer(person, type=type).data
-
-        return Response(serializer)
-
-    serializer = s.CreateClientSerializer(data=request.data)
-
-    if not serializer.is_valid():
-        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-
-    serializer.save()
-    return Response(status=status.HTTP_201_CREATED)
-
-
-@api_view(["GET", "POST"])
-def patient_form(request, patient_id):
-    if request.method == "GET":
-        type = models.PeopleTypeChoices.PATIENT
-
-        person = get_object_or_404(
-            models.People,
-            pk=patient_id,
-            people_type=type,
-        )
-
-        serializer = s.FormSerializer(person, type=type).data
-
-        return Response(serializer)
-
-    serializer = s.CreatePatientSerializer(data=request.data)
-
-    if not serializer.is_valid():
-        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-
-    serializer.save()
-    return Response(status=status.HTTP_201_CREATED)
+    return Response(status=status.HTTP_202_ACCEPTED)

@@ -44,16 +44,11 @@ urlpatterns = [
     # previews end
 
     # Form related
-    path("api/forms/personnel/<int:personnel_id>/", views.personnel_form, name="personnel_form"),
-    path("api/forms/personnel/", views.personnel_form, name="personnel_form"),
-    path("api/forms/clients/<int:client_id>/", views.client_form, name="client_form"),
-    path("api/forms/clients/", views.client_form, name="client_form"),
-    path("api/forms/patients/<int:patient_id>/", views.patient_form, name="patient_form"),
-    path("api/forms/patients/", views.patient_form, name="patient_form"),
+    path("api/forms/personnel/", views.create_person_form, name="forms"),
     path("api/national-code/<str:national_code>/", views.black_list, name="black_list"),
-    path("api/phone-number/", views.edit_info, name="edit_phone_number"),
-    path("api/card-number/", views.edit_info, name="edit_card_number"),
-    path("api/address/", views.edit_info, name="edit_address"),
+    # path("api/phone-number/", views.edit_info, name="edit_phone_number"),
+    # path("api/card-number/", views.edit_info, name="edit_card_number"),
+    # path("api/address/", views.edit_info, name="edit_address"),
     # Form related end
 
     path("api/catalog/", views.catalog, name="catalog"),

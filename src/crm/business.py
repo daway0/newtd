@@ -1,126 +1,7 @@
-from django.db import transaction
 from rest_framework.serializers import ValidationError
 
-from . import validators
 from .models import People, PeopleDetailedInfo
 from .models import PeopleDetailTypeChoices as pdc
-from .utils import raise_validation_err
-
-
-class AddInfo:
-    def __init__(
-        self, type: pdc.names, info: str, person: People, note: str = None
-    ) -> None:
-        self.type = type
-        self.info = info
-        self.person = person
-        self.note = note
-        self.errors = None
-
-    def is_valid(self) -> bool:
-        already_exist = PeopleDetailedInfo.objects.filter(
-            value=self.info, detail_type=self.type
-        )
-        if already_exist.exists():
-            self.errors = f"{self.type.name.lower()} already exists."
-            return False
-
-        if self.type == pdc.PHONE_NUMBER:
-
-            if not validators.phone_number(self.info):
-                self.errors = "invalid phone_number."
-                return False
-
-        return True
-
-    def add(self):
-        PeopleDetailedInfo.objects.create(
-            people=self.person,
-            detail_type=self.type,
-            value=self.info,
-            note=self.note,
-        )
-
-
-class DeleteInfo:
-    def __init__(self, info_id: int, type: pdc.names) -> None:
-        self.info_id = info_id
-        self.type = type
-        self.errors = None
-
-    def is_valid(self) -> bool:
-        already_exist = PeopleDetailedInfo.objects.filter(pk=self.info_id)
-        if not already_exist.exists():
-            self.errors = f"{self.type.name.lower()} doesn't exists."
-            return False
-
-        return True
-
-    def delete(self):
-        info = PeopleDetailedInfo.objects.get(pk=self.info_id)
-        info.is_active = False
-        info.save()
-
-
-class EditInfo:
-    def __init__(
-        self,
-        info_id: int,
-        type: pdc.names,
-        new_info: str = None,
-        new_note: str = None,
-    ) -> None:
-        self.type = type
-        self.info = info_id
-        self.new_info = new_info
-        self.new_note = new_note
-        self.errors = None
-
-    def is_valid(self) -> bool:
-        self.info = PeopleDetailedInfo.objects.filter(
-            pk=self.info, detail_type=self.type
-        ).first()
-        if self.info is None:
-            self.errors = f"invalid {self.type.name.lower()} id."
-            return False
-
-        if self.new_note and not self.new_info:
-            return True
-
-        if self.type == pdc.PHONE_NUMBER:
-            if not validators.phone_number(self.new_info):
-                self.errors = "invalid phone_number."
-                return False
-
-        if self.info.value == self.new_info:
-            self.errors = f"both {self.type.name.lower()}s are the same"
-            return False
-
-        if PeopleDetailedInfo.objects.filter(
-            value=self.new_info, detail_type=self.type
-        ).exists():
-            self.errors = f"new {self.type.name.lower()} already exists."
-            return False
-
-        return True
-
-    def change(self) -> None:
-        if self.new_info is not None:
-            self.info.is_active = False
-
-            with transaction.atomic():
-                PeopleDetailedInfo.objects.create(
-                    detail_type=self.type,
-                    people=self.info.people,
-                    value=self.new_info,
-                    note=self.new_note,
-                )
-                self.info.save()
-
-            return
-
-        self.info.note = self.new_note
-        self.info.save()
 
 
 class ManipulateInfo:
@@ -139,30 +20,46 @@ class ManipulateInfo:
         self._creation_values = set()
         self._manipulation_values = set()
 
-        self._manipulate_queue: set[dict] = []
-        self._creation_queue: set[PeopleDetailedInfo] = []
-        self._disable_queue: set[PeopleDetailedInfo] = []
+        self._manipulate_queue: list[dict] = list()
+        self._creation_queue: list[PeopleDetailedInfo] = list()
+        self._disable_queue: list[PeopleDetailedInfo] = list()
+        self._note_manipulations_queue: list[PeopleDetailedInfo] = list()
 
-        self._add_addressed_to_creation_queue()
-        self._add_numbers_to_creation_queue()
+        self._add_to_queue([*self.addresses, *self.numbers, self.card_number])
         self._validate_queues()
         self._initiate_manipulation_objs()
 
-    def _add_to_queue(self, data_list, type: pdc.names):
+    def _add_to_queue(self, data_list: pdc.names):
+        duplicates = dict()
+        presented_ids = set()
+
         for data in data_list:
             if data.get("id") is None:
+
+                value_len = len(data["value"])
+                if value_len == 11:
+                    type = pdc.PHONE_NUMBER
+                elif value_len == 16:
+                    type = pdc.CARD_NUMBER
+                else:
+                    type = pdc.ADDRESS
+
                 self._creation_values.add(data["value"])
-                self._creation_queue.add(
+
+                self._creation_queue.append(
                     PeopleDetailedInfo(
-                        detail_type=type, people=self.person, **data
+                        people=self.person, detail_type=type, **data
                     )
                 )
             else:
-                info = PeopleDetailedInfo.objects.filter(pk=data["id"]).first()
-                if info is None:
-                    raise_validation_err("DoesNotExists", data["value"])
+                duplicates[data["id"]] = data
+                presented_ids.add(data["id"])
 
-                self._manipulate_queue.add(
+        infos = PeopleDetailedInfo.actives.filter(pk__in=duplicates.keys())
+
+        for info in infos:
+            if duplicates[info.pk]["value"] != info.value:
+                self._manipulate_queue.append(
                     {
                         "request_data": data,
                         "info": info,
@@ -170,38 +67,19 @@ class ManipulateInfo:
                 )
                 self._manipulation_values.add(data["value"])
 
+            elif duplicates[info.pk].get("note") != info.note:
+
+                info.note = duplicates[info.pk].get("note")
+                self._note_manipulations_queue.append(info)
+
+        not_presented_infos = PeopleDetailedInfo.actives.exclude(
+            pk__in=presented_ids, people=self.person
+        )
+        for info in not_presented_infos:
+            info.is_active = False
+            self._disable_queue.append(info)
+
     def _validate_queues(self):
-        if not self.card_number.get("id"):
-            PeopleDetailedInfo.objects.filter(
-                detail_type=pdc.CARD_NUMBER, people=self.person
-            ).update(is_active=False)
-
-            self._creation_queue.add(
-                PeopleDetailedInfo(
-                    detail_type=pdc.CARD_NUMBER,
-                    people=self.person,
-                    **self.card_number,
-                )
-            )
-
-        else:
-            current_card_number = PeopleDetailedInfo.objects.filter(
-                id=self.card_number["id"]
-            ).first()
-            if not current_card_number:
-                raise_validation_err(
-                    "DoesNotExists", self.card_number["value"]
-                )
-
-            if current_card_number.value != self.card_number["value"]:
-                self._creation_queue.add(
-                    PeopleDetailedInfo(
-                        detail_type=pdc.CARD_NUMBER,
-                        people=self.person,
-                        **self.card_number,
-                    )
-                )
-
         duplicates = self._manipulation_values.intersection(
             self._creation_values
         )
@@ -211,21 +89,15 @@ class ManipulateInfo:
             )
 
         duplicates = PeopleDetailedInfo.objects.filter(
-            value__in=[*self._creation_values, *self._manipulation_values]
+            value__in=[*self._creation_values, *self._manipulation_values],
         )
         if duplicates.exists():
             raise ValidationError(
                 {
                     "code": "DuplicateValues",
-                    "values": duplicates.values_list("value", flat=True),
+                    "values": list(duplicates.values_list("value", flat=True)),
                 }
             )
-
-    def _add_addressed_to_creation_queue(self):
-        self._add_to_queue(self.addresses, pdc.ADDRESS)
-
-    def _add_numbers_to_creation_queue(self):
-        self._add_to_queue(self.numbers, pdc.PHONE_NUMBER)
 
     def _initiate_manipulation_objs(self):
         for data in self._manipulate_queue:
@@ -238,16 +110,19 @@ class ManipulateInfo:
                     detail_type=info.detail_type,
                     **request_data,
                 )
-                self._creation_queue.add(new_obj)
+                self._creation_queue.append(new_obj)
 
                 info.is_active = False
-                self._disable_queue.add(info)
+                self._disable_queue.append(info)
 
     def manipulate(self):
-        with transaction.atomic():
 
-            PeopleDetailedInfo.objects.bulk_create(self._creation_queue)
+        PeopleDetailedInfo.objects.bulk_create(self._creation_queue)
 
-            PeopleDetailedInfo.objects.bulk_update(
-                self._disable_queue, ["is_active"]
-            )
+        PeopleDetailedInfo.objects.bulk_update(
+            self._disable_queue, ["is_active"]
+        )
+
+        PeopleDetailedInfo.objects.bulk_update(
+            self._note_manipulations_queue, ["note"]
+        )
