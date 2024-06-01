@@ -7,7 +7,7 @@ const requiredPersonnelInputsValidator = {
   "contract-start": [notEmptyInputValidator, dateValidator],
   "TEMPphone-number": [notEmptyInputValidator, isDigitValidator],
   "active-card-number": [notEmptyInputValidator, isDigitValidator, cardNumberValidator],
-
+  "joined-date": [notEmptyInputValidator, dateValidator],
 }
 
 const nonRequiredPersonnelInputsValidator = {
@@ -93,12 +93,16 @@ const inputCallBacks = {
       $("#active-card-number").val(data.card_number)
     }
   },
+  joined_at: {
+    get: () => convertPersianDigitsToEnglish($("#joined-date").val()),
+    set: (value) => $("#joined-date").val(convertPersianDigitsToEnglish(value))
+  },
 
-  contract_start: {
+  contract_date: {
     get: () => convertPersianDigitsToEnglish($("#contract-start").val()),
     set:  () => $("#contract-start").val(convertPersianDigitsToEnglish(value))
   },
-  contract_end: {
+  end_contract_date: {
     get: () => convertPersianDigitsToEnglish($("#contract-end").val()) || null,
     set:  () => $("#contract-end").val(convertPersianDigitsToEnglish(value))
   },
@@ -207,11 +211,14 @@ const inputCallBacks = {
 // }
 
 $(document).ready(function () {
-  // check if form is in edit state
-  const peopleId = $("#people-id").val()
-  if (peopleId) {
-    alert("i have to fetch!")
-  }
+
+  $("#joined-date").pDatepicker({
+    format: "L",
+    autoClose: true,
+    initialValue: true,
+    persianDigit:false
+  });
+
   catalogDataSelect2("ROLE")
     .then(function (roleData) {
       const select2Roles = {
@@ -223,16 +230,7 @@ $(document).ready(function () {
       console.error('Failed to load roles data:', error);
     });
 
-
-    // const select2Roles = {
-    //   // data: transformCatalogToSelect2(roleData)
-    //   data: [{id:"1",text:"Pizza"},{id:"2",text:"HotDog"},{id:"3",text:"Pasta"}]
-
-    // };
-    // $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
-
-
-  catalogDataSelect2("LOC")
+    catalogDataSelect2("LOC")
     .then(function (locationData) {
       const select2ServiceLocations = {
         data: transformCatalogToSelect2(locationData)
@@ -243,7 +241,7 @@ $(document).ready(function () {
       console.error('Failed to load service locations data:', error);
     });
 
-  catalogDataSelect2("TAG")
+    catalogDataSelect2("TAG")
     .then(function (tagData) {
       const select2Tags = {
         data: transformCatalogToSelect2(tagData)
@@ -254,8 +252,7 @@ $(document).ready(function () {
       console.error('Failed to load tags data:', error);
     });
 
-
-  // form save btn
+    // form save btn
   $(document).on('click', ".form-save", function () {
     // remove all previous error msgs and error styles
     flushFormErrorStyles()
@@ -310,6 +307,45 @@ $(document).ready(function () {
       }
     });
   });
+
+  // check if form is in edit state
+  const peopleId = $("#people-id").val()
+  if (peopleId) {
+    // if state edit now go and fetch data 
+    // Second send data to server
+    // $.ajax({
+    //   url: apiUrls.personnelInitiate,
+    //   type: 'POST',
+    //   contentType: 'application/json',
+    //   data: JSON.stringify(data),
+    //   success: function (response) {
+    //     success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
+    //   },
+    //   error: function (xhr, status, error) {
+    //     error_toast("خطا", "خطایی در سرور رخ داده است")
+    //     console.error('Error:', xhr.responseJSON);
+    //   }
+    // });
+    alert(peopleId)
+    for (const key in inputCallBacks) {
+      const val = inputCallBacks[key].set()
+      
+      console.log(key);
+    }
+  } else {
+    $('#add-phone-number').trigger("click")
+  }
+  
+
+
+    
+
+  
+
+  
+
+
+  
 
 
   $('#add-phone-number').trigger("click")

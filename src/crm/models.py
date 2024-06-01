@@ -340,7 +340,7 @@ class People(Log):
     def __str__(self) -> str:
         types = [type.__str__() for type in self.types.all()]
 
-        return (f"{self.fullname_with_prefix} ({", ".join(types)})")
+        return (f"{self.fullname_with_prefix} ({', '.join(types)})")
 
     objects = models.Manager()
     clients = ClientManager()
