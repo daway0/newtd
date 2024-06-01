@@ -6,13 +6,13 @@ const requiredPersonnelInputsValidator = {
   "birthdate": [notEmptyInputValidator, dateValidator],
   "contract-start": [notEmptyInputValidator, dateValidator],
   "TEMPphone-number": [notEmptyInputValidator, isDigitValidator],
+  "active-card-number": [notEmptyInputValidator, isDigitValidator, cardNumberValidator],
 
 }
 
 const nonRequiredPersonnelInputsValidator = {
   // there is no need for these input to check notEmptyInputValidator
   "address": [],
-  "active-card-number": [isDigitValidator, cardNumberValidator],
   "contract-end": [dateValidator],
   "TEMPphone-number-note": [],
   "TEMPskill-pts": [isDigitValidator]
@@ -45,6 +45,138 @@ const mustBeSelect2 = [
     qTerm: "SKL"
   }
 ]
+
+
+const inputCallBacks = {
+  national_code: {
+    get: () => $("#national-code").val().trim(),
+    set: (value) => $("#national-code").val(value)
+  },
+  first_name: {
+    get: () => $("#firstname").val().trim(),
+    set: (value) => $("#firstname").val(value)
+  },
+
+  last_name: {
+    get: () => $("#lastname").val().trim(),
+    set: (value) => $("#lastname").val(value)
+  },
+  birthdate: {
+    get: () => convertPersianDigitsToEnglish($("#birthdate").val()),
+    set: (value) => $("#birthdate").val(convertPersianDigitsToEnglish(value))
+  },
+  address: {
+    get: () => {
+      const address = $("#address").val().trim()
+      if (address) {
+        return {
+          address: address,
+        }
+      }
+      return null
+    },
+    set: (data) => {
+      $("#address").val(data.address)
+    }
+  },
+  card_number: {
+    get: () => {
+      const card_number = $("#active-card-number").val().trim()
+      if (card_number) {
+        return {
+          card_number: card_number,
+        }
+      }
+      return null
+    },
+    set: (data) => {
+      $("#active-card-number").val(data.card_number)
+    }
+  },
+
+  contract_start: {
+    get: () => convertPersianDigitsToEnglish($("#contract-start").val()),
+    set:  () => $("#contract-start").val(convertPersianDigitsToEnglish(value))
+  },
+  contract_end: {
+    get: () => convertPersianDigitsToEnglish($("#contract-end").val()) || null,
+    set:  () => $("#contract-end").val(convertPersianDigitsToEnglish(value))
+  },
+  gender: {
+    get: () => $("#male").is(":checked") ? "M" : "F",
+    set: (value) => {
+      value==="F" ? $("#female").prop("checked", true) : $("#male").prop("checked", true)
+    }
+  },
+  tags: {
+    get: () => $(".tags-select2").val(),
+    set: (value) => {
+      $(".tags-select2").val(value).trigger('change')
+    }
+  },
+  numbers: {
+    get: () => {
+      let value = []
+      $(".numbers-section .form-row-container").each(function () {
+        const number = $(this).find(".phone-number").val().trim()
+        const note = $(this).find(".phone-number-note").val().trim()
+        const id = $(this).find(".phone-number").attr("data-key")
+        
+        let obj = { number: number }
+        if (note) obj.note = note
+        if (id) obj.id = id
+        
+        value.push(obj)
+      })
+      return value
+    },
+    set: (numbers) => {
+      for (numberObj of numbers){
+        $('#add-phone-number').trigger("click")
+        $(".numbers-section .form-row-container").each(function () {
+          let numberInput = $(this).find(".phone-number")
+          if (!numberInput.val()) {
+            numberInput.val(numberObj.number)
+            numberInput.attr("data-key", numberObj.id)
+            $(this).find(".phone-number-note").val(numberObj.note)
+          }
+        })
+      }
+    }
+  },
+  roles: {
+    get: () => $(".personnel-role-select2").val(),
+    set: (value) => {
+      $(".personnel-role-select2").val(value).trigger('change')
+    }
+  },
+  service_locations: {
+    get: () => $(".service-locations-select2").val(),
+    set: (value) => {
+      $(".service-locations-select2").val(value).trigger('change')
+    }
+  },
+  skills: {
+    get: () => {
+      let value = []
+      $(".form-row-container.skill-section").each(function () {
+        const skill = $(this).find(".skill").val().trim()
+        const pts = $(this).find(".skill-pts").val().trim()
+        value.push(
+          {
+            skill: skill,
+            pts: pts
+          }
+        )
+      })
+      return value
+    },
+    set: null
+  },
+}
+
+
+
 // const select2Roles = {
 //   data: catalogDataSelect2(q="ROLE")
 // }
@@ -75,16 +207,29 @@ const mustBeSelect2 = [
 // }
 
 $(document).ready(function () {
-  catalogDataSelect2("ROLE")
-    .then(function (roleData) {
-      const select2Roles = {
-        data: transformCatalogToSelect2(roleData)
-      };
-      $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
-    })
-    .catch(function (error) {
-      console.error('Failed to load roles data:', error);
-    });
+  // check if form is in edit state
+  const peopleId = $("#people-id").val()
+  if (peopleId) {
+    alert("i have to fetch!")
+  }
+  // catalogDataSelect2("ROLE")
+  //   .then(function (roleData) {
+  //     const select2Roles = {
+  //       data: transformCatalogToSelect2(roleData)
+  //     };
+  //     $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
+  //   })
+  //   .catch(function (error) {
+  //     console.error('Failed to load roles data:', error);
+  //   });
+
+
+    const select2Roles = {
+      // data: transformCatalogToSelect2(roleData)
+      data: [{id:"1",text:"Pizza"},{id:"2",text:"HotDog"},{id:"3",text:"Pasta"}]
+
+    };
+    $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
 
 
   catalogDataSelect2("LOC")
@@ -138,70 +283,14 @@ $(document).ready(function () {
     // send data to server
     // First, we need to gather data and transform it.
 
-    let dataCallBacks = {
-      national_code: () => $("#national-code").val().trim(),
-      first_name: () => $("#firstname").val().trim(),
-      last_name: () => $("#lastname").val().trim(),
-      birthdate: () => convertPersianDigitsToEnglish($("#birthdate").val()),
-      address: () => {
-        const address = $("#address").val().trim()
-        if (address) {
-          return {
-            address: address,
-          }
-        }
-        return null
-      },
-      card_number: () => {
-        const card_number = $("#active-card-number").val().trim()
-        if (card_number) {
-          return {
-            card_number: card_number,
-          }
-        }
-        return null
-      },
 
-      contract_start: () => convertPersianDigitsToEnglish($("#contract-start").val()),
-      contract_end: () => convertPersianDigitsToEnglish($("#contract-end").val()) || null,
-      gender: () => $("#male").is(":checked") ? "M" : "F",
-      tags: () => $(".tags-select2").val(),
-      numbers: () => {
-        let value = []
-        $(".numbers-section .form-row-container").each(function () {
-          const number = $(this).find(".phone-number").val().trim()
-          const note = $(this).find(".phone-number-note").val().trim()
-          let obj = { number: number }
-          if (note) obj.note = note
-          value.push(obj)
-        })
-        return value
-      },
-      roles: () => $(".personnel-role-select2").val(),
-      service_locations: () => $(".service-locations-select2").val(),
-      skills: () => {
-        let value = []
-        $(".form-row-container.skill-section").each(function () {
-          const skill = $(this).find(".skill").val().trim()
-          const pts = $(this).find(".skill-pts").val().trim()
-          value.push(
-            {
-              skill: skill,
-              pts: pts
-            }
-          )
-        })
-        return value
-      },
-
-    }
 
     let data = {}
-    for (const key in dataCallBacks) {
-      const val = dataCallBacks[key]()
+    for (const key in inputCallBacks) {
+      const val = inputCallBacks[key].get()
       if (val) data[key] = val
       console.log(key);
-      console.log(dataCallBacks[key]());
+      console.log(inputCallBacks[key].get());
     }
 
     // Second send data to server
