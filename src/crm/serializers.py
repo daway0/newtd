@@ -671,11 +671,11 @@ class CreatePersonSerializer(serializers.Serializer):
     note = serializers.CharField(max_length=255, required=False)
     types = serializers.ListField()
 
-    contract_date = serializers.CharField(
-        validators=[sv.date], required=False
+    contract_start = serializers.CharField(
+        validators=[sv.date], source="contract_date", required=False
     )
-    end_contract_date = serializers.CharField(
-        validators=[sv.date], required=False
+    contract_end = serializers.CharField(
+        validators=[sv.date], source="end_contract_date", required=False
     )
     numbers = PhoneNumberSerializer(many=True)
     card_number = CardNumberSerializer(required=False)
@@ -703,7 +703,6 @@ class CreatePersonSerializer(serializers.Serializer):
         required_fields = (
             "card_number",
             "contract_date",
-            "addresses",
             "service_locations",
             "tags",
             "skills",
@@ -741,9 +740,9 @@ class CreatePersonSerializer(serializers.Serializer):
         if person is not None:
             self.manipulate_obj = ManipulateInfo(
                 person,
-                addresses=attrs.get("addresses"),
-                numbers=attrs.get("numbers"),
-                card_number=attrs.get("card_number"),
+                addresses=attrs.get("addresses", []),
+                numbers=attrs.get("numbers", []),
+                card_number=attrs.get("card_number", []),
             )
             return attrs
 
@@ -759,9 +758,9 @@ class CreatePersonSerializer(serializers.Serializer):
         person = m.People()
         self.manipulate_obj = ManipulateInfo(
             person,
-            addresses=attrs.get("addresses"),
-            numbers=attrs.get("numbers"),
-            card_number=attrs.get("card_number"),
+            addresses=attrs.get("addresses", []),
+            numbers=attrs.get("numbers", []),
+            card_number=attrs.get("card_number", []),
         )
         attrs["person_id"] = person
 

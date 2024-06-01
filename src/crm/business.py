@@ -72,6 +72,9 @@ class ManipulateInfo:
                 info.note = duplicates[info.pk].get("note")
                 self._note_manipulations_queue.append(info)
 
+        if self.person.pk is None:
+            return
+
         not_presented_infos = PeopleDetailedInfo.actives.exclude(
             pk__in=presented_ids, people=self.person
         )
