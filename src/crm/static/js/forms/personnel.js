@@ -65,7 +65,7 @@ const inputCallBacks = {
     get: () => convertPersianDigitsToEnglish($("#birthdate").val()),
     set: (value) => $("#birthdate").val(convertPersianDigitsToEnglish(value))
   },
-  address: {
+  addresses: {
     get: () => {
       const address = $("#address").val().trim()
       if (address) {
@@ -212,24 +212,24 @@ $(document).ready(function () {
   if (peopleId) {
     alert("i have to fetch!")
   }
-  // catalogDataSelect2("ROLE")
-  //   .then(function (roleData) {
-  //     const select2Roles = {
-  //       data: transformCatalogToSelect2(roleData)
-  //     };
-  //     $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
-  //   })
-  //   .catch(function (error) {
-  //     console.error('Failed to load roles data:', error);
-  //   });
+  catalogDataSelect2("ROLE")
+    .then(function (roleData) {
+      const select2Roles = {
+        data: transformCatalogToSelect2(roleData)
+      };
+      $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
+    })
+    .catch(function (error) {
+      console.error('Failed to load roles data:', error);
+    });
 
 
-    const select2Roles = {
-      // data: transformCatalogToSelect2(roleData)
-      data: [{id:"1",text:"Pizza"},{id:"2",text:"HotDog"},{id:"3",text:"Pasta"}]
+    // const select2Roles = {
+    //   // data: transformCatalogToSelect2(roleData)
+    //   data: [{id:"1",text:"Pizza"},{id:"2",text:"HotDog"},{id:"3",text:"Pasta"}]
 
-    };
-    $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
+    // };
+    // $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
 
 
   catalogDataSelect2("LOC")
