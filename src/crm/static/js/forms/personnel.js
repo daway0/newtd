@@ -69,9 +69,9 @@ const inputCallBacks = {
     get: () => {
       const address = $("#address").val().trim()
       if (address) {
-        return {
-          address: address,
-        }
+        return [{
+          value: address,
+        }]
       }
       return null
     },
@@ -84,7 +84,7 @@ const inputCallBacks = {
       const card_number = $("#active-card-number").val().trim()
       if (card_number) {
         return {
-          card_number: card_number,
+          value: card_number,
         }
       }
       return null
@@ -122,7 +122,7 @@ const inputCallBacks = {
         const note = $(this).find(".phone-number-note").val().trim()
         const id = $(this).find(".phone-number").attr("data-key")
         
-        let obj = { number: number }
+        let obj = { value: number }
         if (note) obj.note = note
         if (id) obj.id = id
         
@@ -292,6 +292,8 @@ $(document).ready(function () {
       console.log(key);
       console.log(inputCallBacks[key].get());
     }
+
+    data.types = ["personnel"]
 
     // Second send data to server
     $.ajax({
