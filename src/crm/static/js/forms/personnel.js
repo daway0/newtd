@@ -290,12 +290,12 @@ $(document).ready(function () {
       console.log(inputCallBacks[key].get());
     }
 
-    data.types = ["personnel"]
+    data.types = ["TYP_PERSONNEL"]
 
     // Second send data to server
     $.ajax({
       url: apiUrls.personnelInitiate,
-      type: 'POST',
+      type: 'POST', 
       contentType: 'application/json',
       data: JSON.stringify(data),
       success: function (response) {

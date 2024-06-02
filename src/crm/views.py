@@ -930,13 +930,19 @@ def catalog(request):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     catalogs = models.Catalog.objects.filter(code__contains=q.upper())
-    serializer = s.CatalogSerializer(catalogs, many=True).data
+    serializer = s.CatalogSerializerAPI(catalogs, many=True).data
 
     return Response(serializer)
 
 
-@api_view(["POST"])
-def create_person_form(request):
+@api_view(["POST", "GET"])
+def create_person_form(request, person_id=None):
+    if request.method == "GET":
+        person = get_object_or_404(models.People, pk=person_id)
+        serializer = s.FormSerializer(instance=person)
+
+        return Response(serializer.data)
+
     serializer = s.CreatePersonSerializer(data=request.data)
     if not serializer.is_valid():
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
