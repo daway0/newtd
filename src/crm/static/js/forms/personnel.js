@@ -76,7 +76,9 @@ const inputCallBacks = {
       return null
     },
     set: (data) => {
-      $("#address").val(data.address)
+      const address = data[0]
+      $("#address").val(address.value)
+      $("#address").attr("data-key", address.id) 
     }
   },
   card_number: {
@@ -90,7 +92,8 @@ const inputCallBacks = {
       return null
     },
     set: (data) => {
-      $("#active-card-number").val(data.card_number)
+      $("#active-card-number").val(data.value)
+      $("#active-card-number").attr("data-key", data.id)
     }
   },
   joined_at: {
@@ -100,16 +103,16 @@ const inputCallBacks = {
 
   contract_date: {
     get: () => convertPersianDigitsToEnglish($("#contract-start").val()),
-    set:  () => $("#contract-start").val(convertPersianDigitsToEnglish(value))
+    set: (value) => $("#contract-start").val(convertPersianDigitsToEnglish(value))
   },
   end_contract_date: {
     get: () => convertPersianDigitsToEnglish($("#contract-end").val()) || null,
-    set:  () => $("#contract-end").val(convertPersianDigitsToEnglish(value))
+    set: (value) => $("#contract-end").val(convertPersianDigitsToEnglish(value))
   },
   gender: {
     get: () => $("#male").is(":checked") ? "M" : "F",
     set: (value) => {
-      value==="F" ? $("#female").prop("checked", true) : $("#male").prop("checked", true)
+      value === "F" ? $("#female").prop("checked", true) : $("#male").prop("checked", true)
     }
   },
   tags: {
@@ -125,22 +128,22 @@ const inputCallBacks = {
         const number = $(this).find(".phone-number").val().trim()
         const note = $(this).find(".phone-number-note").val().trim()
         const id = $(this).find(".phone-number").attr("data-key")
-        
+
         let obj = { value: number }
         if (note) obj.note = note
         if (id) obj.id = id
-        
+
         value.push(obj)
       })
       return value
     },
     set: (numbers) => {
-      for (numberObj of numbers){
+      for (numberObj of numbers) {
         $('#add-phone-number').trigger("click")
         $(".numbers-section .form-row-container").each(function () {
           let numberInput = $(this).find(".phone-number")
           if (!numberInput.val()) {
-            numberInput.val(numberObj.number)
+            numberInput.val(numberObj.value)
             numberInput.attr("data-key", numberObj.id)
             $(this).find(".phone-number-note").val(numberObj.note)
           }
@@ -227,7 +230,7 @@ $(document).ready(function () {
     format: "L",
     autoClose: true,
     initialValue: true,
-    persianDigit:false
+    persianDigit: false
   });
 
   catalogDataSelect2("ROLE")
@@ -241,7 +244,7 @@ $(document).ready(function () {
       console.error('Failed to load roles data:', error);
     });
 
-    catalogDataSelect2("LOC")
+  catalogDataSelect2("LOC")
     .then(function (locationData) {
       const select2ServiceLocations = {
         data: transformCatalogToSelect2(locationData)
@@ -252,7 +255,7 @@ $(document).ready(function () {
       console.error('Failed to load service locations data:', error);
     });
 
-    catalogDataSelect2("TAG")
+  catalogDataSelect2("TAG")
     .then(function (tagData) {
       const select2Tags = {
         data: transformCatalogToSelect2(tagData)
@@ -263,7 +266,7 @@ $(document).ready(function () {
       console.error('Failed to load tags data:', error);
     });
 
-    // form save btn
+  // form save btn
   $(document).on('click', ".form-save", function () {
     // remove all previous error msgs and error styles
     flushFormErrorStyles()
@@ -306,11 +309,13 @@ $(document).ready(function () {
     // Second send data to server
     $.ajax({
       url: apiUrls.personnelInitiate,
-      type: 'POST', 
+      type: 'POST',
       contentType: 'application/json',
       data: JSON.stringify(data),
       success: function (response) {
+        console.log(response)
         success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
+
       },
       error: function (xhr, status, error) {
         error_toast("خطا", "خطایی در سرور رخ داده است")
@@ -321,13 +326,13 @@ $(document).ready(function () {
 
   $(document).on('select2:select', ".skill", function () {
     let changedSelect = $(this)
-    $(".skill").each(function(){
+    $(".skill").each(function () {
       if ($(this).is(changedSelect)) return true;
       const overlappingValues = getOverlappingValues($(this).val(), changedSelect.val())
       console.log(overlappingValues)
-      
-      if (overlappingValues.length>=1){
-        changedSelect.val(differentiateArrays(overlappingValues,changedSelect.val()).diff1).trigger('change')
+
+      if (overlappingValues.length >= 1) {
+        changedSelect.val(differentiateArrays(overlappingValues, changedSelect.val()).diff1).trigger('change')
         error_toast("مهارت تکراری", "امکان اضافه کردن مهارت تکراری وجود ندارد. برای تغییر امتیاز مهارت قبلی را پاک کنید")
       }
     })
@@ -339,42 +344,27 @@ $(document).ready(function () {
   if (peopleId) {
     // if state edit now go and fetch data 
     // Second send data to server
-    // $.ajax({
-    //   url: apiUrls.personnelInitiate,
-    //   type: 'POST',
-    //   contentType: 'application/json',
-    //   data: JSON.stringify(data),
-    //   success: function (response) {
-    //     success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
-    //   },
-    //   error: function (xhr, status, error) {
-    //     error_toast("خطا", "خطایی در سرور رخ داده است")
-    //     console.error('Error:', xhr.responseJSON);
-    //   }
-    // });
-    alert(peopleId)
-    for (const key in inputCallBacks) {
-      const val = inputCallBacks[key].set()
-      
-      console.log(key);
-    }
+    $.ajax({
+      url: apiUrls.personnelEdit + `${peopleId}/`,
+      type: 'GET',
+      contentType: 'application/json',
+      success: function (data) {
+        console.log(data)
+        for (const key in inputCallBacks) {
+          if (inputCallBacks[key].set) {
+            inputCallBacks[key].set(data[key])
+          }
+          console.log(key);
+        }
+      },
+      error: function (xhr, status, error) {
+        error_toast("خطا هنگام  دریافت اطلاعات", "خطایی در سرور رخ داده است")
+        console.error('Error:', xhr.responseJSON);
+      }
+    });
   } else {
     $('#add-phone-number').trigger("click")
   }
-  
-
-
-    
-
-  
-
-  
-
-
-  
-
-
-  $('#add-phone-number').trigger("click")
 
 })
 
