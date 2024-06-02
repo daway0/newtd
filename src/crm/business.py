@@ -71,6 +71,9 @@ class ManipulateInfo:
 
                 info.note = duplicates[info.pk].get("note")
                 self._note_manipulations_queue.append(info)
+        
+        if self.person.pk is None:
+            return
 
         if self.person.pk is None:
             return

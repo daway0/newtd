@@ -1,6 +1,7 @@
 // utils 
 
 function convertPersianDigitsToEnglish(value) {
+    if (!value) return value
     const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
     const englishDigits = '0123456789';
     return value.replace(/[۰-۹]/g, (digit) => {

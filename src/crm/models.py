@@ -289,13 +289,50 @@ class People(Log):
     def total_client_contracts(self):
         return Contract.objects.filter(client=self).count()
 
+    @property
+    def addresses(self):
+        return PeopleDetailedInfo.actives.filter(
+            people=self, detail_type=PeopleDetailTypeChoices.ADDRESS
+        )
+
+    @property
+    def numbers(self):
+        return PeopleDetailedInfo.actives.filter(
+            people=self, detail_type=PeopleDetailTypeChoices.PHONE_NUMBER
+        )
+
+    @property
+    def card_number(self):
+        return PeopleDetailedInfo.actives.filter(
+            people=self, detail_type=PeopleDetailTypeChoices.CARD_NUMBER
+        ).first()
+
+    @property
+    def service_location(self):
+        return self.servicelocation_set.values_list("catalog_id", flat=True)
+
+    @property
+    def tags(self):
+        return self.specification_set.filter(rate__isnull=True).values_list(
+            "catalog_id", flat=True
+        )
+
+    @property
+    def skills(self):
+        return self.specification_set.filter(rate__isnull=False).values(
+            "catalog_id",
+            "rate",
+        )
+
+    @property
     def get_types(self) -> list[str]:
-        return self.types.filter(code=Catalog.roles_code()).values_list(
+        return self.types.filter(code=Catalog.types_code()).values_list(
             "title", flat=True
         )
 
+    @property
     def get_roles(self) -> list[str]:
-        return self.roles.filter(code=Catalog.types_code()).values_list(
+        return self.roles.filter(code=Catalog.roles_code()).values_list(
             "title", flat=True
         )
 
@@ -340,7 +377,7 @@ class People(Log):
     def __str__(self) -> str:
         types = [type.__str__() for type in self.types.all()]
 
-        return (f"{self.fullname_with_prefix} ({", ".join(types)})")
+        return f"{self.fullname_with_prefix} ({', '.join(types)})"
 
     objects = models.Manager()
     clients = ClientManager()
