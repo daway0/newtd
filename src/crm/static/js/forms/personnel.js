@@ -180,6 +180,17 @@ const inputCallBacks = {
 }
 
 
+function getOverlappingValues(array1, array2) {
+  const set2 = new Set(array2);
+  return array1.filter(item => set2.has(item));
+}
+
+function differentiateArrays(arr1, arr2) {
+  const diff1 = arr1.filter(x => !arr2.includes(x));
+  const diff2 = arr2.filter(x => !arr1.includes(x));
+  return { diff1, diff2 };
+}
+
 
 // const select2Roles = {
 //   data: catalogDataSelect2(q="ROLE")
@@ -307,6 +318,21 @@ $(document).ready(function () {
       }
     });
   });
+
+  $(document).on('select2:select', ".skill", function () {
+    let changedSelect = $(this)
+    $(".skill").each(function(){
+      if ($(this).is(changedSelect)) return true;
+      const overlappingValues = getOverlappingValues($(this).val(), changedSelect.val())
+      console.log(overlappingValues)
+      
+      if (overlappingValues.length>=1){
+        changedSelect.val(differentiateArrays(overlappingValues,changedSelect.val()).diff1).trigger('change')
+        error_toast("مهارت تکراری", "امکان اضافه کردن مهارت تکراری وجود ندارد. برای تغییر امتیاز مهارت قبلی را پاک کنید")
+      }
+    })
+  })
+
 
   // check if form is in edit state
   const peopleId = $("#people-id").val()
