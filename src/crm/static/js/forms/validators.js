@@ -34,6 +34,13 @@ function notEmptyInputValidator(value) {
     };
 }
 
+function notEmptyMultipleSelect2Validator(value) {
+    return {
+        valid: value.length > 0,
+        msg:'موردی را انتخاب کنید'
+    };
+}
+
 function isDigitValidator(value) {
     return {
         valid: /^\d+$/.test(value),

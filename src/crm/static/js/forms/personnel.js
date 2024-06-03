@@ -8,6 +8,8 @@ const requiredPersonnelInputsValidator = {
   "TEMPphone-number": [notEmptyInputValidator, isDigitValidator],
   "active-card-number": [notEmptyInputValidator, isDigitValidator, cardNumberValidator],
   "joined-date": [notEmptyInputValidator, dateValidator],
+  "TEMPskill-pts": [notEmptyInputValidator,isDigitValidator],
+  "TEMPskill": [notEmptyMultipleSelect2Validator]
 }
 
 const nonRequiredPersonnelInputsValidator = {
@@ -15,7 +17,6 @@ const nonRequiredPersonnelInputsValidator = {
   "address": [],
   "contract-end": [dateValidator],
   "TEMPphone-number-note": [],
-  "TEMPskill-pts": [isDigitValidator]
 }
 
 
