@@ -1,5 +1,5 @@
 -- title: People
-select  * FROM crm_people cp WHERE cp.id = 20;
+select  * FROM crm_people cp WHERE cp.id = 21;
 
 -- title: Phone Number
 select
@@ -7,11 +7,11 @@ select
 from
 	crm_peopledetailedinfo cp
 inner join
-    crm_people cp2 on
-	cp.people_id = cp2.id
+    crm_people cp21 on
+	cp.people_id = cp21.id
 where
 	cp.detail_type = 'P'
-	and cp2.id = 20;
+	and cp21.id = 21;
 
 -- title: Addresses
 select
@@ -19,11 +19,11 @@ select
 from
 	crm_peopledetailedinfo cp
 inner join
-    crm_people cp2 on
-	cp.people_id = cp2.id
+    crm_people cp21 on
+	cp.people_id = cp21.id
 where
 	cp.detail_type = 'A'
-	and cp2.id = 20;
+	and cp21.id = 21;
 
 -- title: Card Number
 select
@@ -31,23 +31,23 @@ select
 from
 	crm_peopledetailedinfo cp
 inner join
-    crm_people cp2 on
-	cp.people_id = cp2.id
+    crm_people cp21 on
+	cp.people_id = cp21.id
 where
 	cp.detail_type = 'C'
-	and cp2.id = 20;
+	and cp21.id = 21;
 
 -- title: Roles
 select
 	cc.title 
 from
-	crm_peoplerole cp2 
+	crm_peoplerole cp21 
 	inner join crm_people cp on
-	cp2.people_id = cp.id
+	cp21.people_id = cp.id
 inner join crm_catalog cc on
-	cp2.catalog_id = cc.id
+	cp21.catalog_id = cc.id
 where
-	cp.id = 20;
+	cp.id = 21;
 
 -- title: Service Location
 select
@@ -59,7 +59,7 @@ from
 inner join crm_catalog cc on
 	cs.catalog_id = cc.id
 where
-	cp.id = 20;
+	cp.id = 21;
 
 
 -- title: Tags
@@ -70,6 +70,18 @@ from
 inner join crm_people cp on
 	cs.people_id = cp.id
 inner join crm_catalog cc on
-	cs.catalog_id = cc.id
+	cs.catalog_id = cc.id and cc.code not like 'SKL_%'
 where
-	cp.id = 20;
+	cp.id = 21;
+
+-- title: skills
+select
+	cc.title, cs.rate
+from
+	crm_specification cs
+inner join crm_people cp on
+	cs.people_id = cp.id
+inner join crm_catalog cc on
+	cs.catalog_id = cc.id and cc.code like 'SKL_%'
+where
+	cp.id = 21;
