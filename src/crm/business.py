@@ -111,7 +111,8 @@ class ManipulateInfo:
                 new_obj = PeopleDetailedInfo(
                     people=self.person,
                     detail_type=info.detail_type,
-                    **request_data,
+                    value=request_data["value"],
+                    note=request_data.get("note"),
                 )
                 self._creation_queue.append(new_obj)
 
