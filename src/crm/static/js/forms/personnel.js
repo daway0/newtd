@@ -171,18 +171,44 @@ const inputCallBacks = {
     get: () => {
       let value = []
       $(".form-row-container.skill-section").each(function () {
-        const skill = $(this).find(".skill").val().trim()
+        const skills = $(this).find(".skill").val()
         const pts = $(this).find(".skill-pts").val().trim()
-        value.push(
-          {
-            skill: skill,
-            pts: pts
-          }
-        )
+
+        for (skill of skills) {
+          value.push(
+            {
+              id: skill,
+              rate: pts
+            }
+          )
+        }
       })
       return value
     },
-    set: null
+    set: (skills) => {
+      let skillsRate = {}
+      for (skillObj of skills) {
+        const rateKey = String(skillObj.rate)
+        if (!(rateKey in skillsRate)) {
+          skillsRate[rateKey] = []
+        }
+        skillsRate[rateKey].push(String(skillObj.id))
+      }
+
+      for (const rate in skillsRate) {
+        $('#add-skill').trigger("click")
+
+        $(".skills-section .form-row-container").each(function () {
+          if ($(this).is($(".skills-section > div:nth-child(2) > div:nth-child(1)"))) return true
+          let skillSelect = $(this).find(".skill")
+          let skillRate = $(this).find(".skill-pts")
+          if (skillSelect.val().length === 0) {
+            skillSelect.val(skillsRate[rate]).trigger("change")
+            skillRate.val(rate)
+          }
+        })
+      }
+    }
   },
 }
 
