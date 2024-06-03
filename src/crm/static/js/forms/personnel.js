@@ -39,12 +39,7 @@ const personnelAdvancedValidators = [
 
 ]
 
-const mustBeSelect2 = [
-  {
-    id: "skill",
-    qTerm: "SKL"
-  }
-]
+const mustBeSelect2 = []
 
 
 const inputCallBacks = {
@@ -243,13 +238,14 @@ $(document).ready(function () {
   const catalogPromises = [
     catalogDataSelect2("ROLE"),
     catalogDataSelect2("LOC"),
-    catalogDataSelect2("TAG")
+    catalogDataSelect2("TAG"),
+    catalogDataSelect2("SKL"),
   ];
 
   // Execute all catalogDataSelect2 calls and wait for them to complete
   Promise.all(catalogPromises)
     .then(function (results) {
-      const [roleData, locationData, tagData] = results;
+      const [roleData, locationData, tagData, skillData] = results;
 
       const select2Roles = {
         data: transformCatalogToSelect2(roleData)
@@ -265,6 +261,12 @@ $(document).ready(function () {
         data: transformCatalogToSelect2(tagData)
       };
       $('.tags-select2').select2({ ...select2Tags, ...select2Props });
+
+      mustBeSelect2.push({
+        id: "skill",
+        qTerm: "SKL",
+        data: transformCatalogToSelect2(skillData)
+      })
 
       if (peopleId) {
         // if state edit now go and fetch data 
