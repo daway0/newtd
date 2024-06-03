@@ -535,7 +535,6 @@ class EditInfoSerializer(serializers.Serializer):
 
 class InfoSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
-    value = serializers.CharField(validators=[sv.card_number])
     note = serializers.CharField(max_length=255, required=False)
 
 

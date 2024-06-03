@@ -65,22 +65,19 @@ class ManipulateInfo:
                         "info": info,
                     }
                 )
-                self._manipulation_values.add(data["value"])
+                self._manipulation_values.add(duplicates[info.pk]["value"])
 
             elif duplicates[info.pk].get("note") != info.note:
 
                 info.note = duplicates[info.pk].get("note")
                 self._note_manipulations_queue.append(info)
-        
-        if self.person.pk is None:
-            return
 
         if self.person.pk is None:
             return
 
         not_presented_infos = PeopleDetailedInfo.actives.exclude(
-            pk__in=presented_ids, people=self.person
-        )
+            pk__in=presented_ids
+        ).filter(people=self.person)
         for info in not_presented_infos:
             info.is_active = False
             self._disable_queue.append(info)
