@@ -4,6 +4,10 @@ const select2Props = {
   width: "100%",
 }
 
+function redirectTo(url) {
+  window.location.href = url;
+}
+
 function flushFormErrorDisplay() {
   $(".form-input-error").each(function () {
     $(this).text("")
