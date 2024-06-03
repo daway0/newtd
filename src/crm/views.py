@@ -947,5 +947,5 @@ def create_person_form(request, person_id=None):
     if not serializer.is_valid():
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-    serializer.save()
-    return Response(status=status.HTTP_202_ACCEPTED)
+    person = serializer.save()
+    return Response({"id": person.pk}, status=status.HTTP_202_ACCEPTED)

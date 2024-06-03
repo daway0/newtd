@@ -572,12 +572,12 @@ class FormSerializer(serializers.ModelSerializer):
         current_fields = set(self.fields)
 
         look_up = {
-            m.PeopleTypeChoices.PERSONNEL: FormSerializer.personnel_fields,
-            m.PeopleTypeChoices.CLIENT: FormSerializer.client_fields,
-            m.PeopleTypeChoices.PATIENT: FormSerializer.patinet_fields,
+            "پرسنل": FormSerializer.personnel_fields,
+            "کارفرما": FormSerializer.client_fields,
+            "مددجو": FormSerializer.patinet_fields,
         }
 
-        for type in person.get_types:
+        for type in person.get_types_title:
             current_fields.update(look_up[type])
 
         for field in current_fields.difference(FormSerializer.Meta.fields):
@@ -591,7 +591,7 @@ class FormSerializer(serializers.ModelSerializer):
         "gender",
         "birthdate",
         "addresses",
-        "phone_numbers",
+        "numbers",
     ]
 
     personnel_fields = common_fields + [
@@ -599,6 +599,7 @@ class FormSerializer(serializers.ModelSerializer):
         "contract_date",
         "end_contract_date",
         "service_locations",
+        "roles",
         "tags",
         "skills",
     ]
@@ -607,16 +608,14 @@ class FormSerializer(serializers.ModelSerializer):
 
     patinet_fields = common_fields + ["tags"]
 
-    types = serializers.SerializerMethodField()
+    types = serializers.ListField(source="get_types")
+    roles = serializers.ListField(source="get_roles")
     addresses = AddressSerializer(
         many=True,
     )
     card_number = CardNumberSerializer()
     numbers = PhoneNumberSerializer(many=True)
     skills = CatalogSerializer(many=True)
-
-    def get_types(self, obj: m.People):
-        return obj.types.all().values_list("title", flat=True)
 
     class Meta:
         model = m.People
@@ -627,6 +626,7 @@ class FormSerializer(serializers.ModelSerializer):
             "lastname",
             "gender",
             "birthdate",
+            "roles",
             "types",
             "addresses",
             "numbers",
@@ -643,8 +643,8 @@ class CreatePersonSerializer(serializers.Serializer):
     person_id = serializers.CharField(required=False)
     joined_at = serializers.CharField(validators=[sv.date])
     national_code = serializers.CharField(validators=[sv.national_code])
-    first_name = serializers.CharField(source="firstname")
-    last_name = serializers.CharField(source="lastname")
+    firstname = serializers.CharField()
+    lastname = serializers.CharField()
     gender = serializers.CharField(validators=[sv.gender])
     birthdate = serializers.CharField(validators=[sv.date])
     note = serializers.CharField(max_length=255, required=False)

@@ -52,12 +52,12 @@ const inputCallBacks = {
     get: () => $("#national-code").val().trim(),
     set: (value) => $("#national-code").val(value)
   },
-  first_name: {
+  firstname: {
     get: () => $("#firstname").val().trim(),
     set: (value) => $("#firstname").val(value)
   },
 
-  last_name: {
+  lastname: {
     get: () => $("#lastname").val().trim(),
     set: (value) => $("#lastname").val(value)
   },
