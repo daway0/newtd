@@ -68,10 +68,11 @@ const inputCallBacks = {
   addresses: {
     get: () => {
       const address = $("#address").val().trim()
+      const id = $("#address").attr("data-key")
       if (address) {
-        return [{
-          value: address,
-        }]
+        let dataObj = {value: address}
+        if (id) dataObj.id = id
+        return [dataObj]
       }
       return null
     },
@@ -84,10 +85,12 @@ const inputCallBacks = {
   card_number: {
     get: () => {
       const card_number = $("#active-card-number").val().trim()
+      const id = $("#active-card-number").attr("data-key")
       if (card_number) {
-        return {
-          value: card_number,
-        }
+        let dataObj = {value: card_number}
+
+        if (id) dataObj.id = id
+        return dataObj
       }
       return null
     },
@@ -225,6 +228,11 @@ function differentiateArrays(arr1, arr2) {
 // }
 
 $(document).ready(function () {
+  const peopleId = $("#people-id").val()
+
+  if (peopleId) {
+    $("#national-code").attr("disabled", true)
+  }
 
   $("#joined-date").pDatepicker({
     format: "L",
@@ -305,6 +313,9 @@ $(document).ready(function () {
     }
 
     data.types = ["TYP_PERSONNEL"]
+    if (peopleId) {
+      data.person_id = peopleId
+    }
 
     // Second send data to server
     $.ajax({
@@ -340,7 +351,7 @@ $(document).ready(function () {
 
 
   // check if form is in edit state
-  const peopleId = $("#people-id").val()
+  
   if (peopleId) {
     // if state edit now go and fetch data 
     // Second send data to server
