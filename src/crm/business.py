@@ -37,9 +37,10 @@ class ManipulateInfo:
             if data.get("id") is None:
 
                 value_len = len(data["value"])
-                if value_len == 11:
+                is_digit = data["value"].isdigit()
+                if value_len == 11 and is_digit:
                     type = pdc.PHONE_NUMBER
-                elif value_len == 16:
+                elif value_len == 16 and is_digit:
                     type = pdc.CARD_NUMBER
                 else:
                     type = pdc.ADDRESS

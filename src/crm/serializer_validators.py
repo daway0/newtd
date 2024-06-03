@@ -12,7 +12,7 @@ def gender(g: Literal["M", "F"]) -> str:
 
 
 def national_code(n: str) -> str:
-    if len(n) != 10:
+    if len(n) != 10 or not n.isdigit():
         raise ValidationError({"error": "invalid national code."})
 
     return n

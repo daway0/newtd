@@ -327,16 +327,14 @@ class People(Log):
     @property
     def get_types(self) -> list[str]:
         return self.types.all().values_list("id", flat=True)
-    
+
     @property
     def get_types_title(self) -> list[str]:
         return self.types.all().values_list("title", flat=True)
 
     @property
     def get_roles(self) -> list[str]:
-        return self.roles.all().values_list(
-            "id", flat=True
-        )
+        return self.roles.all().values_list("id", flat=True)
 
     def spec_list(self) -> str:
         specs = []

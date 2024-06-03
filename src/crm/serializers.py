@@ -1,5 +1,6 @@
 import jdatetime
 from django.db import transaction
+from django.db.utils import IntegrityError
 from rest_framework import serializers
 
 from . import models as m
@@ -131,6 +132,23 @@ class SeperatedCharField(serializers.CharField):
         value = str(value)
 
         return utils.seperate_numbers(self.threshold, value)
+
+
+class IntListField(serializers.ListField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def to_internal_value(self, data):
+        values = super().to_internal_value(data)
+
+        int_values = []
+        for value in values:
+            try:
+                int_values.append(int(value))
+            except (TypeError, ValueError):
+                raise_validation_err(self.field_name, "InvalidType", value)
+
+        return int_values
 
 
 class SpecificationSerializer(serializers.ModelSerializer):
@@ -558,7 +576,6 @@ class CatalogSerializerAPI(serializers.Serializer):
 
 class CatalogSerializer(serializers.Serializer):
     id = serializers.IntegerField(source="catalog_id")
-    title = serializers.CharField()
     rate = serializers.IntegerField(required=False)
 
 
@@ -656,10 +673,10 @@ class CreatePersonSerializer(serializers.Serializer):
     numbers = PhoneNumberSerializer(many=True)
     card_number = CardNumberSerializer(required=False)
     addresses = AddressSerializer(many=True, required=False)
-    roles = serializers.ListField()
-    service_locations = serializers.ListField(required=False)
-    tags = serializers.ListField(required=False)
-    skills = serializers.ListField(required=False)
+    roles = IntListField(required=False)
+    service_locations = IntListField(required=False)
+    tags = IntListField(required=False)
+    skills = CatalogSerializer(many=True)
 
     def validate_person_id(self, id):
         person_obj = m.People.objects.filter(pk=id).first()
@@ -743,7 +760,7 @@ class CreatePersonSerializer(serializers.Serializer):
             person,
             addresses=attrs.get("addresses", []),
             numbers=attrs.get("numbers", []),
-            card_number=attrs.get("card_number", []),
+            card_number=attrs.get("card_number", dict()),
         )
         attrs["person_id"] = person
 
@@ -773,14 +790,34 @@ class CreatePersonSerializer(serializers.Serializer):
                 if value != getattr(person, field):
                     setattr(person, field, value)
 
-        with transaction.atomic():
-            person.save()
-            self.manipulate_obj.manipulate()
-            person.specifications.set(validated_data.get("tags", []))
-            person.roles.set(validated_data.get("roles", []))
-            person.service_locations.set(
-                validated_data.get("service_locations", [])
+        specs = []
+        specs.extend(
+            m.Specification(catalog_id=id, people=person)
+            for id in validated_data.get("tags")
+        )
+        for skill in validated_data.get("skills"):
+            specs.append(
+                m.Specification(
+                    people=person,
+                    catalog_id=skill["catalog_id"],
+                    rate=skill["rate"],
+                )
             )
-            person.types.set([type["id"] for type in validated_data["types"]])
+
+        try:
+            with transaction.atomic():
+                person.save()
+                self.manipulate_obj.manipulate()
+                m.Specification.objects.filter(people=person).delete()
+                m.Specification.objects.bulk_create(specs)
+                person.roles.set(validated_data.get("roles", []))
+                person.service_locations.set(
+                    validated_data.get("service_locations", [])
+                )
+                person.types.set(
+                    [type["id"] for type in validated_data["types"]]
+                )
+        except IntegrityError:
+            pass
 
         return person
