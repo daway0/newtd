@@ -1,4 +1,4 @@
-from typing import Any, Iterable
+from typing import Any
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -96,7 +96,7 @@ class ClientManager(models.Manager):
             super()
             .get_queryset()
             .prefetch_related("types")
-            .filter(types__title="client")
+            .filter(types__title="کارفرما")
             .order_by("-joined_at")
         )
 
@@ -107,7 +107,7 @@ class PersonnelManager(models.Manager):
             super()
             .get_queryset()
             .prefetch_related("types")
-            .filter(types__title="personnel")
+            .filter(types__title="پرسنل")
             .order_by("-joined_at")
         )
 
@@ -118,7 +118,7 @@ class PatientManager(models.Manager):
             super()
             .get_queryset()
             .prefetch_related("types")
-            .filter(types__title="patient")
+            .filter(types__title="مددجو")
             .order_by("-joined_at")
         )
 
@@ -215,7 +215,8 @@ class People(Log):
 
     @property
     def personnel_display_role(self) -> list:
-        return self.roles.all().values_list("title", flat=True)
+        roles = self.roles.all().values_list("title", flat=True)
+        return ", ".join(roles)
 
     @property
     def total_personnel_orders(self):
@@ -353,11 +354,16 @@ class People(Log):
     #     return reverse(path_name, kwargs={"id": self.id})
 
     def get_absolute_url_api(self):
-        types = self.get_types()
+        types = self.get_types_title
+        types_lookup = {
+            "پرسنل": "personnel",
+            "کارفرما": "client",
+            "مددجو": "patient",
+        }
 
         urls = []
         for type in types:
-            path = f"crm:{type.lower()}_preview"
+            path = f"crm:{types_lookup[type]}_preview"
             urls.append(reverse(path, kwargs={"id": self.id}))
 
         return urls

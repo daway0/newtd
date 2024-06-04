@@ -119,17 +119,6 @@ def people_section(request):
     data = {
         "tabs": [
             utils.make_section_tab(
-                "کارفرما",
-                [
-                    "نام و نام خانوادگی",
-                    "خدمات دریافتی",
-                    "قرارداد ها",
-                    "بدهکاری",
-                ],
-                clients,
-                "people/tables/clients.html",
-            ),
-            utils.make_section_tab(
                 "پرسنل",
                 [
                     "نام و نام خانوادگی",
@@ -140,6 +129,17 @@ def people_section(request):
                 ],
                 personnel,
                 "people/tables/personnel.html",
+            ),
+            utils.make_section_tab(
+                "کارفرما",
+                [
+                    "نام و نام خانوادگی",
+                    "خدمات دریافتی",
+                    "قرارداد ها",
+                    "بدهکاری",
+                ],
+                clients,
+                "people/tables/clients.html",
             ),
             utils.make_section_tab(
                 "مددجو",

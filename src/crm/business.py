@@ -62,7 +62,7 @@ class ManipulateInfo:
             if duplicates[info.pk]["value"] != info.value:
                 self._manipulate_queue.append(
                     {
-                        "request_data": data,
+                        "request_data": duplicates[info.pk],
                         "info": info,
                     }
                 )
