@@ -387,7 +387,7 @@ $(document).ready(function () {
       success: function (data) {
 
         success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
-        redirectTo(apiUrls.personnelEditForm + `${data.id}/`)
+        redirectTo(apiUrls.peopleSection)
 
       },
       error: function (xhr, status, error) {
