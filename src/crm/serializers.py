@@ -117,9 +117,14 @@ class DynamicFieldSerializer(TranslatedSerializer):
 
 
 class PersianBooleanField(serializers.BooleanField):
+    def __init__(self, **kwargs):
+        self.true_keyword = kwargs.pop("true", "بله")
+        self.false_keyword = kwargs.pop("false", "خیر")
+        super().__init__(**kwargs)
+
     def to_representation(self, value):
         val = super().to_representation(value)
-        return "بله" if val else "خیر"
+        return self.true_keyword if val else self.false_keyword
 
 
 class SeperatedCharField(serializers.CharField):
@@ -160,11 +165,13 @@ class SpecificationSerializer(serializers.ModelSerializer):
 class PeopleDetailsSerializer(TranslatedSerializer):
     detail_type = serializers.CharField(source="get_detail_type_display")
     value = serializers.CharField()
+    is_active = PersianBooleanField(true="فعال", false="غیر فعال")
     note = serializers.CharField()
 
     translated_fields = {
         "detail_type": "نوع رکورد",
         "value": "مقدار",
+        "is_active": "وضعیت",
         "note": "یادداشت",
     }
 
@@ -219,7 +226,6 @@ class PeopleSerializer(DynamicFieldSerializer):
         "note": "یادداشت",
         "contract_date": "شروع قرارداد",
         "end_contract_date": "پایان قرارداد",
-        "specifications": "صفت‌ها",
         "total_personnel_orders": "تعداد خدمت‌های پرسنل",
         "total_personnel_contracts": "تعداد قرارداد‌‌های پرسنل",
         "total_healthcare_debt_to_personnel": "بدهی مرکز به پرسنل",
@@ -381,7 +387,7 @@ class ContractSerializer(DynamicFieldSerializer):
 
     def get_end_verbose(self, obj):
         date_obj = utils.create_jdate_from_str(obj.end)
-        return utils.time_left_til_specific_date_verbose(
+        return utils.contract_end_verbose(
             jdatetime.date.today(), date_obj
         )
 
@@ -519,6 +525,13 @@ class ServiceSerializer(DynamicFieldSerializer):
         "total_orders": "کل خدمات",
         "total_orders_in_passed_month": "کل خدمات ماه گذشته",
     }
+
+
+class TranslatedCatalogSerializer(TranslatedSerializer):
+    title = serializers.CharField()
+    rate = serializers.IntegerField(required=False)
+
+    translated_fields = {"title": "عنوان", "rate": "نمره"}
 
 
 class AddInfoSerializer(serializers.Serializer):

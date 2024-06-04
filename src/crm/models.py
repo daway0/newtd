@@ -211,7 +211,7 @@ class People(Log):
 
     @property
     def age(self):
-        return 52
+        return utils.calculate_age(self.birthdate)
 
     @property
     def personnel_display_role(self) -> list:
@@ -324,6 +324,13 @@ class People(Log):
             "catalog_id",
             "rate",
         )
+    
+    @property
+    def skills_title(self):
+        return self.specification_set.filter(rate__isnull=False).values(
+            "rate",
+            title=F("catalog__title"),
+        )
 
     @property
     def get_types(self) -> list[str]:
@@ -336,6 +343,10 @@ class People(Log):
     @property
     def get_roles(self) -> list[str]:
         return self.roles.all().values_list("id", flat=True)
+
+    @property
+    def get_roles_titles(self) -> list[str]:
+        return self.roles.all().values("title")
 
     def spec_list(self) -> str:
         specs = []
@@ -366,7 +377,7 @@ class People(Log):
             path = f"crm:{types_lookup[type]}_preview"
             urls.append(reverse(path, kwargs={"id": self.id}))
 
-        return urls
+        return urls[0]
 
     def get_clients_in_months_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)

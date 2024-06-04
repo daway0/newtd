@@ -130,23 +130,23 @@ def people_section(request):
                 personnel,
                 "people/tables/personnel.html",
             ),
-            utils.make_section_tab(
-                "کارفرما",
-                [
-                    "نام و نام خانوادگی",
-                    "خدمات دریافتی",
-                    "قرارداد ها",
-                    "بدهکاری",
-                ],
-                clients,
-                "people/tables/clients.html",
-            ),
-            utils.make_section_tab(
-                "مددجو",
-                ["نام و نام خانوادگی", "قرارداد ها"],
-                cases,
-                "people/tables/cases.html",
-            ),
+            #     utils.make_section_tab(
+            #         "کارفرما",
+            #         [
+            #             "نام و نام خانوادگی",
+            #             "خدمات دریافتی",
+            #             "قرارداد ها",
+            #             "بدهکاری",
+            #         ],
+            #         clients,
+            #         "people/tables/clients.html",
+            #     ),
+            #     utils.make_section_tab(
+            #         "مددجو",
+            #         ["نام و نام خانوادگی", "قرارداد ها"],
+            #         cases,
+            #         "people/tables/cases.html",
+            #     ),
         ]
     }
     return render(
@@ -704,7 +704,7 @@ def client_preview(request, id):
 
 @api_view(["GET"])
 def personnel_preview(request, id):
-    personnel = models.People.personnels.filter(pk=id).first()
+    personnel: models.People = models.People.personnels.filter(pk=id).first()
     if not personnel:
         return Response({"error": "personnel not found."})
 
@@ -745,6 +745,8 @@ def personnel_preview(request, id):
                 "total_personnel_orders",
                 "total_personnel_contracts",
                 "total_healthcare_debt_to_personnel",
+                "roles",
+                "skills",
             ],
             exclude=["link"],
         ),
@@ -761,6 +763,20 @@ def personnel_preview(request, id):
                 "icon": "tags icon",
                 "data": s.ReferralOtherSerializer(  # They have same schema
                     personnel.specifications.all(), many=True
+                ),
+            },
+            {
+                "title": "نقش‌ها",
+                "icon": "roles icon",
+                "data": s.TranslatedCatalogSerializer(
+                    personnel.get_roles_titles, many=True
+                ),
+            },
+            {
+                "title": "توانایی‌ها",
+                "icon": "sklls icon",
+                "data": s.TranslatedCatalogSerializer(
+                    personnel.skills_title, many=True
                 ),
             },
             {
