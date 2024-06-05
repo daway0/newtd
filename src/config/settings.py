@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from dotenv import load_dotenv
+from os import getenv
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,9 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = (
-    "django-insecure-ezhvlo7@tc&xg!kz6ssrh)y7t_w0i41(ipja(u-5=7(%sbryth"
-)
+SECRET_KEY = getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -74,6 +75,8 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 
+# ALLOWED_HOSTS = ["*"]
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
@@ -84,25 +87,25 @@ WSGI_APPLICATION = "config.wsgi.application"
 #     }
 # }
 
-# USE THIS WHEN USING DOCKER
+# USE THIS WHEN USING PRODUCTION
 # DATABASES = {
 #     "default": {
 #         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": "newtd",
-#         "USER": "postgres",
-#         "PASSWORD": "123",
-#         "HOST": "localhost",
-#         "PORT": "5432",
+#         "NAME": getenv("DB_NAME"),
+#         "USER": getenv("DB_USER"),
+#         "PASSWORD": getenv("DB_PASSWORD"),
+#         "HOST": getenv("DB_HOST"),
+#         "PORT": getenv("DB_PORT"),
 #     }
 # }
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "newtd",
-        "USER": "root",
-        "PASSWORD": "63TXYqWg4qOoM6IkmNjfHf7t",
-        "HOST": "billy.iran.liara.ir",
-        "PORT": "33056",
+        "NAME": getenv("DB_NAME"),
+        "USER": getenv("LIARA_USER"),
+        "PASSWORD": getenv("LIARA_PASS"),
+        "HOST": getenv("LIARA_HOST"),
+        "PORT": getenv("LIARA_PORT"),
     }
 }
 
@@ -141,6 +144,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = "static/"
+# STATIC_ROOT = "/var/www/tehrandarman/static"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
