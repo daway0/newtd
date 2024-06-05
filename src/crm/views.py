@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404, render
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.urls import reverse
 
 from . import models
 from . import serializers as s
@@ -716,25 +717,32 @@ def personnel_preview(request, id):
         referral_people=personnel
     )
 
+    edit_link = reverse("crm:edit_personnel", kwargs={"id": id})
+
     data = {
         "title": "پرسنل",
         "icon": "personnel icon",
         "description": personnel.__str__(),
         "buttons": [
+            # {
+            #     "title": "حذف پرسنل",
+            #     "icon": "trash",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "تماس",
+            #     "icon": "call",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "ارسال پیامک",
+            #     "icon": "sms",
+            #     "link": "",
+            # },
             {
-                "title": "حذف پرسنل",
-                "icon": "trash",
-                "link": "",
-            },
-            {
-                "title": "تماس",
-                "icon": "call",
-                "link": "",
-            },
-            {
-                "title": "ارسال پیامک",
-                "icon": "sms",
-                "link": "",
+                "title": "ویرایش پرسنل",
+                "icon": "edit",
+                "link": edit_link,
             },
         ],
         "table": s.PeopleSerializer(
