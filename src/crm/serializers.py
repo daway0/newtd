@@ -237,7 +237,7 @@ class PeopleSerializer(DynamicFieldSerializer):
 
     def get_membership_period(self, obj):
         date_obj = utils.create_jdate_from_str(obj.joined_at)
-        return utils.time_left_til_specific_date_verbose(
+        return utils.membership_from_verbose(
             date_obj, jdatetime.date.today()
         )
 
@@ -387,9 +387,7 @@ class ContractSerializer(DynamicFieldSerializer):
 
     def get_end_verbose(self, obj):
         date_obj = utils.create_jdate_from_str(obj.end)
-        return utils.contract_end_verbose(
-            jdatetime.date.today(), date_obj
-        )
+        return utils.contract_end_verbose(jdatetime.date.today(), date_obj)
 
 
 class PaymentSerializer(DynamicFieldSerializer):
@@ -589,7 +587,7 @@ class CatalogSerializerAPI(serializers.Serializer):
 
 class CatalogSerializer(serializers.Serializer):
     id = serializers.IntegerField(source="catalog_id")
-    rate = serializers.IntegerField(required=False)
+    rate = serializers.IntegerField(required=False, min_value=1, max_value=10)
 
 
 class FormSerializer(serializers.ModelSerializer):
