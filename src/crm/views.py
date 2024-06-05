@@ -762,7 +762,7 @@ def personnel_preview(request, id):
                 "title": "صفت‌ها",
                 "icon": "tags icon",
                 "data": s.ReferralOtherSerializer(  # They have same schema
-                    personnel.specifications.all(), many=True
+                    personnel.tags_title, many=True
                 ),
             },
             {

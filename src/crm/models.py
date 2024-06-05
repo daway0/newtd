@@ -319,12 +319,18 @@ class People(Log):
         )
 
     @property
+    def tags_title(self):
+        return self.specification_set.filter(rate__isnull=True).values(
+            title=F("catalog__title")
+        )
+
+    @property
     def skills(self):
         return self.specification_set.filter(rate__isnull=False).values(
             "catalog_id",
             "rate",
         )
-    
+
     @property
     def skills_title(self):
         return self.specification_set.filter(rate__isnull=False).values(
