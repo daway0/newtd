@@ -83,7 +83,7 @@ class Catalog(Log):
 
     @staticmethod
     def roles_code() -> str:
-        return "ROL"
+        return "ROLE"
 
     @staticmethod
     def types_code() -> str:
