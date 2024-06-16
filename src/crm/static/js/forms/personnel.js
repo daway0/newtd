@@ -213,16 +213,7 @@ const inputCallBacks = {
 }
 
 
-function getOverlappingValues(array1, array2) {
-  const set2 = new Set(array2);
-  return array1.filter(item => set2.has(item));
-}
 
-function differentiateArrays(arr1, arr2) {
-  const diff1 = arr1.filter(x => !arr2.includes(x));
-  const diff2 = arr2.filter(x => !arr1.includes(x));
-  return { diff1, diff2 };
-}
 
 $(document).ready(function () {
   const peopleId = $("#people-id").val()
