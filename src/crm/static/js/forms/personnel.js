@@ -224,36 +224,6 @@ function differentiateArrays(arr1, arr2) {
   return { diff1, diff2 };
 }
 
-
-// const select2Roles = {
-//   data: catalogDataSelect2(q="ROLE")
-// }
-// const select2ServiceLocations = {
-//   data: catalogDataSelect2(q="LOC")
-// }
-// const selec2Roles = {
-//   data: transformCatalogToSelect2()
-//   ajax: {
-//     url: apiUrls.catalog,
-//     data: {
-//       q: "ROLE"
-//     },
-//     dataType: 'json',
-//     processResults: transformCatalogToSelect2
-//   }
-// }
-
-// const selec2ServiceLocations = {
-//   ajax: {
-//     url: apiUrls.catalog,
-//     data: {
-//       q: "LOC"
-//     },
-//     dataType: 'json',
-//     processResults: transformCatalogToSelect2
-//   }
-// }
-
 $(document).ready(function () {
   const peopleId = $("#people-id").val()
 
