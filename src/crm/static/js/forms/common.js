@@ -4,6 +4,10 @@ const select2Props = {
   width: "100%",
 }
 
+function redirectTo(url) {
+  window.location.href = url;
+}
+
 function flushFormErrorDisplay() {
   $(".form-input-error").each(function () {
     $(this).text("")
@@ -205,14 +209,8 @@ $(document).ready(function () {
     for (const obj of mustBeSelect2) {
       const matchingCandidate = select2Candidates.find(candidate => getCleanElementId(candidate) === obj.id);
       if (matchingCandidate) {
-        catalogDataSelect2(obj.qTerm)
-          .then(function (data) {
-            const select2Data = { data: transformCatalogToSelect2(data) };
-            $(`#${matchingCandidate}`).select2({ ...select2Data, ...select2Props });
-          })
-          .catch(function (error) {
-            console.error('Failed to load roles data:', error);
-          });
+        const select2Data = { data: obj.data };
+        $(`#${matchingCandidate}`).select2({ ...select2Data, ...select2Props });
       }
     }
     

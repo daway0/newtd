@@ -1,6 +1,6 @@
 const requiredPersonnelInputsValidator = {
   // input id: array of validators
-  // "national-code": [notEmptyInputValidator, isDigitValidator],
+  "national-code": [notEmptyInputValidator, isDigitValidator],
   "firstname": [notEmptyInputValidator],
   "lastname": [notEmptyInputValidator],
   "birthdate": [notEmptyInputValidator, dateValidator],
@@ -8,6 +8,8 @@ const requiredPersonnelInputsValidator = {
   "TEMPphone-number": [notEmptyInputValidator, isDigitValidator],
   "active-card-number": [notEmptyInputValidator, isDigitValidator, cardNumberValidator],
   "joined-date": [notEmptyInputValidator, dateValidator],
+  "TEMPskill-pts": [notEmptyInputValidator,isDigitValidator],
+  "TEMPskill": [notEmptyMultipleSelect2Validator]
 }
 
 const nonRequiredPersonnelInputsValidator = {
@@ -15,7 +17,6 @@ const nonRequiredPersonnelInputsValidator = {
   "address": [],
   "contract-end": [dateValidator],
   "TEMPphone-number-note": [],
-  "TEMPskill-pts": [isDigitValidator]
 }
 
 
@@ -39,12 +40,7 @@ const personnelAdvancedValidators = [
 
 ]
 
-const mustBeSelect2 = [
-  {
-    id: "skill",
-    qTerm: "SKL"
-  }
-]
+const mustBeSelect2 = []
 
 
 const inputCallBacks = {
@@ -52,12 +48,12 @@ const inputCallBacks = {
     get: () => $("#national-code").val().trim(),
     set: (value) => $("#national-code").val(value)
   },
-  first_name: {
+  firstname: {
     get: () => $("#firstname").val().trim(),
     set: (value) => $("#firstname").val(value)
   },
 
-  last_name: {
+  lastname: {
     get: () => $("#lastname").val().trim(),
     set: (value) => $("#lastname").val(value)
   },
@@ -68,32 +64,40 @@ const inputCallBacks = {
   addresses: {
     get: () => {
       const address = $("#address").val().trim()
+      const id = $("#address").attr("data-key")
       if (address) {
-        return [{
-          value: address,
-        }]
+        let dataObj = { value: address }
+        if (id) dataObj.id = id
+        return [dataObj]
       }
       return null
     },
     set: (data) => {
       const address = data[0]
-      $("#address").val(address.value)
-      $("#address").attr("data-key", address.id) 
+      if (address) {
+        $("#address").val(address.value)
+        $("#address").attr("data-key", address.id)
+      }
+
     }
   },
   card_number: {
     get: () => {
       const card_number = $("#active-card-number").val().trim()
+      const id = $("#active-card-number").attr("data-key")
       if (card_number) {
-        return {
-          value: card_number,
-        }
+        let dataObj = { value: card_number }
+
+        if (id) dataObj.id = id
+        return dataObj
       }
       return null
     },
     set: (data) => {
-      $("#active-card-number").val(data.value)
-      $("#active-card-number").attr("data-key", data.id)
+      if (data) {
+        $("#active-card-number").val(data.value)
+        $("#active-card-number").attr("data-key", data.id)
+      }
     }
   },
   joined_at: {
@@ -112,7 +116,7 @@ const inputCallBacks = {
   gender: {
     get: () => $("#male").is(":checked") ? "M" : "F",
     set: (value) => {
-      value === "F" ? $("#female").prop("checked", true) : $("#male").prop("checked", true)
+      if (value) value === "F" ? $("#female").prop("checked", true) : $("#male").prop("checked", true)
     }
   },
   tags: {
@@ -167,18 +171,44 @@ const inputCallBacks = {
     get: () => {
       let value = []
       $(".form-row-container.skill-section").each(function () {
-        const skill = $(this).find(".skill").val().trim()
+        const skills = $(this).find(".skill").val()
         const pts = $(this).find(".skill-pts").val().trim()
-        value.push(
-          {
-            skill: skill,
-            pts: pts
-          }
-        )
+
+        for (skill of skills) {
+          value.push(
+            {
+              id: skill,
+              rate: pts
+            }
+          )
+        }
       })
       return value
     },
-    set: null
+    set: (skills) => {
+      let skillsRate = {}
+      for (skillObj of skills) {
+        const rateKey = String(skillObj.rate)
+        if (!(rateKey in skillsRate)) {
+          skillsRate[rateKey] = []
+        }
+        skillsRate[rateKey].push(String(skillObj.id))
+      }
+
+      for (const rate in skillsRate) {
+        $('#add-skill').trigger("click")
+
+        $(".skills-section .form-row-container").each(function () {
+          if ($(this).is($(".skills-section > div:nth-child(2) > div:nth-child(1)"))) return true
+          let skillSelect = $(this).find(".skill")
+          let skillRate = $(this).find(".skill-pts")
+          if (skillSelect.val().length === 0) {
+            skillSelect.val(skillsRate[rate]).trigger("change")
+            skillRate.val(rate)
+          }
+        })
+      }
+    }
   },
 }
 
@@ -194,37 +224,77 @@ function differentiateArrays(arr1, arr2) {
   return { diff1, diff2 };
 }
 
-
-// const select2Roles = {
-//   data: catalogDataSelect2(q="ROLE")
-// }
-// const select2ServiceLocations = {
-//   data: catalogDataSelect2(q="LOC")
-// }
-// const selec2Roles = {
-//   data: transformCatalogToSelect2()
-//   ajax: {
-//     url: apiUrls.catalog,
-//     data: {
-//       q: "ROLE"
-//     },
-//     dataType: 'json',
-//     processResults: transformCatalogToSelect2
-//   }
-// }
-
-// const selec2ServiceLocations = {
-//   ajax: {
-//     url: apiUrls.catalog,
-//     data: {
-//       q: "LOC"
-//     },
-//     dataType: 'json',
-//     processResults: transformCatalogToSelect2
-//   }
-// }
-
 $(document).ready(function () {
+  const peopleId = $("#people-id").val()
+
+  if (peopleId) {
+    $("#national-code").attr("disabled", true)
+  }
+
+  // Create an array of promises
+  const catalogPromises = [
+    catalogDataSelect2("ROLE"),
+    catalogDataSelect2("LOC"),
+    catalogDataSelect2("TAG"),
+    catalogDataSelect2("SKL"),
+  ];
+
+  // Execute all catalogDataSelect2 calls and wait for them to complete
+  Promise.all(catalogPromises)
+    .then(function (results) {
+      const [roleData, locationData, tagData, skillData] = results;
+
+      const select2Roles = {
+        data: transformCatalogToSelect2(roleData)
+      };
+      $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
+
+      const select2ServiceLocations = {
+        data: transformCatalogToSelect2(locationData)
+      };
+      $('.service-locations-select2').select2({ ...select2ServiceLocations, ...select2Props });
+
+      const select2Tags = {
+        data: transformCatalogToSelect2(tagData)
+      };
+      $('.tags-select2').select2({ ...select2Tags, ...select2Props });
+
+      mustBeSelect2.push({
+        id: "skill",
+        qTerm: "SKL",
+        data: transformCatalogToSelect2(skillData)
+      })
+
+      if (peopleId) {
+        // if state edit now go and fetch data 
+        // Second send data to server
+        $.ajax({
+          url: apiUrls.personnelEdit + `${peopleId}/`,
+          type: 'GET',
+          contentType: 'application/json',
+          success: function (data) {
+            console.log(data)
+            for (const key in inputCallBacks) {
+              if (inputCallBacks[key].set) {
+                inputCallBacks[key].set(data[key])
+              }
+              console.log(key);
+            }
+          },
+          error: function (xhr, status, error) {
+            error_toast("خطا هنگام  دریافت اطلاعات", "خطایی در سرور رخ داده است")
+            console.error('Error:', xhr.responseJSON);
+          }
+        });
+      } else {
+        $('#add-phone-number').trigger("click")
+      }
+
+    })
+    .catch(function (error) {
+      console.error('Failed to load catalog data:', error);
+    });
+
 
   $("#joined-date").pDatepicker({
     format: "L",
@@ -233,38 +303,7 @@ $(document).ready(function () {
     persianDigit: false
   });
 
-  catalogDataSelect2("ROLE")
-    .then(function (roleData) {
-      const select2Roles = {
-        data: transformCatalogToSelect2(roleData)
-      };
-      $('.personnel-role-select2').select2({ ...select2Roles, ...select2Props });
-    })
-    .catch(function (error) {
-      console.error('Failed to load roles data:', error);
-    });
 
-  catalogDataSelect2("LOC")
-    .then(function (locationData) {
-      const select2ServiceLocations = {
-        data: transformCatalogToSelect2(locationData)
-      };
-      $('.service-locations-select2').select2({ ...select2ServiceLocations, ...select2Props });
-    })
-    .catch(function (error) {
-      console.error('Failed to load service locations data:', error);
-    });
-
-  catalogDataSelect2("TAG")
-    .then(function (tagData) {
-      const select2Tags = {
-        data: transformCatalogToSelect2(tagData)
-      };
-      $('.tags-select2').select2({ ...select2Tags, ...select2Props });
-    })
-    .catch(function (error) {
-      console.error('Failed to load tags data:', error);
-    });
 
   // form save btn
   $(document).on('click', ".form-save", function () {
@@ -305,6 +344,9 @@ $(document).ready(function () {
     }
 
     data.types = ["TYP_PERSONNEL"]
+    if (peopleId) {
+      data.person_id = peopleId
+    }
 
     // Second send data to server
     $.ajax({
@@ -312,9 +354,10 @@ $(document).ready(function () {
       type: 'POST',
       contentType: 'application/json',
       data: JSON.stringify(data),
-      success: function (response) {
-        console.log(response)
+      success: function (data) {
+
         success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
+        redirectTo(apiUrls.peopleSection)
 
       },
       error: function (xhr, status, error) {
@@ -339,32 +382,7 @@ $(document).ready(function () {
   })
 
 
-  // check if form is in edit state
-  const peopleId = $("#people-id").val()
-  if (peopleId) {
-    // if state edit now go and fetch data 
-    // Second send data to server
-    $.ajax({
-      url: apiUrls.personnelEdit + `${peopleId}/`,
-      type: 'GET',
-      contentType: 'application/json',
-      success: function (data) {
-        console.log(data)
-        for (const key in inputCallBacks) {
-          if (inputCallBacks[key].set) {
-            inputCallBacks[key].set(data[key])
-          }
-          console.log(key);
-        }
-      },
-      error: function (xhr, status, error) {
-        error_toast("خطا هنگام  دریافت اطلاعات", "خطایی در سرور رخ داده است")
-        console.error('Error:', xhr.responseJSON);
-      }
-    });
-  } else {
-    $('#add-phone-number').trigger("click")
-  }
+
 
 })
 

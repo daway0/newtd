@@ -13,6 +13,7 @@ jdatetime = "^4.1.1"
 psycopg2-binary = "^2.9.9"
 ruff = "^0.4.5"
 pre-commit = "^3.7.1"
+python-dotenv = "^1.0.1"
 
 
 [build-system]

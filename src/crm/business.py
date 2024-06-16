@@ -37,9 +37,10 @@ class ManipulateInfo:
             if data.get("id") is None:
 
                 value_len = len(data["value"])
-                if value_len == 11:
+                is_digit = data["value"].isdigit()
+                if value_len == 11 and is_digit:
                     type = pdc.PHONE_NUMBER
-                elif value_len == 16:
+                elif value_len == 16 and is_digit:
                     type = pdc.CARD_NUMBER
                 else:
                     type = pdc.ADDRESS
@@ -61,26 +62,23 @@ class ManipulateInfo:
             if duplicates[info.pk]["value"] != info.value:
                 self._manipulate_queue.append(
                     {
-                        "request_data": data,
+                        "request_data": duplicates[info.pk],
                         "info": info,
                     }
                 )
-                self._manipulation_values.add(data["value"])
+                self._manipulation_values.add(duplicates[info.pk]["value"])
 
             elif duplicates[info.pk].get("note") != info.note:
 
                 info.note = duplicates[info.pk].get("note")
                 self._note_manipulations_queue.append(info)
-        
-        if self.person.pk is None:
-            return
 
         if self.person.pk is None:
             return
 
         not_presented_infos = PeopleDetailedInfo.actives.exclude(
-            pk__in=presented_ids, people=self.person
-        )
+            pk__in=presented_ids
+        ).filter(people=self.person)
         for info in not_presented_infos:
             info.is_active = False
             self._disable_queue.append(info)
@@ -114,7 +112,8 @@ class ManipulateInfo:
                 new_obj = PeopleDetailedInfo(
                     people=self.person,
                     detail_type=info.detail_type,
-                    **request_data,
+                    value=request_data["value"],
+                    note=request_data.get("note"),
                 )
                 self._creation_queue.append(new_obj)
 

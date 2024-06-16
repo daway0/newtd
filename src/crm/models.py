@@ -1,4 +1,4 @@
-from typing import Any, Iterable
+from typing import Any
 
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -83,7 +83,7 @@ class Catalog(Log):
 
     @staticmethod
     def roles_code() -> str:
-        return "ROL"
+        return "ROLE"
 
     @staticmethod
     def types_code() -> str:
@@ -96,7 +96,7 @@ class ClientManager(models.Manager):
             super()
             .get_queryset()
             .prefetch_related("types")
-            .filter(types__title="client")
+            .filter(types__title="کارفرما")
             .order_by("-joined_at")
         )
 
@@ -107,7 +107,7 @@ class PersonnelManager(models.Manager):
             super()
             .get_queryset()
             .prefetch_related("types")
-            .filter(types__title="personnel")
+            .filter(types__title="پرسنل")
             .order_by("-joined_at")
         )
 
@@ -118,7 +118,7 @@ class PatientManager(models.Manager):
             super()
             .get_queryset()
             .prefetch_related("types")
-            .filter(types__title="patient")
+            .filter(types__title="مددجو")
             .order_by("-joined_at")
         )
 
@@ -211,11 +211,12 @@ class People(Log):
 
     @property
     def age(self):
-        return 52
+        return utils.calculate_age(self.birthdate)
 
     @property
     def personnel_display_role(self) -> list:
-        return self.roles.all().values_list("title", flat=True)
+        roles = self.roles.all().values_list("title", flat=True)
+        return ", ".join(roles)
 
     @property
     def total_personnel_orders(self):
@@ -318,6 +319,12 @@ class People(Log):
         )
 
     @property
+    def tags_title(self):
+        return self.specification_set.filter(rate__isnull=True).values(
+            title=F("catalog__title")
+        )
+
+    @property
     def skills(self):
         return self.specification_set.filter(rate__isnull=False).values(
             "catalog_id",
@@ -325,16 +332,27 @@ class People(Log):
         )
 
     @property
-    def get_types(self) -> list[str]:
-        return self.types.filter(code=Catalog.types_code()).values_list(
-            "title", flat=True
+    def skills_title(self):
+        return self.specification_set.filter(rate__isnull=False).values(
+            "rate",
+            title=F("catalog__title"),
         )
 
     @property
+    def get_types(self) -> list[str]:
+        return self.types.all().values_list("id", flat=True)
+
+    @property
+    def get_types_title(self) -> list[str]:
+        return self.types.all().values_list("title", flat=True)
+
+    @property
     def get_roles(self) -> list[str]:
-        return self.roles.filter(code=Catalog.roles_code()).values_list(
-            "title", flat=True
-        )
+        return self.roles.all().values_list("id", flat=True)
+
+    @property
+    def get_roles_titles(self) -> list[str]:
+        return self.roles.all().values("title")
 
     def spec_list(self) -> str:
         specs = []
@@ -353,14 +371,19 @@ class People(Log):
     #     return reverse(path_name, kwargs={"id": self.id})
 
     def get_absolute_url_api(self):
-        types = self.get_types()
+        types = self.get_types_title
+        types_lookup = {
+            "پرسنل": "personnel",
+            "کارفرما": "client",
+            "مددجو": "patient",
+        }
 
         urls = []
         for type in types:
-            path = f"crm:{type.lower()}_preview"
+            path = f"crm:{types_lookup[type]}_preview"
             urls.append(reverse(path, kwargs={"id": self.id}))
 
-        return urls
+        return urls[0]
 
     def get_clients_in_months_ago(month_count: int = 1) -> models.QuerySet:
         start, end = utils.get_month_start_end(month_count)

@@ -157,8 +157,8 @@ def create_jdate_from_str(str_date: str) -> jdatetime.date:
     )
 
 
-def time_left_til_specific_date_verbose(
-    start_date_obj: jdatetime.date, until_date_obj: jdatetime.date
+def calculate_time_between_2dates(
+    start_date_obj: jdatetime.date, until_date_obj: jdatetime.date, suffix: str
 ) -> str:
     """
     Calculating remaining time from an specific date to another one
@@ -174,12 +174,6 @@ def time_left_til_specific_date_verbose(
     Returns:
         str: Persian verbose format of remaining time.
     """
-
-    if start_date_obj > until_date_obj:
-        suffix = "قبل"
-    else:
-        suffix = "دیگر"
-
     difference = abs((until_date_obj - start_date_obj).days)
 
     if difference >= 365:
@@ -191,6 +185,38 @@ def time_left_til_specific_date_verbose(
         time_left = f"{difference} روز"
 
     return f"{time_left} {suffix}"
+
+
+def membership_from_verbose(
+    start_date_obj: jdatetime.date, until_date_obj: jdatetime.date
+) -> str:
+    if start_date_obj == until_date_obj:
+        return "امروز"
+
+    if start_date_obj > until_date_obj:
+        suffix = "دیگر"
+    else:
+        suffix = "قبل"
+
+    return calculate_time_between_2dates(
+        start_date_obj, until_date_obj, suffix
+    )
+
+
+def contract_end_verbose(
+    start_date_obj: jdatetime.date, until_date_obj: jdatetime.date
+) -> str:
+    if start_date_obj == until_date_obj:
+        return "امروز"
+
+    if start_date_obj > until_date_obj:
+        suffix = "قبل"
+    else:
+        suffix = "دیگر"
+
+    return calculate_time_between_2dates(
+        start_date_obj, until_date_obj, suffix
+    )
 
 
 def omit_null_fields(data: dict, omitabale_fields: list[str]) -> dict:
@@ -241,3 +267,19 @@ def err_response(err: str | dict) -> Response:
 
 def raise_validation_err(code: str, value: str):
     raise ValidationError({"code": code, "value": value})
+
+
+def calculate_age(birthdate: str):
+    birth_year = int(birthdate.split("/")[0])
+    birth_month = int(birthdate.split("/")[1])
+    birth_day = int(birthdate.split("/")[2])
+
+    today = jdatetime.date.today()
+
+    return (
+        today.year
+        - birth_year
+        # 10 - True = 9, so if you were born on 03/01 and today is 02/01
+        # you have not completed today's age yet.
+        - ((today.month, today.day) < (birth_month, birth_day))
+    )
