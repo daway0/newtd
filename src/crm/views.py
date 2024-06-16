@@ -229,7 +229,11 @@ def edit_personnel(request, id):
 
 
 def edit_client(request, id):
-    return render(request, "users/create_change/client.html")
+    return render(
+        request,
+        "people/forms/client.html",
+        context=dict(section="people", people_id=id),
+    )
 
 
 def edit_patient(request, id):

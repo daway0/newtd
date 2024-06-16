@@ -3,27 +3,28 @@
 
 {% load crm_extras %}
 {% block breadcrumb %}
-{% make_breadcrumb "کارفرما و پرسنل / افزودن کارفرما جدید" %}
+{% make_breadcrumb "کارفرما و پرسنل / افزودن پرسنل جدید" %}
 {% endblock breadcrumb %}
 
 {% block content %}
 
 {{ block.super }}
 <div id="main-container" class="hidden flex flex-row w-full gap-2">
+    <input id="people-id" type="hidden" value="{{ people_id }}">
     <div class="flex flex-col w-full gap-2">
         <div class="w-full flex flex-row-reverse items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
             <button type="button" class="form-btn form-btn-green form-save">
                 {% include "svg/save.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
                 <span class="mr-2">ذخیره تغییرات</span>
             </button>
-            <button type="button" class="form-btn form-btn-red">
+            {% comment %} <button type="button" class="form-btn form-btn-red">
                 {% include "svg/trashcan.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
-                <span class="mr-2">حذف کردن کارفرما</span>
+                <span class="mr-2">حذف کردن پرسنل</span>
             </button>
             <button type="button" class="form-btn form-btn-blue">
                 {% include "svg/history.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
                 <span class="mr-2">تاریخچه تغییرات</span>
-            </button>
+            </button> {% endcomment %}
         </div>
         <div class="flex flex-row gap-2">
             <div class="form-half-pane-container">
@@ -34,7 +35,7 @@
                             <div class="form-input-container w-1/2">
                                 <label class="form-label">کد ملی</label>
                                 <input
-                                    disabled
+                                    {% comment %} disabled {% endcomment %}
                                     type="text"
                                     id="national-code"
                                     class="form-text-input form-input-normal-color"
@@ -92,6 +93,19 @@
                                 </ul>
                             </div>
                         </div>
+                       
+                        <div class="form-row-container">
+                            <div class="form-input-container w-full">
+                                <label class="form-label">تاریخ ثبت در سیستم</label>
+                                <input
+                                    type="text"
+                                    id="joined-date"
+                                    class="form-text-input form-input-normal-color"
+                                    placeholder="تاریخ ثبت را وارد کنید"
+                                    required
+                                >
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -133,7 +147,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-section-container service-location-section">
+                <div class="form-section-container service-locations-section">
                     <div>اطلاعات محل دریافت خدمت</div>
                     <div class="form-section-inner-container">
                         <div class="form-row-container-hidden">
@@ -154,7 +168,6 @@
                                     placeholder="برای آدرس یادداشتی بگذارید..."
                                     required
                                 >
-                                
                             </div>
                             <div class="form-input-container">
                                 <button type="button" class="form-in-row-btn form-in-row-btn-red in-row-delete ">
