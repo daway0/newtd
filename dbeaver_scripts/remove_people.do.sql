@@ -42,4 +42,4 @@ $$
         where id = v_people_id;
         raise notice 'people deleted';
     end;
-$$
+$$;
