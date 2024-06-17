@@ -1,6 +1,6 @@
 const requiredClientInputsValidator = {
   // input id: array of validators
-  "national-code": [notEmptyInputValidator, isDigitValidator],
+  "national-code": [notEmptyInputValidator, isDigitValidator, nationalCode],
   "firstname": [notEmptyInputValidator],
   "lastname": [notEmptyInputValidator],
   "joined-date": [notEmptyInputValidator, dateValidator],

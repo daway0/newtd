@@ -117,3 +117,10 @@ function skillDuplication() {
     };
     
 }
+
+function nationalCode(value){
+    return {
+        valid: value.length == 10,
+        msg: "طول کدملی صحیح نیست"
+    }
+}

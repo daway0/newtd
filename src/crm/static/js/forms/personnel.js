@@ -1,6 +1,6 @@
 const requiredPersonnelInputsValidator = {
   // input id: array of validators
-  "national-code": [notEmptyInputValidator, isDigitValidator],
+  "national-code": [notEmptyInputValidator, isDigitValidator, nationalCode],
   "firstname": [notEmptyInputValidator],
   "lastname": [notEmptyInputValidator],
   "birthdate": [notEmptyInputValidator, dateValidator],
