@@ -83,7 +83,7 @@ const inputCallBacks = {
           }
       }
   },
-  service_locations: {
+  addresses: {
       get: () => {
           let value = []
           $(".service-locations-section .form-row-container").each(function () {

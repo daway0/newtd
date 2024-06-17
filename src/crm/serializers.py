@@ -237,9 +237,7 @@ class PeopleSerializer(DynamicFieldSerializer):
 
     def get_membership_period(self, obj):
         date_obj = utils.create_jdate_from_str(obj.joined_at)
-        return utils.membership_from_verbose(
-            date_obj, jdatetime.date.today()
-        )
+        return utils.membership_from_verbose(date_obj, jdatetime.date.today())
 
 
 class PeopleMinimalSerializer(serializers.Serializer):
@@ -687,26 +685,30 @@ class CreatePersonSerializer(serializers.Serializer):
     roles = IntListField(required=False)
     service_locations = IntListField(required=False)
     tags = IntListField(required=False)
-    skills = CatalogSerializer(many=True)
+    skills = CatalogSerializer(many=True, required=False)
 
     def validate_person_id(self, id):
         person_obj = m.People.objects.filter(pk=id).first()
         if not person_obj:
-            raise_validation_err("person_id", "InvalidPersonId", id)
+            raise serializers.ValidationError(
+                {"error": "ایدی شخص اشتباه است."}
+            )
 
         return person_obj
 
     def validate_types(self, types: list[str]):
         for type in types:
             if not type.startswith("TYP"):
-                raise_validation_err("types", "InvalidType", type)
+                raise serializers.ValidationError(
+                    {"error": "نوع شخص اشتباه است."}
+                )
 
         db_types = m.Catalog.objects.filter(code__in=types).values(
             "id",
             "title",
         )
         if not db_types:
-            raise_validation_err("types", "InvalidType", types)
+            raise serializers.ValidationError({"error": "نوع شخص اشتباه است."})
 
         return db_types
 
@@ -721,7 +723,7 @@ class CreatePersonSerializer(serializers.Serializer):
         check_required_fields(required_fields, data)
 
     def client_validation(data: dict):
-        required_fields = ("numbers", "addresses", "tags")
+        required_fields = ("addresses",)
         check_required_fields(required_fields, data)
 
     def patient_validation(data: dict):
@@ -760,18 +762,14 @@ class CreatePersonSerializer(serializers.Serializer):
         if m.People.objects.filter(
             national_code=attrs["national_code"]
         ).exists():
-            raise_validation_err(
-                "national_code",
-                "DuplicateNationalCode",
-                attrs["national_code"],
-            )
+            raise serializers.ValidationError({"error": "کدملی تکراری است."})
 
         person = m.People()
         self.manipulate_obj = ManipulateInfo(
             person,
             addresses=attrs.get("addresses", []),
             numbers=attrs.get("numbers", []),
-            card_number=attrs.get("card_number", dict()),
+            card_number=attrs.get("card_number"),
         )
         attrs["person_id"] = person
 
@@ -804,9 +802,9 @@ class CreatePersonSerializer(serializers.Serializer):
         specs = []
         specs.extend(
             m.Specification(catalog_id=id, people=person)
-            for id in validated_data.get("tags")
+            for id in validated_data.get("tags", [])
         )
-        for skill in validated_data.get("skills"):
+        for skill in validated_data.get("skills", []):
             specs.append(
                 m.Specification(
                     people=person,
