@@ -636,7 +636,9 @@ def client_preview(request, id):
             {
                 "title": "اطلاعات جزئی",
                 "icon": "details icon",
-                "data": s.PeopleDetailsSerializer(client.details, many=True),
+                "data": s.PeopleDetailsSerializer(
+                    client.details.filter(is_active=True), many=True
+                ),
             },
             {
                 "title": "خدمات",
@@ -769,7 +771,7 @@ def personnel_preview(request, id):
                 "title": "اطلاعات جزئی",
                 "icon": "details icon",
                 "data": s.PeopleDetailsSerializer(
-                    personnel.details.all(), many=True
+                    personnel.details.filter(is_active=True), many=True
                 ),
             },
             {

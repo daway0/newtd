@@ -99,8 +99,7 @@ class ManipulateInfo:
             raise ValidationError(
                 {
                     "error": [
-                        f"مقدار {dup} "
-                        "در سیستم وجود دارد و تکراری می‌باشد."
+                        f"مقدار {dup} " "در سیستم وجود دارد و تکراری می‌باشد."
                         for dup in duplicates
                     ],
                 }

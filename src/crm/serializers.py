@@ -165,13 +165,11 @@ class SpecificationSerializer(serializers.ModelSerializer):
 class PeopleDetailsSerializer(TranslatedSerializer):
     detail_type = serializers.CharField(source="get_detail_type_display")
     value = serializers.CharField()
-    is_active = PersianBooleanField(true="فعال", false="غیر فعال")
     note = serializers.CharField()
 
     translated_fields = {
         "detail_type": "نوع رکورد",
         "value": "مقدار",
-        "is_active": "وضعیت",
         "note": "یادداشت",
     }
 
@@ -708,7 +706,9 @@ class CreatePersonSerializer(serializers.Serializer):
             "title",
         )
         if not db_types:
-            raise serializers.ValidationError({"error": "نوع شخص اشتباه است."})
+            raise serializers.ValidationError(
+                {"error": ["نوع شخص اشتباه است."]}
+            )
 
         return db_types
 
