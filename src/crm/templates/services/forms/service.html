@@ -1,0 +1,128 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% load crm_extras %}
+{% block breadcrumb %}
+{% make_breadcrumb "خدمات و قراردادها / افزودن خدمت جدید" %}
+{% endblock breadcrumb %}
+
+{% block content %}
+
+{{ block.super }}
+<div id="main-container" class="hidden flex flex-row w-full gap-2">
+    <input id="people-id" type="hidden" value="{{ people_id }}">
+    <div class="flex flex-col w-full gap-2">
+        <div class="w-full flex flex-row-reverse items-center gap-3 bg-white p-4 rounded-lg shadow-sm">
+            <button type="button" class="form-btn form-btn-green form-save">
+                {% include "svg/save.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                <span class="mr-2">ذخیره تغییرات</span>
+            </button>
+            {% comment %} <button type="button" class="form-btn form-btn-red">
+                {% include "svg/trashcan.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                <span class="mr-2">حذف کردن پرسنل</span>
+            </button>
+            <button type="button" class="form-btn form-btn-blue">
+                {% include "svg/history.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                <span class="mr-2">تاریخچه تغییرات</span>
+            </button> {% endcomment %}
+        </div>
+        <div class="flex flex-row gap-2">
+            <div class="form-half-pane-container">
+                <div class="form-section-container">
+                    <div>اطلاعات پایه درخواست</div>
+                    <div class="form-section-inner-container">
+                        
+                        <div class="form-row-container">
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">درخواست دهنده (کارفرما)</label>
+                                <input
+                                    disabled
+                                    type="text"
+                                    id="client"
+                                    class="form-text-input form-input-normal-color"
+                                    placeholder="کارفرما را وارد کنید"
+                                    required
+                                >
+                            </div>
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">پرسنل</label>
+                                <select id="personnel-role" class="personnel-role-select2 p-4 " name="state"></select>
+                            </div>
+                            <div class="form-input-container w-1/2">
+                                <label class="form-label">تاریخ ثبت در سیستم</label>
+                                <input
+                                    type="text"
+                                    id="joined-date"
+                                    class="form-text-input form-input-normal-color"
+                                    placeholder="تاریخ ثبت را وارد کنید"
+                                    required
+                                >
+                            </div>
+                        </div>
+                        <div class="form-row-container">
+                            <div class="form-input-container w-full">
+                                <label class="form-label">محل خدمت</label>
+                                <select id="personnel-role" class="personnel-role-select2 p-4 " name="state"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-section-container numbers-section">
+                    <div>خدمات درخواست</div>
+                    <div class="form-section-inner-container">
+                        <div class="form-row-container-hidden skill-section">
+                            <div class="form-input-container w-full h-auto">
+                                <select id="skill-0" class="skill p-4 form-select-input form-input-normal-color dynamic-row" name="state"></select>
+                            </div>
+                            <div class="form-input-container w-min ">
+                                <input
+                                    type="text"
+                                    id="skill-pts-0"
+                                    class="skill-pts form-number-input-pts form-input-normal-color dynamic-row"
+                                    placeholder="هزینه"
+                                    required
+                                >
+                            </div>
+                            <div class="form-input-container">
+                                <button type="button" class="form-in-row-btn form-in-row-btn-red in-row-delete ">
+                                    {% include "svg/trashcan.html" with fillcolor="fill-red-500" width="w-4" height="h-4" %}
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-btn-container">
+                            <button id="add-phone-number" type="button" class="form-btn form-btn-blue">
+                                {% include "svg/plus.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
+                                <span class="mr-2">اضافه کردن خدمت جدید</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-half-pane-container">
+                
+                <div class="form-section-container skills-section">
+                    <div>ویژگی ها و توضیحات بیمار</div>
+                    <div class="form-section-inner-container">
+                        <div class="form-row-container">
+                            <div class="form-input-container w-full">
+                                <label class="form-label">ویژگی ها</label>
+                                <select class="tags-select2 p-4 " name="states[]" multiple="multiple"></select>
+                            </div>
+                        </div>
+                        <div class="form-row-container">
+                            <div class="form-input-container w-full">
+                                <label class="form-label">توضیحات</label>
+                                <textarea class="form-text-input form-input-normal-color" name="" id=""></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock content %}
+
+{% block custom_js %}
+    <script src="{% static 'js/forms/common.js' %}"></script>
+    <script src="{% static 'js/forms/service.js' %}"></script>
+    {% endblock custom_js %}

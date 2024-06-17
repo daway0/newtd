@@ -18,8 +18,8 @@ urlpatterns = [
     # client related
     path("people/client/create/", views.create_client, name="create_client"),
     path("people/client/<int:id>/", views.edit_client, name="edit_client"),
-    path("people/client/<int:id>/update/", views.edit_client, name="update_client"),
-    path("people/client/<int:id>/delete/", views.edit_client, name="delete_client"),
+    # path("people/client/<int:id>/update/", views.edit_client, name="update_client"),
+    # path("people/client/<int:id>/delete/", views.edit_client, name="delete_client"),
     # end client related
      
     path("people/personnel/create/", views.create_personnel, name="create_personnel"),
@@ -31,6 +31,11 @@ urlpatterns = [
     path("people/patient/<int:id>/", views.edit_patient, name="edit_patient"),
     path("people/patient/<int:id>/update/", views.update_patient, name="update_patient"),
     path("people/patient/<int:id>/delete/", views.delete_patient, name="delete_patient"),
+
+    # service related 
+    path("services/service/create/", views.create_service, name="create_serivce"),
+
+    # end service related
     
     # REST
     # previews

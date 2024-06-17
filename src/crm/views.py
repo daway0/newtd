@@ -88,23 +88,24 @@ def services_section(request):
     data = {
         "tabs": [
             utils.make_section_tab(
+                "service",
                 "خدمات موردی",
                 ["تاریخ", "کارفرما", "کار های انجام شده"],
                 orders,
                 "services/tables/orders.html",
             ),
-            utils.make_section_tab(
-                "قراردادها",
-                ["تاریخ عقد قرارداد", "کارفرما", "سررسید", "فرانشیز مرکز"],
-                contracts,
-                "services/tables/contracts.html",
-            ),
-            utils.make_section_tab(
-                "سرویس ها",
-                ["عنوان سرویس", "فرانشیز مرکز", "قیمت پیشنهادی پایه"],
-                services,
-                "services/tables/services.html",
-            ),
+            # utils.make_section_tab(
+            #     "قراردادها",
+            #     ["تاریخ عقد قرارداد", "کارفرما", "سررسید", "فرانشیز مرکز"],
+            #     contracts,
+            #     "services/tables/contracts.html",
+            # ),
+            # utils.make_section_tab(
+            #     "سرویس ها",
+            #     ["عنوان سرویس", "فرانشیز مرکز", "قیمت پیشنهادی پایه"],
+            #     services,
+            #     "services/tables/services.html",
+            # ),
         ]
     }
 
@@ -223,6 +224,15 @@ def create_personnel(request):
         "people/forms/personnel.html",
         context=dict(
             section="people",
+        ),
+    )
+
+def create_service(request):
+    return render(
+        request,
+        "services/forms/service.html",
+        context=dict(
+            section="services",
         ),
     )
 
