@@ -293,6 +293,10 @@ $(document).ready(function () {
         loadNewPreview(previousUrl)
     });
 
-
+    // check initiate preview if set, load it first
+    let initiatePreview = $("#selected-preview").val()
+    if (initiatePreview) {
+        loadNewPreview(initiatePreview)
+    }
     
 });

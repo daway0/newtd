@@ -54,9 +54,10 @@ def make_dashboard_card_data(
 
 
 def make_section_tab(
-    title, datatable_headers: list[str], qs: QuerySet, table_template: str
+    name, title, datatable_headers: list[str], qs: QuerySet, table_template: str
 ) -> dict:
     return dict(
+        name=name,
         title=title,
         data_table_headers=datatable_headers,
         qs=qs,

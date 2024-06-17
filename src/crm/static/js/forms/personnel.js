@@ -1,6 +1,6 @@
 const requiredPersonnelInputsValidator = {
   // input id: array of validators
-  "national-code": [notEmptyInputValidator, isDigitValidator],
+  "national-code": [notEmptyInputValidator, isDigitValidator, nationalCode],
   "firstname": [notEmptyInputValidator],
   "lastname": [notEmptyInputValidator],
   "birthdate": [notEmptyInputValidator, dateValidator],
@@ -213,16 +213,7 @@ const inputCallBacks = {
 }
 
 
-function getOverlappingValues(array1, array2) {
-  const set2 = new Set(array2);
-  return array1.filter(item => set2.has(item));
-}
 
-function differentiateArrays(arr1, arr2) {
-  const diff1 = arr1.filter(x => !arr2.includes(x));
-  const diff2 = arr2.filter(x => !arr1.includes(x));
-  return { diff1, diff2 };
-}
 
 $(document).ready(function () {
   const peopleId = $("#people-id").val()
@@ -269,7 +260,7 @@ $(document).ready(function () {
         // if state edit now go and fetch data 
         // Second send data to server
         $.ajax({
-          url: apiUrls.personnelEdit + `${peopleId}/`,
+          url: apiUrls.personEdit + `${peopleId}/`,
           type: 'GET',
           contentType: 'application/json',
           success: function (data) {
@@ -282,7 +273,12 @@ $(document).ready(function () {
             }
           },
           error: function (xhr, status, error) {
-            error_toast("خطا هنگام  دریافت اطلاعات", "خطایی در سرور رخ داده است")
+            Swal.fire({
+              title: 'خطا!',
+              text: "هنگام دریافت اطلاعات مورد نظر خطایی پیش آمده است",
+              icon: 'error',
+              confirmButtonText: 'باشه',
+            })
             console.error('Error:', xhr.responseJSON);
           }
         });
@@ -350,18 +346,30 @@ $(document).ready(function () {
 
     // Second send data to server
     $.ajax({
-      url: apiUrls.personnelInitiate,
+      url: apiUrls.personInitiate,
       type: 'POST',
       contentType: 'application/json',
       data: JSON.stringify(data),
       success: function (data) {
-
-        success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
-        redirectTo(apiUrls.peopleSection)
-
+        Swal.fire({
+          icon: "success",
+          title:  "ذخیره شد",
+          showConfirmButton: false,
+          timer: 500
+        }).then(function() {
+          qp = `${apiUrls.personnelPreview}${data.id}/`
+          redirectTo(apiUrls.peopleSection + `?tab=personnel&preview=${qp}`)
+        })        
       },
       error: function (xhr, status, error) {
-        error_toast("خطا", "خطایی در سرور رخ داده است")
+        if (xhr.status==400){
+          Swal.fire({
+              icon: "error",
+              title: "خطای فرم",
+              html: handleBackError(xhr.responseJSON.error),
+              confirmButtonText: 'باشه',
+            })
+      }
         console.error('Error:', xhr.responseJSON);
       }
     });

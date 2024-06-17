@@ -1,3 +1,5 @@
+from typing import Optional
+
 from rest_framework.serializers import ValidationError
 
 from .models import People, PeopleDetailedInfo
@@ -10,7 +12,7 @@ class ManipulateInfo:
         person: People,
         addresses: list[dict],
         numbers: list[dict],
-        card_number: dict,
+        card_number: Optional[dict],
     ) -> None:
         self.person = person
         self.addresses = addresses
@@ -25,7 +27,13 @@ class ManipulateInfo:
         self._disable_queue: list[PeopleDetailedInfo] = list()
         self._note_manipulations_queue: list[PeopleDetailedInfo] = list()
 
-        self._add_to_queue([*self.addresses, *self.numbers, self.card_number])
+        if card_number is not None:
+            self._add_to_queue(
+                [*self.addresses, *self.numbers, self.card_number]
+            )
+        else:
+            self._add_to_queue([*self.addresses, *self.numbers])
+
         self._validate_queues()
         self._initiate_manipulation_objs()
 
@@ -89,7 +97,12 @@ class ManipulateInfo:
         )
         if duplicates:
             raise ValidationError(
-                {"code": "DuplicateValues", "values": duplicates}
+                {
+                    "error": [
+                        f"مقدار {dup} " "در سیستم وجود دارد و تکراری می‌باشد."
+                        for dup in duplicates
+                    ],
+                }
             )
 
         duplicates = PeopleDetailedInfo.objects.filter(
@@ -98,8 +111,11 @@ class ManipulateInfo:
         if duplicates.exists():
             raise ValidationError(
                 {
-                    "code": "DuplicateValues",
-                    "values": list(duplicates.values_list("value", flat=True)),
+                    "error": [
+                        f"مقدار {info.value} "
+                        "در سیستم وجود دارد و تکراری می‌باشد."
+                        for info in duplicates
+                    ],
                 }
             )
 

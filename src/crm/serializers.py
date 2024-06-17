@@ -9,61 +9,6 @@ from . import utils
 from .business import ManipulateInfo
 
 
-def merge_infos(
-    person: m.People,
-    numbers: list[dict] = [],
-    card_number: dict = None,
-    addresses: list[dict] = [],
-) -> list[m.PeopleDetailedInfo]:
-    infos = []
-
-    if card_number is not None:
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER,
-                people=person,
-                value=card_number["card_number"],
-                note=card_number.get("note"),
-            )
-        )
-
-    for data in numbers:
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER,
-                people=person,
-                value=data["number"],
-                note=data.get("note"),
-            )
-        )
-
-    for data in addresses:
-        if data is None:
-            return infos
-
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.ADDRESS,
-                people=person,
-                value=data["address"],
-                note=data.get("note"),
-            )
-        )
-
-    return infos
-
-
-def raise_validation_err(key: str, code: str, detail: list | str):
-    raise serializers.ValidationError(
-        {
-            key: {
-                "code": code,
-                "detail": detail,
-            }
-        }
-    )
-
-
 def unique_field(list_of_datas: list[dict]) -> list[dict]:
     datas = []
     unique_field_data = []
@@ -151,7 +96,7 @@ class IntListField(serializers.ListField):
             try:
                 int_values.append(int(value))
             except (TypeError, ValueError):
-                raise_validation_err(self.field_name, "InvalidType", value)
+                serializers.ValidationError({"error": "Invalid type"})
 
         return int_values
 
@@ -165,13 +110,11 @@ class SpecificationSerializer(serializers.ModelSerializer):
 class PeopleDetailsSerializer(TranslatedSerializer):
     detail_type = serializers.CharField(source="get_detail_type_display")
     value = serializers.CharField()
-    is_active = PersianBooleanField(true="فعال", false="غیر فعال")
     note = serializers.CharField()
 
     translated_fields = {
         "detail_type": "نوع رکورد",
         "value": "مقدار",
-        "is_active": "وضعیت",
         "note": "یادداشت",
     }
 
@@ -237,9 +180,7 @@ class PeopleSerializer(DynamicFieldSerializer):
 
     def get_membership_period(self, obj):
         date_obj = utils.create_jdate_from_str(obj.joined_at)
-        return utils.membership_from_verbose(
-            date_obj, jdatetime.date.today()
-        )
+        return utils.membership_from_verbose(date_obj, jdatetime.date.today())
 
 
 class PeopleMinimalSerializer(serializers.Serializer):
@@ -687,26 +628,32 @@ class CreatePersonSerializer(serializers.Serializer):
     roles = IntListField(required=False)
     service_locations = IntListField(required=False)
     tags = IntListField(required=False)
-    skills = CatalogSerializer(many=True)
+    skills = CatalogSerializer(many=True, required=False)
 
     def validate_person_id(self, id):
         person_obj = m.People.objects.filter(pk=id).first()
         if not person_obj:
-            raise_validation_err("person_id", "InvalidPersonId", id)
+            raise serializers.ValidationError(
+                {"error": ["ایدی شخص اشتباه است."]}
+            )
 
         return person_obj
 
     def validate_types(self, types: list[str]):
         for type in types:
             if not type.startswith("TYP"):
-                raise_validation_err("types", "InvalidType", type)
+                raise serializers.ValidationError(
+                    {"error": ["نوع شخص اشتباه است."]}
+                )
 
         db_types = m.Catalog.objects.filter(code__in=types).values(
             "id",
             "title",
         )
         if not db_types:
-            raise_validation_err("types", "InvalidType", types)
+            raise serializers.ValidationError(
+                {"error": ["نوع شخص اشتباه است."]}
+            )
 
         return db_types
 
@@ -721,7 +668,7 @@ class CreatePersonSerializer(serializers.Serializer):
         check_required_fields(required_fields, data)
 
     def client_validation(data: dict):
-        required_fields = ("numbers", "addresses", "tags")
+        required_fields = ("addresses",)
         check_required_fields(required_fields, data)
 
     def patient_validation(data: dict):
@@ -753,25 +700,21 @@ class CreatePersonSerializer(serializers.Serializer):
                 person,
                 addresses=attrs.get("addresses", []),
                 numbers=attrs.get("numbers", []),
-                card_number=attrs.get("card_number", []),
+                card_number=attrs.get("card_number"),
             )
             return attrs
 
         if m.People.objects.filter(
             national_code=attrs["national_code"]
         ).exists():
-            raise_validation_err(
-                "national_code",
-                "DuplicateNationalCode",
-                attrs["national_code"],
-            )
+            raise serializers.ValidationError({"error": ["کدملی تکراری است."]})
 
         person = m.People()
         self.manipulate_obj = ManipulateInfo(
             person,
             addresses=attrs.get("addresses", []),
             numbers=attrs.get("numbers", []),
-            card_number=attrs.get("card_number", dict()),
+            card_number=attrs.get("card_number"),
         )
         attrs["person_id"] = person
 
@@ -804,9 +747,9 @@ class CreatePersonSerializer(serializers.Serializer):
         specs = []
         specs.extend(
             m.Specification(catalog_id=id, people=person)
-            for id in validated_data.get("tags")
+            for id in validated_data.get("tags", [])
         )
-        for skill in validated_data.get("skills"):
+        for skill in validated_data.get("skills", []):
             specs.append(
                 m.Specification(
                     people=person,

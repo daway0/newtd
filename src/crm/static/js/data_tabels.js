@@ -1,7 +1,7 @@
 function findTabTabels() {
     tables = $("[id^='tab-table-']")
     tables.each(function () {
-        $(this).DataTable(tabTable)
+        $(this).DataTable({...tabTable,  order:[]})
     })
 }
 
@@ -37,7 +37,7 @@ $(document).ready( function () {
 
         // deactive current tab
         $(`#tab-button-${currentTabCounter}`).removeClass("open-tab bg-white")
-        $(`#tab-button-${currentTabCounter}`).addClass("closed-tab bg-slate-300")
+        $(`#tab-button-${currentTabCounter}`).addClass("closed-tab bg-slate-300 mt-2")
 
 
 
@@ -45,12 +45,18 @@ $(document).ready( function () {
         $(`#tab-container-${currentTabCounter}`).addClass("hidden")
         
         // active new tab 
-        $(this).removeClass("closed-tab bg-slate-300")
+        $(this).removeClass("closed-tab bg-slate-300  mt-2")
         $(this).addClass("open-tab bg-white")
         
         // show new tab container 
         $(`#tab-container-${newTabCounter}`).removeClass("hidden")
         
     });
-     
+    
+    // initiaing selected tab
+    let selectedTab = $("#selected-tab").val()
+    if (selectedTab) 
+        {
+            $(`[name="${selectedTab}-tab"]`).trigger("click")
+        }
 } );

@@ -19,7 +19,7 @@ def national_code(n: str) -> str:
 
 
 def phone_number(n: str) -> str:
-    if not n.isdigit() or len(n) != 11:
+    if not n.isdigit():
         raise ValidationError({"error": "invalid phone number."})
 
     return n

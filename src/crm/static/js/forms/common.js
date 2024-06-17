@@ -8,6 +8,18 @@ function redirectTo(url) {
   window.location.href = url;
 }
 
+function getOverlappingValues(array1, array2) {
+  const set2 = new Set(array2);
+  return array1.filter(item => set2.has(item));
+}
+
+function differentiateArrays(arr1, arr2) {
+  const diff1 = arr1.filter(x => !arr2.includes(x));
+  const diff2 = arr2.filter(x => !arr1.includes(x));
+  return { diff1, diff2 };
+}
+
+
 function flushFormErrorDisplay() {
   $(".form-input-error").each(function () {
     $(this).text("")
@@ -18,6 +30,15 @@ function flushFormErrorStyles() {
     $(this).removeClass("form-input-error-color")
     $(this).addClass("form-input-normal-color")
   })
+}
+
+function handleBackError(errors){
+  // errors --> list of string
+  let HTML = ""
+  for (const e of errors){
+    HTML += `<li>${e}</li>`
+  }
+  return `<ul>${HTML}</ul>`
 }
 
 function showFormInputErrors(errors) {
@@ -101,7 +122,13 @@ function isFormValid(requireds, nonRequireds, advanced) {
     }
   }
 
-  if (!res) error_toast("اشکال در اطلاعات فرم", "موارد ذکر شده در فرم را اصلاح کنید")
+  if (!res) 
+    Swal.fire({
+      icon: "error",
+      title: "خطای فرم",
+      text: "موارد ذکر شده در فرم را اصلاح کنید",
+      confirmButtonText: 'باشه',
+    })
 
   return { res: res, errors: errors }
 }
@@ -169,6 +196,7 @@ function catalogDataSelect2(q) {
 }
 
 $(document).ready(function () {
+ 
   $(".datePicker").pDatepicker({
     format: "L",
     autoClose: true,
@@ -224,6 +252,11 @@ $(document).ready(function () {
       $(this).parent().parent().remove()
       return
     }
-    error_toast("امکان حذف وجود ندارد", "حداقل یک شماره تماس باید برای فرد در سیستم ثبت شود")
+    Swal.fire({
+      icon: "error",
+      title: "خطای فرم",
+      text: "حداقل یک رکورد باید برای فرد در سیستم ثبت شود",
+      confirmButtonText: 'باشه',
+    })
   });
 })
