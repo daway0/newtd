@@ -755,7 +755,7 @@ class CreatePersonSerializer(serializers.Serializer):
                 person,
                 addresses=attrs.get("addresses", []),
                 numbers=attrs.get("numbers", []),
-                card_number=attrs.get("card_number", []),
+                card_number=attrs.get("card_number"),
             )
             return attrs
 
