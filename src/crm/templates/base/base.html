@@ -12,7 +12,7 @@
         <link rel="stylesheet" href="{% static 'css/persian-datepicker.min.css' %}">
         <link rel="stylesheet" href="{% static 'css/select2.css' %}">
         <link rel="stylesheet" href="{% static 'css/output.css' %}">
-        <script src="{% static 'js/jquery-3.7.1.js' %}"></script>
+        <script src="{% static 'js/dependencies/jquery-3.7.1.js' %}"></script>
         {% block scripts %}{% endblock scripts %}
         <style>
         body {
@@ -114,17 +114,17 @@
                 
             </div>
             <script src="{% static 'js/base.js' %}"></script>
-            <script src="{% static 'js/forms/api_urls.js' %}"></script>
-            <script src="{% static 'js/dataTables.js' %}"></script>
+            <script src="{% static 'js/dependencies/dataTables.js' %}"></script>
+            <script src="{% static 'js/dependencies/flowbite.min.js' %}"></script>
+            <script src="{% static 'js/dependencies/jquery.toast.min.js' %}"></script>
+            <script src="{% static 'js/dependencies/sweetalert.js' %}"></script>
+            <script src="{% static 'js/dependencies/persian-date.min.js' %}"></script>
+            <script src="{% static 'js/dependencies/persian-datepicker.min.js' %}"></script>
+            <script src="{% static 'js/dependencies/select2.js' %}"></script>
             <script src="{% static 'js/side_bar.js' %}"></script>
-            <script src="{% static 'js/flowbite.min.js' %}"></script>
-            <script src="{% static 'js/jquery.toast.min.js' %}"></script>
-            <script src="{% static 'js/sweetalert.js' %}"></script>
-            <script src="{% static 'js/test.js' %}"></script>
-            <script src="{% static 'js/persian-date.min.js' %}"></script>
-            <script src="{% static 'js/persian-datepicker.min.js' %}"></script>
-            <script src="{% static 'js/select2.js' %}"></script>
+            <script src="{% static 'js/forms/api_urls.js' %}"></script>
             <script src="{% static 'js/forms/validators.js' %}"></script>
+            <script src="{% static 'js/test.js' %}"></script>
             {% block custom_js %}{% endblock custom_js %}
             <script>
           setTimeout(function() {
