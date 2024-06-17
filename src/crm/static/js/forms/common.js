@@ -32,6 +32,15 @@ function flushFormErrorStyles() {
   })
 }
 
+function handleBackError(errors){
+  // errors --> list of string
+  let HTML = ""
+  for (const e of errors){
+    HTML += `<li>${e}</li>`
+  }
+  return `<ul>${HTML}</ul>`
+}
+
 function showFormInputErrors(errors) {
   for (const key in errors) {
     if (errors[key].length > 0) {
@@ -113,7 +122,13 @@ function isFormValid(requireds, nonRequireds, advanced) {
     }
   }
 
-  if (!res) error_toast("اشکال در اطلاعات فرم", "موارد ذکر شده در فرم را اصلاح کنید")
+  if (!res) 
+    Swal.fire({
+      icon: "error",
+      title: "خطای فرم",
+      text: "موارد ذکر شده در فرم را اصلاح کنید",
+      confirmButtonText: 'باشه',
+    })
 
   return { res: res, errors: errors }
 }
@@ -181,6 +196,7 @@ function catalogDataSelect2(q) {
 }
 
 $(document).ready(function () {
+ 
   $(".datePicker").pDatepicker({
     format: "L",
     autoClose: true,
@@ -236,6 +252,11 @@ $(document).ready(function () {
       $(this).parent().parent().remove()
       return
     }
-    error_toast("امکان حذف وجود ندارد", "حداقل یک شماره تماس باید برای فرد در سیستم ثبت شود")
+    Swal.fire({
+      icon: "error",
+      title: "خطای فرم",
+      text: "حداقل یک رکورد باید برای فرد در سیستم ثبت شود",
+      confirmButtonText: 'باشه',
+    })
   });
 })

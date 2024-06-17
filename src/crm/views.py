@@ -114,12 +114,34 @@ def services_section(request):
 
 
 def people_section(request):
-    clients = models.People.clients.all()
-    personnel = models.People.personnels.all()
-    cases = models.People.patients.all()
+    clients = models.People.clients.all().order_by("-updated_at")
+    personnel = models.People.personnels.all().order_by("-updated_at")
+    cases = models.People.patients.all().order_by("-updated_at")
+    
+    allowed_tabs = ("client", "personnel", "patient")
+    selected_tab = request.GET.get("tab") 
+    selected_tab = selected_tab if selected_tab in allowed_tabs else None
+    
+    initiate_preview = request.GET.get("preview")
+    
+    
+
     data = {
         "tabs": [
             utils.make_section_tab(
+                "client",
+                "کارفرما",
+                [
+                    "نام و نام خانوادگی",
+                    "خدمات دریافتی",
+                    "قرارداد ها",
+                    "بدهکاری",
+                ],
+                clients,
+                "people/tables/clients.html",
+            ),
+            utils.make_section_tab(
+                "personnel",
                 "پرسنل",
                 [
                     "نام و نام خانوادگی",
@@ -131,17 +153,6 @@ def people_section(request):
                 personnel,
                 "people/tables/personnel.html",
             ),
-            utils.make_section_tab(
-                "کارفرما",
-                [
-                    "نام و نام خانوادگی",
-                    "خدمات دریافتی",
-                    "قرارداد ها",
-                    "بدهکاری",
-                ],
-                clients,
-                "people/tables/clients.html",
-            ),
             #     utils.make_section_tab(
             #         "مددجو",
             #         ["نام و نام خانوادگی", "قرارداد ها"],
@@ -151,7 +162,14 @@ def people_section(request):
         ]
     }
     return render(
-        request, "people/main.html", dict(section="people", data=data)
+        request,
+        "people/main.html",
+        dict(
+            section="people",
+            data=data,
+            selected_tab=selected_tab,
+            preview=initiate_preview,
+        ),
     )
 
 
