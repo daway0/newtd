@@ -9,61 +9,6 @@ from . import utils
 from .business import ManipulateInfo
 
 
-def merge_infos(
-    person: m.People,
-    numbers: list[dict] = [],
-    card_number: dict = None,
-    addresses: list[dict] = [],
-) -> list[m.PeopleDetailedInfo]:
-    infos = []
-
-    if card_number is not None:
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER,
-                people=person,
-                value=card_number["card_number"],
-                note=card_number.get("note"),
-            )
-        )
-
-    for data in numbers:
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER,
-                people=person,
-                value=data["number"],
-                note=data.get("note"),
-            )
-        )
-
-    for data in addresses:
-        if data is None:
-            return infos
-
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.ADDRESS,
-                people=person,
-                value=data["address"],
-                note=data.get("note"),
-            )
-        )
-
-    return infos
-
-
-def raise_validation_err(key: str, code: str, detail: list | str):
-    raise serializers.ValidationError(
-        {
-            key: {
-                "code": code,
-                "detail": detail,
-            }
-        }
-    )
-
-
 def unique_field(list_of_datas: list[dict]) -> list[dict]:
     datas = []
     unique_field_data = []
@@ -151,7 +96,7 @@ class IntListField(serializers.ListField):
             try:
                 int_values.append(int(value))
             except (TypeError, ValueError):
-                raise_validation_err(self.field_name, "InvalidType", value)
+                serializers.ValidationError({"error": "Invalid type"})
 
         return int_values
 
