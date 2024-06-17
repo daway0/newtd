@@ -131,17 +131,17 @@ def people_section(request):
                 personnel,
                 "people/tables/personnel.html",
             ),
-            #     utils.make_section_tab(
-            #         "کارفرما",
-            #         [
-            #             "نام و نام خانوادگی",
-            #             "خدمات دریافتی",
-            #             "قرارداد ها",
-            #             "بدهکاری",
-            #         ],
-            #         clients,
-            #         "people/tables/clients.html",
-            #     ),
+                utils.make_section_tab(
+                    "کارفرما",
+                    [
+                        "نام و نام خانوادگی",
+                        "خدمات دریافتی",
+                        "قرارداد ها",
+                        "بدهکاری",
+                    ],
+                    clients,
+                    "people/tables/clients.html",
+                ),
             #     utils.make_section_tab(
             #         "مددجو",
             #         ["نام و نام خانوادگی", "قرارداد ها"],
@@ -585,41 +585,43 @@ def client_preview(request, id):
         referral_people=client
     )
 
+    edit_link = reverse("crm:edit_client", kwargs={"id": id})
+
     data = {
         "title": "کارفرما",
         "icon": "client icon",
         "description": client.__str__(),
         "buttons": [
-            {
-                "title": "حذف کارفرما",
-                "icon": "trash",
-                "link": "",
-            },
+            # {
+            #     "title": "حذف کارفرما",
+            #     "icon": "trash",
+            #     "link": "",
+            # },
             {
                 "title": "ویرایش کارفرما",
                 "icon": "edit",
-                "link": "",
+                "link": edit_link,
             },
-            {
-                "title": "تماس",
-                "icon": "call",
-                "link": "",
-            },
-            {
-                "title": "ارسال پیامک",
-                "icon": "sms",
-                "link": "",
-            },
-            {
-                "title": "خدمت جدید",
-                "icon": "",
-                "link": "",
-            },
-            {
-                "title": "قرارداد جدید",
-                "icon": "",
-                "link": "",
-            },
+            # {
+            #     "title": "تماس",
+            #     "icon": "call",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "ارسال پیامک",
+            #     "icon": "sms",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "خدمت جدید",
+            #     "icon": "",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "قرارداد جدید",
+            #     "icon": "",
+            #     "link": "",
+            # },
         ],
         "table": s.PeopleSerializer(
             client,

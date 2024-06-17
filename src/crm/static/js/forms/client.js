@@ -136,7 +136,7 @@ $(document).ready(function () {
       // if state edit now go and fetch data 
       // Second send data to server
       $.ajax({
-          url: apiUrls.clientEdit + `${peopleId}/`,
+          url: apiUrls.personEdit+ `${peopleId}/`,
           type: 'GET',
           contentType: 'application/json',
           success: function (data) {
@@ -204,14 +204,14 @@ $(document).ready(function () {
 
       // Second send data to server
       $.ajax({
-          url: apiUrls.personnelInitiate,
+          url: apiUrls.personInitiate,
           type: 'POST',
           contentType: 'application/json',
           data: JSON.stringify(data),
           success: function (data) {
 
               success_toast("ثبت موفق", "اطلاعات با موفقیت در پایگاه داده ذخیره شد")
-              // redirectTo(apiUrls.peopleSection)
+              redirectTo(apiUrls.peopleSection)
 
           },
           error: function (xhr, status, error) {

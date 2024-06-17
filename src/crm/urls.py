@@ -44,8 +44,8 @@ urlpatterns = [
     # previews end
 
     # Form related
-    path("api/forms/personnel/", views.create_person_form, name="create_forms"),
-    path("api/forms/personnel/<int:person_id>/", views.create_person_form, name="get_forms"),
+    path("api/forms/person/", views.create_person_form, name="create_forms"),
+    path("api/forms/person/<int:person_id>/", views.create_person_form, name="get_forms"),
     path("api/national-code/<str:national_code>/", views.black_list, name="black_list"),
     # path("api/phone-number/", views.edit_info, name="edit_phone_number"),
     # path("api/card-number/", views.edit_info, name="edit_card_number"),
