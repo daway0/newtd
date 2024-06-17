@@ -1,3 +1,5 @@
+from typing import Optional
+
 from rest_framework.serializers import ValidationError
 
 from .models import People, PeopleDetailedInfo
@@ -10,7 +12,7 @@ class ManipulateInfo:
         person: People,
         addresses: list[dict],
         numbers: list[dict],
-        card_number: dict,
+        card_number: Optional[dict],
     ) -> None:
         self.person = person
         self.addresses = addresses
@@ -25,7 +27,13 @@ class ManipulateInfo:
         self._disable_queue: list[PeopleDetailedInfo] = list()
         self._note_manipulations_queue: list[PeopleDetailedInfo] = list()
 
-        self._add_to_queue([*self.addresses, *self.numbers, self.card_number])
+        if card_number is not None:
+            self._add_to_queue(
+                [*self.addresses, *self.numbers, self.card_number]
+            )
+        else:
+            self._add_to_queue([*self.addresses, *self.numbers])
+
         self._validate_queues()
         self._initiate_manipulation_objs()
 
@@ -37,9 +45,10 @@ class ManipulateInfo:
             if data.get("id") is None:
 
                 value_len = len(data["value"])
-                if value_len == 11:
+                is_digit = data["value"].isdigit()
+                if value_len == 11 and is_digit:
                     type = pdc.PHONE_NUMBER
-                elif value_len == 16:
+                elif value_len == 16 and is_digit:
                     type = pdc.CARD_NUMBER
                 else:
                     type = pdc.ADDRESS
@@ -61,26 +70,23 @@ class ManipulateInfo:
             if duplicates[info.pk]["value"] != info.value:
                 self._manipulate_queue.append(
                     {
-                        "request_data": data,
+                        "request_data": duplicates[info.pk],
                         "info": info,
                     }
                 )
-                self._manipulation_values.add(data["value"])
+                self._manipulation_values.add(duplicates[info.pk]["value"])
 
             elif duplicates[info.pk].get("note") != info.note:
 
                 info.note = duplicates[info.pk].get("note")
                 self._note_manipulations_queue.append(info)
-        
-        if self.person.pk is None:
-            return
 
         if self.person.pk is None:
             return
 
         not_presented_infos = PeopleDetailedInfo.actives.exclude(
-            pk__in=presented_ids, people=self.person
-        )
+            pk__in=presented_ids
+        ).filter(people=self.person)
         for info in not_presented_infos:
             info.is_active = False
             self._disable_queue.append(info)
@@ -91,7 +97,12 @@ class ManipulateInfo:
         )
         if duplicates:
             raise ValidationError(
-                {"code": "DuplicateValues", "values": duplicates}
+                {
+                    "error": [
+                        f"مقدار {dup} " "در سیستم وجود دارد و تکراری می‌باشد."
+                        for dup in duplicates
+                    ],
+                }
             )
 
         duplicates = PeopleDetailedInfo.objects.filter(
@@ -100,8 +111,11 @@ class ManipulateInfo:
         if duplicates.exists():
             raise ValidationError(
                 {
-                    "code": "DuplicateValues",
-                    "values": list(duplicates.values_list("value", flat=True)),
+                    "error": [
+                        f"مقدار {info.value} "
+                        "در سیستم وجود دارد و تکراری می‌باشد."
+                        for info in duplicates
+                    ],
                 }
             )
 
@@ -114,7 +128,8 @@ class ManipulateInfo:
                 new_obj = PeopleDetailedInfo(
                     people=self.person,
                     detail_type=info.detail_type,
-                    **request_data,
+                    value=request_data["value"],
+                    note=request_data.get("note"),
                 )
                 self._creation_queue.append(new_obj)
 

@@ -17,14 +17,14 @@
                 {% include "svg/save.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
                 <span class="mr-2">ذخیره تغییرات</span>
             </button>
-            <button type="button" class="form-btn form-btn-red">
+            {% comment %} <button type="button" class="form-btn form-btn-red">
                 {% include "svg/trashcan.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
                 <span class="mr-2">حذف کردن پرسنل</span>
             </button>
             <button type="button" class="form-btn form-btn-blue">
                 {% include "svg/history.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
                 <span class="mr-2">تاریخچه تغییرات</span>
-            </button>
+            </button> {% endcomment %}
         </div>
         <div class="flex flex-row gap-2">
             <div class="form-half-pane-container">
@@ -207,7 +207,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-section-container">
+                <div class="form-section-container skills-section">
                     <div>ویژگی و مهارت ها</div>
                     <div class="form-section-inner-container">
                         <div class="form-row-container">
@@ -237,7 +237,7 @@
                             </div>
                         </div>
                         <div class="form-btn-container">
-                            <button type="button" class="form-btn form-btn-blue">
+                            <button id="add-skill" type="button" class="form-btn form-btn-blue">
                                 {% include "svg/plus.html" with fillcolor="fill-white" width="w-4" height="h-4" %}
                                 <span class="mr-2">اضافه کردن مهارت جدید</span>
                             </button>

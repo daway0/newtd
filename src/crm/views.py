@@ -1,5 +1,6 @@
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -113,12 +114,22 @@ def services_section(request):
 
 
 def people_section(request):
-    clients = models.People.clients.all()
-    personnel = models.People.personnels.all()
-    cases = models.People.patients.all()
+    clients = models.People.clients.all().order_by("-updated_at")
+    personnel = models.People.personnels.all().order_by("-updated_at")
+    cases = models.People.patients.all().order_by("-updated_at")
+    
+    allowed_tabs = ("client", "personnel", "patient")
+    selected_tab = request.GET.get("tab") 
+    selected_tab = selected_tab if selected_tab in allowed_tabs else None
+    
+    initiate_preview = request.GET.get("preview")
+    
+    
+
     data = {
         "tabs": [
             utils.make_section_tab(
+                "client",
                 "کارفرما",
                 [
                     "نام و نام خانوادگی",
@@ -130,6 +141,7 @@ def people_section(request):
                 "people/tables/clients.html",
             ),
             utils.make_section_tab(
+                "personnel",
                 "پرسنل",
                 [
                     "نام و نام خانوادگی",
@@ -141,16 +153,23 @@ def people_section(request):
                 personnel,
                 "people/tables/personnel.html",
             ),
-            utils.make_section_tab(
-                "مددجو",
-                ["نام و نام خانوادگی", "قرارداد ها"],
-                cases,
-                "people/tables/cases.html",
-            ),
+            #     utils.make_section_tab(
+            #         "مددجو",
+            #         ["نام و نام خانوادگی", "قرارداد ها"],
+            #         cases,
+            #         "people/tables/cases.html",
+            #     ),
         ]
     }
     return render(
-        request, "people/main.html", dict(section="people", data=data)
+        request,
+        "people/main.html",
+        dict(
+            section="people",
+            data=data,
+            selected_tab=selected_tab,
+            preview=initiate_preview,
+        ),
     )
 
 
@@ -228,7 +247,11 @@ def edit_personnel(request, id):
 
 
 def edit_client(request, id):
-    return render(request, "users/create_change/client.html")
+    return render(
+        request,
+        "people/forms/client.html",
+        context=dict(section="people", people_id=id),
+    )
 
 
 def edit_patient(request, id):
@@ -580,41 +603,43 @@ def client_preview(request, id):
         referral_people=client
     )
 
+    edit_link = reverse("crm:edit_client", kwargs={"id": id})
+
     data = {
         "title": "کارفرما",
         "icon": "client icon",
         "description": client.__str__(),
         "buttons": [
-            {
-                "title": "حذف کارفرما",
-                "icon": "trash",
-                "link": "",
-            },
+            # {
+            #     "title": "حذف کارفرما",
+            #     "icon": "trash",
+            #     "link": "",
+            # },
             {
                 "title": "ویرایش کارفرما",
                 "icon": "edit",
-                "link": "",
+                "link": edit_link,
             },
-            {
-                "title": "تماس",
-                "icon": "call",
-                "link": "",
-            },
-            {
-                "title": "ارسال پیامک",
-                "icon": "sms",
-                "link": "",
-            },
-            {
-                "title": "خدمت جدید",
-                "icon": "",
-                "link": "",
-            },
-            {
-                "title": "قرارداد جدید",
-                "icon": "",
-                "link": "",
-            },
+            # {
+            #     "title": "تماس",
+            #     "icon": "call",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "ارسال پیامک",
+            #     "icon": "sms",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "خدمت جدید",
+            #     "icon": "",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "قرارداد جدید",
+            #     "icon": "",
+            #     "link": "",
+            # },
         ],
         "table": s.PeopleSerializer(
             client,
@@ -629,7 +654,9 @@ def client_preview(request, id):
             {
                 "title": "اطلاعات جزئی",
                 "icon": "details icon",
-                "data": s.PeopleDetailsSerializer(client.details, many=True),
+                "data": s.PeopleDetailsSerializer(
+                    client.details.filter(is_active=True), many=True
+                ),
             },
             {
                 "title": "خدمات",
@@ -704,7 +731,7 @@ def client_preview(request, id):
 
 @api_view(["GET"])
 def personnel_preview(request, id):
-    personnel = models.People.personnels.filter(pk=id).first()
+    personnel: models.People = models.People.personnels.filter(pk=id).first()
     if not personnel:
         return Response({"error": "personnel not found."})
 
@@ -716,25 +743,32 @@ def personnel_preview(request, id):
         referral_people=personnel
     )
 
+    edit_link = reverse("crm:edit_personnel", kwargs={"id": id})
+
     data = {
         "title": "پرسنل",
         "icon": "personnel icon",
         "description": personnel.__str__(),
         "buttons": [
+            # {
+            #     "title": "حذف پرسنل",
+            #     "icon": "trash",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "تماس",
+            #     "icon": "call",
+            #     "link": "",
+            # },
+            # {
+            #     "title": "ارسال پیامک",
+            #     "icon": "sms",
+            #     "link": "",
+            # },
             {
-                "title": "حذف پرسنل",
-                "icon": "trash",
-                "link": "",
-            },
-            {
-                "title": "تماس",
-                "icon": "call",
-                "link": "",
-            },
-            {
-                "title": "ارسال پیامک",
-                "icon": "sms",
-                "link": "",
+                "title": "ویرایش پرسنل",
+                "icon": "edit",
+                "link": edit_link,
             },
         ],
         "table": s.PeopleSerializer(
@@ -745,6 +779,8 @@ def personnel_preview(request, id):
                 "total_personnel_orders",
                 "total_personnel_contracts",
                 "total_healthcare_debt_to_personnel",
+                "roles",
+                "skills",
             ],
             exclude=["link"],
         ),
@@ -753,14 +789,28 @@ def personnel_preview(request, id):
                 "title": "اطلاعات جزئی",
                 "icon": "details icon",
                 "data": s.PeopleDetailsSerializer(
-                    personnel.details.all(), many=True
+                    personnel.details.filter(is_active=True), many=True
                 ),
             },
             {
                 "title": "صفت‌ها",
                 "icon": "tags icon",
                 "data": s.ReferralOtherSerializer(  # They have same schema
-                    personnel.specifications.all(), many=True
+                    personnel.tags_title, many=True
+                ),
+            },
+            {
+                "title": "نقش‌ها",
+                "icon": "roles icon",
+                "data": s.TranslatedCatalogSerializer(
+                    personnel.get_roles_titles, many=True
+                ),
+            },
+            {
+                "title": "توانایی‌ها",
+                "icon": "sklls icon",
+                "data": s.TranslatedCatalogSerializer(
+                    personnel.skills_title, many=True
                 ),
             },
             {
@@ -947,5 +997,5 @@ def create_person_form(request, person_id=None):
     if not serializer.is_valid():
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-    serializer.save()
-    return Response(status=status.HTTP_202_ACCEPTED)
+    person = serializer.save()
+    return Response({"id": person.pk}, status=status.HTTP_202_ACCEPTED)

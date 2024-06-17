@@ -34,6 +34,13 @@ function notEmptyInputValidator(value) {
     };
 }
 
+function notEmptyMultipleSelect2Validator(value) {
+    return {
+        valid: value.length > 0,
+        msg:'موردی را انتخاب کنید'
+    };
+}
+
 function isDigitValidator(value) {
     return {
         valid: /^\d+$/.test(value),
@@ -109,4 +116,11 @@ function skillDuplication() {
         msg:"مهارت تکراری در لیست مهارت ها وجود دارد آن را اصلاح کنید"
     };
     
+}
+
+function nationalCode(value){
+    return {
+        valid: value.length == 10,
+        msg: "طول کدملی صحیح نیست"
+    }
 }

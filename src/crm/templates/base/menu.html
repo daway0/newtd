@@ -1,10 +1,14 @@
 <div class="flex flex-col">
-    {% include "base/menu_item.html" with path="svg/dashboard.html" link="dashboard/" title="داشبورد" %}
-    {% include "base/menu_item.html" with path="svg/syringe.html" link="services/" title="خدمات و قراردادها" %}
+    {% comment %} {% include "base/menu_item.html" with path="svg/dashboard.html" link="dashboard/" title="داشبورد" %} {% endcomment %}
+    {% comment %} {% include "base/menu_item.html" with path="svg/syringe.html" link="services/" title="خدمات و قراردادها" %} {% endcomment %}
     {% include "base/menu_item.html" with path="svg/users.html" link="people/" title="پرسنل و کارفرما" %}
-    {% include "base/menu_item.html" with path="svg/call.html" link="calls/" title="تماس ها" %}
-    {% include "base/menu_item.html" with path="svg/moeny.html" link="payments/" title="مالی" %}
-    {% include "base/menu_item.html" with path="svg/chart.html" link="reports/" title="گزارشات" %}
-    {% include "base/menu_item.html" with path="svg/settings.html" link="settings/" title="تنظیمات" %}
-    {% include "base/menu_item.html" with path="svg/logout.html" link="logout/" title="خروج از حساب" %}
+    {% include "base/menu_item.html" with path="svg/plus.html" link="people/personnel/create/" title="افزودن پرسنل جدید" %}
+    {% if False %}{% include "base/menu_item.html" with path="svg/plus.html" link="people/client/create/" title="افزودن کارفرما جدید" %}{% endif %}
+
+    
+    {% comment %} {% include "base/menu_item.html" with path="svg/call.html" link="calls/" title="تماس ها" %} {% endcomment %}
+    {% comment %} {% include "base/menu_item.html" with path="svg/moeny.html" link="payments/" title="مالی" %} {% endcomment %}
+    {% comment %} {% include "base/menu_item.html" with path="svg/chart.html" link="reports/" title="گزارشات" %} {% endcomment %}
+    {% comment %} {% include "base/menu_item.html" with path="svg/settings.html" link="settings/" title="تنظیمات" %} {% endcomment %}
+    {% comment %} {% include "base/menu_item.html" with path="svg/logout.html" link="logout/" title="خروج از حساب" %} {% endcomment %}
 </div>

@@ -1,66 +1,12 @@
 import jdatetime
 from django.db import transaction
+from django.db.utils import IntegrityError
 from rest_framework import serializers
 
 from . import models as m
 from . import serializer_validators as sv
 from . import utils
 from .business import ManipulateInfo
-
-
-def merge_infos(
-    person: m.People,
-    numbers: list[dict] = [],
-    card_number: dict = None,
-    addresses: list[dict] = [],
-) -> list[m.PeopleDetailedInfo]:
-    infos = []
-
-    if card_number is not None:
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.CARD_NUMBER,
-                people=person,
-                value=card_number["card_number"],
-                note=card_number.get("note"),
-            )
-        )
-
-    for data in numbers:
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.PHONE_NUMBER,
-                people=person,
-                value=data["number"],
-                note=data.get("note"),
-            )
-        )
-
-    for data in addresses:
-        if data is None:
-            return infos
-
-        infos.append(
-            m.PeopleDetailedInfo(
-                detail_type=m.PeopleDetailTypeChoices.ADDRESS,
-                people=person,
-                value=data["address"],
-                note=data.get("note"),
-            )
-        )
-
-    return infos
-
-
-def raise_validation_err(key: str, code: str, detail: list | str):
-    raise serializers.ValidationError(
-        {
-            key: {
-                "code": code,
-                "detail": detail,
-            }
-        }
-    )
 
 
 def unique_field(list_of_datas: list[dict]) -> list[dict]:
@@ -116,9 +62,14 @@ class DynamicFieldSerializer(TranslatedSerializer):
 
 
 class PersianBooleanField(serializers.BooleanField):
+    def __init__(self, **kwargs):
+        self.true_keyword = kwargs.pop("true", "بله")
+        self.false_keyword = kwargs.pop("false", "خیر")
+        super().__init__(**kwargs)
+
     def to_representation(self, value):
         val = super().to_representation(value)
-        return "بله" if val else "خیر"
+        return self.true_keyword if val else self.false_keyword
 
 
 class SeperatedCharField(serializers.CharField):
@@ -131,6 +82,23 @@ class SeperatedCharField(serializers.CharField):
         value = str(value)
 
         return utils.seperate_numbers(self.threshold, value)
+
+
+class IntListField(serializers.ListField):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def to_internal_value(self, data):
+        values = super().to_internal_value(data)
+
+        int_values = []
+        for value in values:
+            try:
+                int_values.append(int(value))
+            except (TypeError, ValueError):
+                serializers.ValidationError({"error": "Invalid type"})
+
+        return int_values
 
 
 class SpecificationSerializer(serializers.ModelSerializer):
@@ -201,7 +169,6 @@ class PeopleSerializer(DynamicFieldSerializer):
         "note": "یادداشت",
         "contract_date": "شروع قرارداد",
         "end_contract_date": "پایان قرارداد",
-        "specifications": "صفت‌ها",
         "total_personnel_orders": "تعداد خدمت‌های پرسنل",
         "total_personnel_contracts": "تعداد قرارداد‌‌های پرسنل",
         "total_healthcare_debt_to_personnel": "بدهی مرکز به پرسنل",
@@ -213,9 +180,7 @@ class PeopleSerializer(DynamicFieldSerializer):
 
     def get_membership_period(self, obj):
         date_obj = utils.create_jdate_from_str(obj.joined_at)
-        return utils.time_left_til_specific_date_verbose(
-            date_obj, jdatetime.date.today()
-        )
+        return utils.membership_from_verbose(date_obj, jdatetime.date.today())
 
 
 class PeopleMinimalSerializer(serializers.Serializer):
@@ -363,9 +328,7 @@ class ContractSerializer(DynamicFieldSerializer):
 
     def get_end_verbose(self, obj):
         date_obj = utils.create_jdate_from_str(obj.end)
-        return utils.time_left_til_specific_date_verbose(
-            jdatetime.date.today(), date_obj
-        )
+        return utils.contract_end_verbose(jdatetime.date.today(), date_obj)
 
 
 class PaymentSerializer(DynamicFieldSerializer):
@@ -503,6 +466,13 @@ class ServiceSerializer(DynamicFieldSerializer):
     }
 
 
+class TranslatedCatalogSerializer(TranslatedSerializer):
+    title = serializers.CharField()
+    rate = serializers.IntegerField(required=False)
+
+    translated_fields = {"title": "عنوان", "rate": "نمره"}
+
+
 class AddInfoSerializer(serializers.Serializer):
     person = serializers.IntegerField()
     info = serializers.CharField()
@@ -535,7 +505,6 @@ class EditInfoSerializer(serializers.Serializer):
 
 class InfoSerializer(serializers.Serializer):
     id = serializers.IntegerField(required=False)
-    value = serializers.CharField(validators=[sv.card_number])
     note = serializers.CharField(max_length=255, required=False)
 
 
@@ -559,8 +528,7 @@ class CatalogSerializerAPI(serializers.Serializer):
 
 class CatalogSerializer(serializers.Serializer):
     id = serializers.IntegerField(source="catalog_id")
-    title = serializers.CharField()
-    rate = serializers.IntegerField(required=False)
+    rate = serializers.IntegerField(required=False, min_value=1, max_value=10)
 
 
 class FormSerializer(serializers.ModelSerializer):
@@ -572,12 +540,12 @@ class FormSerializer(serializers.ModelSerializer):
         current_fields = set(self.fields)
 
         look_up = {
-            m.PeopleTypeChoices.PERSONNEL: FormSerializer.personnel_fields,
-            m.PeopleTypeChoices.CLIENT: FormSerializer.client_fields,
-            m.PeopleTypeChoices.PATIENT: FormSerializer.patinet_fields,
+            "پرسنل": FormSerializer.personnel_fields,
+            "کارفرما": FormSerializer.client_fields,
+            "مددجو": FormSerializer.patinet_fields,
         }
 
-        for type in person.get_types:
+        for type in person.get_types_title:
             current_fields.update(look_up[type])
 
         for field in current_fields.difference(FormSerializer.Meta.fields):
@@ -591,7 +559,7 @@ class FormSerializer(serializers.ModelSerializer):
         "gender",
         "birthdate",
         "addresses",
-        "phone_numbers",
+        "numbers",
     ]
 
     personnel_fields = common_fields + [
@@ -599,6 +567,7 @@ class FormSerializer(serializers.ModelSerializer):
         "contract_date",
         "end_contract_date",
         "service_locations",
+        "roles",
         "tags",
         "skills",
     ]
@@ -607,16 +576,14 @@ class FormSerializer(serializers.ModelSerializer):
 
     patinet_fields = common_fields + ["tags"]
 
-    types = serializers.SerializerMethodField()
+    types = serializers.ListField(source="get_types")
+    roles = serializers.ListField(source="get_roles")
     addresses = AddressSerializer(
         many=True,
     )
     card_number = CardNumberSerializer()
     numbers = PhoneNumberSerializer(many=True)
     skills = CatalogSerializer(many=True)
-
-    def get_types(self, obj: m.People):
-        return obj.types.all().values_list("title", flat=True)
 
     class Meta:
         model = m.People
@@ -627,6 +594,7 @@ class FormSerializer(serializers.ModelSerializer):
             "lastname",
             "gender",
             "birthdate",
+            "roles",
             "types",
             "addresses",
             "numbers",
@@ -643,8 +611,8 @@ class CreatePersonSerializer(serializers.Serializer):
     person_id = serializers.CharField(required=False)
     joined_at = serializers.CharField(validators=[sv.date])
     national_code = serializers.CharField(validators=[sv.national_code])
-    first_name = serializers.CharField(source="firstname")
-    last_name = serializers.CharField(source="lastname")
+    firstname = serializers.CharField()
+    lastname = serializers.CharField()
     gender = serializers.CharField(validators=[sv.gender])
     birthdate = serializers.CharField(validators=[sv.date])
     note = serializers.CharField(max_length=255, required=False)
@@ -657,29 +625,35 @@ class CreatePersonSerializer(serializers.Serializer):
     numbers = PhoneNumberSerializer(many=True)
     card_number = CardNumberSerializer(required=False)
     addresses = AddressSerializer(many=True, required=False)
-    roles = serializers.ListField()
-    service_locations = serializers.ListField(required=False)
-    tags = serializers.ListField(required=False)
-    skills = serializers.ListField(required=False)
+    roles = IntListField(required=False)
+    service_locations = IntListField(required=False)
+    tags = IntListField(required=False)
+    skills = CatalogSerializer(many=True, required=False)
 
     def validate_person_id(self, id):
         person_obj = m.People.objects.filter(pk=id).first()
         if not person_obj:
-            raise_validation_err("person_id", "InvalidPersonId", id)
+            raise serializers.ValidationError(
+                {"error": ["ایدی شخص اشتباه است."]}
+            )
 
         return person_obj
 
     def validate_types(self, types: list[str]):
         for type in types:
             if not type.startswith("TYP"):
-                raise_validation_err("types", "InvalidType", type)
+                raise serializers.ValidationError(
+                    {"error": ["نوع شخص اشتباه است."]}
+                )
 
         db_types = m.Catalog.objects.filter(code__in=types).values(
             "id",
             "title",
         )
         if not db_types:
-            raise_validation_err("types", "InvalidType", types)
+            raise serializers.ValidationError(
+                {"error": ["نوع شخص اشتباه است."]}
+            )
 
         return db_types
 
@@ -694,7 +668,7 @@ class CreatePersonSerializer(serializers.Serializer):
         check_required_fields(required_fields, data)
 
     def client_validation(data: dict):
-        required_fields = ("numbers", "addresses", "tags")
+        required_fields = ("addresses",)
         check_required_fields(required_fields, data)
 
     def patient_validation(data: dict):
@@ -726,25 +700,21 @@ class CreatePersonSerializer(serializers.Serializer):
                 person,
                 addresses=attrs.get("addresses", []),
                 numbers=attrs.get("numbers", []),
-                card_number=attrs.get("card_number", []),
+                card_number=attrs.get("card_number"),
             )
             return attrs
 
         if m.People.objects.filter(
             national_code=attrs["national_code"]
         ).exists():
-            raise_validation_err(
-                "national_code",
-                "DuplicateNationalCode",
-                attrs["national_code"],
-            )
+            raise serializers.ValidationError({"error": ["کدملی تکراری است."]})
 
         person = m.People()
         self.manipulate_obj = ManipulateInfo(
             person,
             addresses=attrs.get("addresses", []),
             numbers=attrs.get("numbers", []),
-            card_number=attrs.get("card_number", []),
+            card_number=attrs.get("card_number"),
         )
         attrs["person_id"] = person
 
@@ -774,14 +744,34 @@ class CreatePersonSerializer(serializers.Serializer):
                 if value != getattr(person, field):
                     setattr(person, field, value)
 
-        with transaction.atomic():
-            person.save()
-            self.manipulate_obj.manipulate()
-            person.specifications.set(validated_data.get("tags", []))
-            person.roles.set(validated_data.get("roles", []))
-            person.service_locations.set(
-                validated_data.get("service_locations", [])
+        specs = []
+        specs.extend(
+            m.Specification(catalog_id=id, people=person)
+            for id in validated_data.get("tags", [])
+        )
+        for skill in validated_data.get("skills", []):
+            specs.append(
+                m.Specification(
+                    people=person,
+                    catalog_id=skill["catalog_id"],
+                    rate=skill["rate"],
+                )
             )
-            person.types.set([type["id"] for type in validated_data["types"]])
+
+        try:
+            with transaction.atomic():
+                person.save()
+                self.manipulate_obj.manipulate()
+                m.Specification.objects.filter(people=person).delete()
+                m.Specification.objects.bulk_create(specs)
+                person.roles.set(validated_data.get("roles", []))
+                person.service_locations.set(
+                    validated_data.get("service_locations", [])
+                )
+                person.types.set(
+                    [type["id"] for type in validated_data["types"]]
+                )
+        except IntegrityError:
+            pass
 
         return person
