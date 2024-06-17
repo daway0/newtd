@@ -1,9 +1,9 @@
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from django.urls import reverse
 
 from . import models
 from . import serializers as s
@@ -131,17 +131,17 @@ def people_section(request):
                 personnel,
                 "people/tables/personnel.html",
             ),
-                utils.make_section_tab(
-                    "کارفرما",
-                    [
-                        "نام و نام خانوادگی",
-                        "خدمات دریافتی",
-                        "قرارداد ها",
-                        "بدهکاری",
-                    ],
-                    clients,
-                    "people/tables/clients.html",
-                ),
+            utils.make_section_tab(
+                "کارفرما",
+                [
+                    "نام و نام خانوادگی",
+                    "خدمات دریافتی",
+                    "قرارداد ها",
+                    "بدهکاری",
+                ],
+                clients,
+                "people/tables/clients.html",
+            ),
             #     utils.make_section_tab(
             #         "مددجو",
             #         ["نام و نام خانوادگی", "قرارداد ها"],

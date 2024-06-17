@@ -691,7 +691,7 @@ class CreatePersonSerializer(serializers.Serializer):
         person_obj = m.People.objects.filter(pk=id).first()
         if not person_obj:
             raise serializers.ValidationError(
-                {"error": "ایدی شخص اشتباه است."}
+                {"error": ["ایدی شخص اشتباه است."]}
             )
 
         return person_obj
@@ -700,7 +700,7 @@ class CreatePersonSerializer(serializers.Serializer):
         for type in types:
             if not type.startswith("TYP"):
                 raise serializers.ValidationError(
-                    {"error": "نوع شخص اشتباه است."}
+                    {"error": ["نوع شخص اشتباه است."]}
                 )
 
         db_types = m.Catalog.objects.filter(code__in=types).values(
@@ -762,7 +762,7 @@ class CreatePersonSerializer(serializers.Serializer):
         if m.People.objects.filter(
             national_code=attrs["national_code"]
         ).exists():
-            raise serializers.ValidationError({"error": "کدملی تکراری است."})
+            raise serializers.ValidationError({"error": ["کدملی تکراری است."]})
 
         person = m.People()
         self.manipulate_obj = ManipulateInfo(
