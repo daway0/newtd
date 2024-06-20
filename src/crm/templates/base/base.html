@@ -28,24 +28,21 @@
             {% comment %} Toast {% endcomment %}
             {% comment %} {% include "base/toast.html" %} {% endcomment %}
 
+            
             {% comment %} right menu {% endcomment %}
-            <div id="sidemenu" class="flex flex-col gap-16 basis-1/6 bg-primary p-8">
+            <div id="sidemenu" class="flex flex-col h-screen overflow-auto gap-2 basis-1/6 bg-primary p-4">
                 {% comment %} logo and title {% endcomment %}
-            {% include "base/logo.html" %}
-
-            {% comment %} menu {% endcomment %}
-            {% include "base/menu.html" %}
+                <div class="p-4 ">
+                    {% include "base/logo.html" %}
+                </div>
+                
+                {% include "base/new_menu.html" %}
+                <div class="bottom-0 bg-primary text-center">
+                    <span class="text-xs  text-white"> نسخه بتا 1.0.0</span>
+                </div>
             </div>
-            {% comment %} right menu {% endcomment %}
-            <div id="sidemenu-minimized" class="flex flex-col gap-16 bg-primary p-4 pt-8 hidden">
-                {% with minimized=True %}
-                {% comment %} logo and title {% endcomment %}
-                {% include "base/logo.html" %}
 
-                {% comment %} menu {% endcomment %}
-                {% include "base/menu.html" %}
-            {% endwith %}
-            </div>
+
             {% comment %} left pane {% endcomment %}
             <div class="bg-secondary flex flex-col items-start w-full overflow-y-auto">
                 {% comment %} top menu {% endcomment %}
@@ -121,7 +118,7 @@
             <script src="{% static 'js/dependencies/persian-date.min.js' %}"></script>
             <script src="{% static 'js/dependencies/persian-datepicker.min.js' %}"></script>
             <script src="{% static 'js/dependencies/select2.js' %}"></script>
-            <script src="{% static 'js/side_bar.js' %}"></script>
+            {% comment %} <script src="{% static 'js/side_bar.js' %}"></script> {% endcomment %}
             <script src="{% static 'js/forms/api_urls.js' %}"></script>
             <script src="{% static 'js/forms/validators.js' %}"></script>
             <script src="{% static 'js/test.js' %}"></script>
