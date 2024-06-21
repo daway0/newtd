@@ -89,6 +89,10 @@ class Catalog(Log):
     def types_code() -> str:
         return "TYP"
 
+    @staticmethod
+    def relations_code() -> str:
+        return "REL"
+
 
 class ClientManager(models.Manager):
     def get_queryset(self) -> models.QuerySet:
@@ -123,31 +127,20 @@ class PatientManager(models.Manager):
         )
 
 
-class PeopleCatalogs(models.Model):
+class Specification(models.Model):
     people = models.ForeignKey("People", on_delete=models.CASCADE)
     catalog = models.ForeignKey("Catalog", on_delete=models.CASCADE)
+    rate = models.IntegerField(null=True, blank=True)
 
     def __str__(self) -> str:
         return f"{self.people.fullname_with_prefix} {self.catalog.title}"
 
     class Meta:
-        abstract = True
-
-
-class Specification(PeopleCatalogs):
-    rate = models.IntegerField(null=True, blank=True)
-
-
-class ServiceLocation(PeopleCatalogs):
-    pass
-
-
-class PeopleRole(PeopleCatalogs):
-    pass
-
-
-class PeopleType(PeopleCatalogs):
-    pass
+        constraints = [
+            models.UniqueConstraint(
+                fields=["people", "catalog"], name="unique_specification"
+            )
+        ]
 
 
 class People(Log):
@@ -156,18 +149,12 @@ class People(Log):
     # general
     national_code = models.CharField(
         max_length=10,
-        validators=[
-            validators.national_code,
-            validators.blacklist_national_codes,
-        ],
     )
-    firstname = models.CharField(
-        max_length=50, validators=[validators.trim_string]
-    )
+    firstname = models.CharField(max_length=50)
     lastname = models.CharField(
         max_length=50,
-        validators=[validators.trim_string],
     )
+    father_name = models.CharField(max_length=50, null=True, blank=True)
 
     gender = models.CharField(
         max_length=1,
@@ -175,9 +162,9 @@ class People(Log):
     )
     birthdate = models.CharField(max_length=10)
 
-    types = models.ManyToManyField(
-        Catalog, related_name="people_types", through=PeopleType
-    )
+    # types = models.ManyToManyField(
+    #     Catalog, related_name="people_types", through=Specification
+    # )
 
     # specific to personnel
     contract_date = models.CharField(max_length=10, null=True, blank=True)
@@ -185,15 +172,16 @@ class People(Log):
     specifications = models.ManyToManyField(
         Catalog, related_name="people_specifications", through=Specification
     )
-    roles = models.ManyToManyField(
-        Catalog, related_name="people_roles", through=PeopleRole
-    )
-    service_locations = models.ManyToManyField(
-        Catalog,
-        related_name="people_service_locations",
-        through=ServiceLocation,
-    )
-
+    # roles = models.ManyToManyField(
+    #     Catalog, related_name="people_roles", through=Specification
+    # )
+    # service_locations = models.ManyToManyField(
+    #     Catalog,
+    #     related_name="people_service_locations",
+    #     through=Specification,
+    # )
+    minimum_salary = models.BigIntegerField(default=0)
+    overall_rate = models.DecimalField(decimal_places=1, max_digits=3)
     note = models.TextField(null=True, blank=True)
 
     @property
@@ -292,9 +280,7 @@ class People(Log):
 
     @property
     def addresses(self):
-        return PeopleDetailedInfo.actives.filter(
-            people=self, detail_type=PeopleDetailTypeChoices.ADDRESS
-        )
+        return Address.objects.filter(people=self, is_active=True)
 
     @property
     def numbers(self):
@@ -303,56 +289,74 @@ class People(Log):
         )
 
     @property
-    def card_number(self):
+    def card_numbers(self):
         return PeopleDetailedInfo.actives.filter(
             people=self, detail_type=PeopleDetailTypeChoices.CARD_NUMBER
-        ).first()
+        )
 
     @property
-    def service_location(self):
-        return self.servicelocation_set.values_list("catalog_id", flat=True)
+    def service_locations(self):
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.service_location_code()
+        ).values_list("catalog_id", flat=True)
 
     @property
     def tags(self):
-        return self.specification_set.filter(rate__isnull=True).values_list(
-            "catalog_id", flat=True
-        )
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.tags_code()
+        ).values_list("catalog_id", flat=True)
 
     @property
     def tags_title(self):
-        return self.specification_set.filter(rate__isnull=True).values(
-            title=F("catalog__title")
-        )
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.tags_code()
+        ).values(title=F("catalog__title"))
 
     @property
     def skills(self):
-        return self.specification_set.filter(rate__isnull=False).values(
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.skills_code()
+        ).values(
             "catalog_id",
             "rate",
         )
 
     @property
     def skills_title(self):
-        return self.specification_set.filter(rate__isnull=False).values(
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.skills_code()
+        ).values(
             "rate",
             title=F("catalog__title"),
         )
 
     @property
     def get_types(self) -> list[str]:
-        return self.types.all().values_list("id", flat=True)
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.types_code()
+        ).values_list("id", flat=True)
 
     @property
     def get_types_title(self) -> list[str]:
-        return self.types.all().values_list("title", flat=True)
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.types_code()
+        ).values_list("catalog__title", flat=True)
 
     @property
     def get_roles(self) -> list[str]:
-        return self.roles.all().values_list("id", flat=True)
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.roles_code()
+        ).values_list("catalog__title", flat=True)
 
     @property
     def get_roles_titles(self) -> list[str]:
-        return self.roles.all().values("title")
+        return self.specification_set.filter(
+            catalog__code__startswith=Catalog.roles_code()
+        ).values_list(title=F("catalog__title"), flat=True)
+
+    @property
+    def emergeny_info(self):
+        return self.emergencyinfo_set.first()
 
     def spec_list(self) -> str:
         specs = []
@@ -398,7 +402,7 @@ class People(Log):
         )
 
     def __str__(self) -> str:
-        types = [type.__str__() for type in self.types.all()]
+        types = [type for type in self.get_types_title]
 
         return f"{self.fullname_with_prefix} ({', '.join(types)})"
 
@@ -408,10 +412,38 @@ class People(Log):
     patients = PatientManager()
 
 
+# class CurrentHospital(models.Model):
+#     people = models.ForeignKey(People, on_delete=models.CASCADE)
+#     hospital_name = models.CharField(max_length=100)
+#     shift_details = models.TextField()
+
+
+class Address(models.Model):
+    people = models.ForeignKey(People, on_delete=models.CASCADE)
+    value = models.CharField(max_length=250)
+    is_active = models.BooleanField(default=True)
+    city = models.ForeignKey(
+        Catalog, on_delete=models.CASCADE, null=True, blank=True
+    )
+    postal_code = models.CharField(max_length=10, null=True, blank=True)
+    note = models.TextField(null=True, blank=True)
+
+
+class EmergencyInfo(models.Model):
+    people = models.ForeignKey(People, on_delete=models.CASCADE)
+    firstname = models.CharField(max_length=50, null=True, blank=True)
+    lastname = models.CharField(max_length=50, null=True, blank=True)
+    phone_number = models.CharField(max_length=15)
+    address = models.CharField(max_length=250, null=True, blank=True)
+    relation = models.ForeignKey(
+        Catalog, on_delete=models.CASCADE, null=True, blank=True
+    )
+
+
 class PeopleDetailTypeChoices(models.TextChoices):
-    ADDRESS = "A", "آدرس"
     PHONE_NUMBER = "P", "شماره تماس"
     CARD_NUMBER = "C", "کارت بانکی"
+    SHEBA_NUMBER = "S", "شماره شبا"
 
 
 class ActiveInfosManager(models.Manager):
@@ -437,21 +469,8 @@ class PeopleDetailedInfo(Log):
     actives = ActiveInfosManager()
 
     def __str__(self) -> str:
-        return f"{self.people.fullname_with_prefix} {self.detail_type} {self.value}"
-
-    def bulk_phone_numbers(
-        phone_numbers: list[dict],
-        person: People,
-    ):
-        return [
-            PeopleDetailedInfo(
-                detail_type=PeopleDetailTypeChoices.PHONE_NUMBER,
-                value=number_obj["number"],
-                people=person,
-                note=number_obj["note"],
-            )
-            for number_obj in phone_numbers
-        ]
+        return f"{self.people.fullname_with_prefix} \
+        {self.detail_type} {self.value}"
 
 
 class Service(Log):

@@ -1,12 +1,13 @@
+from decimal import Decimal
+
 import jdatetime
 from django.db import transaction
-from django.db.utils import IntegrityError
 from rest_framework import serializers
 
 from . import models as m
 from . import serializer_validators as sv
 from . import utils
-from .business import ManipulateInfo
+from .business import ManipulateAddress, ManipulateInfo
 
 
 def unique_field(list_of_datas: list[dict]) -> list[dict]:
@@ -23,7 +24,10 @@ def unique_field(list_of_datas: list[dict]) -> list[dict]:
     return unique_field_data
 
 
-def check_required_fields(required_fields: tuple[str], fields: dict):
+def check_required_fields(
+    required_fields: tuple[str],
+    fields: dict,
+):
     for field in required_fields:
         value = fields.get(field)
         if value is None:
@@ -516,8 +520,16 @@ class PhoneNumberSerializer(InfoSerializer):
     value = serializers.CharField(validators=[sv.phone_number])
 
 
+class ShebaNumberSerializer(InfoSerializer):
+    value = serializers.CharField(validators=[sv.sheba_number])
+
+
 class AddressSerializer(InfoSerializer):
     value = serializers.CharField()
+    city = serializers.PrimaryKeyRelatedField(read_only=True, required=False)
+    postal_code = serializers.CharField(
+        validators=[sv.postal_code], required=False
+    )
 
 
 class CatalogSerializerAPI(serializers.Serializer):
@@ -529,6 +541,23 @@ class CatalogSerializerAPI(serializers.Serializer):
 class CatalogSerializer(serializers.Serializer):
     id = serializers.IntegerField(source="catalog_id")
     rate = serializers.IntegerField(required=False, min_value=1, max_value=10)
+
+
+class EmergencyInfoSerializer(serializers.Serializer):
+    firstname = serializers.CharField(required=False)
+    lastname = serializers.CharField(required=False)
+    phone_number = serializers.CharField(required=False)
+    address = serializers.CharField(required=False)
+    relation = serializers.PrimaryKeyRelatedField(
+        read_only=True, required=False
+    )
+
+    def validate_relation(self, relation: int):
+        c = m.Catalog.objects.filter(id=relation).first()
+        if c is None or not c.title.startswith(m.Catalog.relations_code()):
+            raise serializers.ValidationError({"error": "نسبت ان"})
+
+        return c
 
 
 class FormSerializer(serializers.ModelSerializer):
@@ -556,6 +585,7 @@ class FormSerializer(serializers.ModelSerializer):
         "national_code",
         "firstname",
         "lastname",
+        "father_name",
         "gender",
         "birthdate",
         "addresses",
@@ -563,13 +593,15 @@ class FormSerializer(serializers.ModelSerializer):
     ]
 
     personnel_fields = common_fields + [
-        "card_number",
+        "card_numbers",
         "contract_date",
         "end_contract_date",
         "service_locations",
         "roles",
         "tags",
         "skills",
+        "minimum_salary",
+        "overall_rate",
     ]
 
     client_fields = common_fields + []
@@ -581,9 +613,10 @@ class FormSerializer(serializers.ModelSerializer):
     addresses = AddressSerializer(
         many=True,
     )
-    card_number = CardNumberSerializer()
+    card_numbers = CardNumberSerializer(many=True)
     numbers = PhoneNumberSerializer(many=True)
     skills = CatalogSerializer(many=True)
+    emergeny_info = EmergencyInfoSerializer()
 
     class Meta:
         model = m.People
@@ -598,12 +631,16 @@ class FormSerializer(serializers.ModelSerializer):
             "types",
             "addresses",
             "numbers",
-            "card_number",
+            "card_numbers",
             "contract_date",
             "end_contract_date",
             "service_locations",
             "tags",
             "skills",
+            "minimum_salary",
+            "overall_rate",
+            "father_name",
+            "emergeny_info",
         ]
 
 
@@ -613,22 +650,56 @@ class CreatePersonSerializer(serializers.Serializer):
     national_code = serializers.CharField(validators=[sv.national_code])
     firstname = serializers.CharField()
     lastname = serializers.CharField()
+    father_name = serializers.CharField()
     gender = serializers.CharField(validators=[sv.gender])
     birthdate = serializers.CharField(validators=[sv.date])
     note = serializers.CharField(max_length=255, required=False)
     types = serializers.ListField()
 
+    # bound to specific types
+    emergency_info = EmergencyInfoSerializer()
     contract_date = serializers.CharField(validators=[sv.date], required=False)
     end_contract_date = serializers.CharField(
         validators=[sv.date], required=False
     )
     numbers = PhoneNumberSerializer(many=True)
-    card_number = CardNumberSerializer(required=False)
+    card_numbers = CardNumberSerializer(many=True, required=False)
+    sheba_numbers = ShebaNumberSerializer(many=True, required=False)
     addresses = AddressSerializer(many=True, required=False)
     roles = IntListField(required=False)
     service_locations = IntListField(required=False)
     tags = IntListField(required=False)
     skills = CatalogSerializer(many=True, required=False)
+    minimum_salary = serializers.IntegerField(required=False)
+    overall_rate = serializers.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        required=False,
+        min_value=Decimal(1.0),
+        max_value=Decimal(10.0),
+    )
+
+    general_fields = (
+        "person_id",
+        "joined_at",
+        "firstname",
+        "lastname",
+        "father_name",
+        "gender",
+        "birthdate",
+        "note",
+        "types",
+    )
+    personnel_fields = (
+        "contract_date",
+        "service_locations",
+        "tags",
+        "skills",
+        "overall_rate",
+        "minimum_salary",
+    )
+    client_fields = ("addresses",)
+    patient_fields = ("tags",)
 
     def validate_person_id(self, id):
         person_obj = m.People.objects.filter(pk=id).first()
@@ -657,34 +728,22 @@ class CreatePersonSerializer(serializers.Serializer):
 
         return db_types
 
-    def personnel_validation(data: dict):
-        required_fields = (
-            "card_number",
-            "contract_date",
-            "service_locations",
-            "tags",
-            "skills",
-        )
-        check_required_fields(required_fields, data)
-
-    def client_validation(data: dict):
-        required_fields = ("addresses",)
-        check_required_fields(required_fields, data)
-
-    def patient_validation(data: dict):
-        required_fields = "tags"
-        check_required_fields(required_fields, data)
-
     def validate(self, attrs):
         attrs = super().validate(attrs)
         type_valdiators = {
-            "پرسنل": CreatePersonSerializer.personnel_validation,
-            "کارفرما": CreatePersonSerializer.client_validation,
-            "مددجو": CreatePersonSerializer.patient_validation,
+            "پرسنل": CreatePersonSerializer.personnel_fields,
+            "کارفرما": CreatePersonSerializer.client_fields,
+            "مددجو": CreatePersonSerializer.patient_fields,
         }
 
         for type in attrs["types"]:
-            type_valdiators[type["title"]](attrs)
+            check_required_fields(type_valdiators[type["title"]], attrs)
+            if type == "پرسنل" and not (
+                attrs.get("sheba_numbers") or attrs.get("card_numbers")
+            ):
+                raise serializers.ValidationError(
+                    {"error": "شماره شبا یا شماره کارت الزامی است."}
+                )
 
         numbers = attrs.get("numbers")
         if numbers is not None:
@@ -694,14 +753,19 @@ class CreatePersonSerializer(serializers.Serializer):
         if tags is not None:
             tags = set(tags)
 
-        person = attrs.get("person_id")
+        person = attrs.get("person_id", m.People())
+        self.manipulate_obj = ManipulateInfo(
+            person,
+            sheba_numbers=attrs.get("sheba_numbers", []),
+            numbers=attrs.get("numbers", []),
+            card_numbers=attrs.get("card_numbers", []),
+        )
+        self.addresses_obj = ManipulateAddress(
+            person, attrs.get("addresses", [])
+        )
+
         if person is not None:
-            self.manipulate_obj = ManipulateInfo(
-                person,
-                addresses=attrs.get("addresses", []),
-                numbers=attrs.get("numbers", []),
-                card_number=attrs.get("card_number"),
-            )
+            attrs["national_code"] = person.national_code
             return attrs
 
         if m.People.objects.filter(
@@ -709,19 +773,12 @@ class CreatePersonSerializer(serializers.Serializer):
         ).exists():
             raise serializers.ValidationError({"error": ["کدملی تکراری است."]})
 
-        person = m.People()
-        self.manipulate_obj = ManipulateInfo(
-            person,
-            addresses=attrs.get("addresses", []),
-            numbers=attrs.get("numbers", []),
-            card_number=attrs.get("card_number"),
-        )
         attrs["person_id"] = person
-
         return attrs
 
     def create(self, validated_data) -> m.People:
-        single_values = {
+        person_values = {
+            "national_code",
             "joined_at",
             "firstname",
             "lastname",
@@ -730,16 +787,16 @@ class CreatePersonSerializer(serializers.Serializer):
             "note",
             "contract_date",
             "end_contract_date",
+            "overall_rate",
+            "minimum_salary",
         }
         person: m.People = validated_data.get("person_id")
         if person.pk is None:
-            for field in single_values:
+            for field in person_values:
                 setattr(person, field, validated_data.get(field))
 
-            person.national_code = validated_data["national_code"]
-
         else:
-            for field in single_values:
+            for field in person_values:
                 value = validated_data.get(field)
                 if value != getattr(person, field):
                     setattr(person, field, value)
@@ -757,21 +814,39 @@ class CreatePersonSerializer(serializers.Serializer):
                     rate=skill["rate"],
                 )
             )
+        specs.extend(
+            m.Specification(catalog_id=id, people=person)
+            for id in validated_data.get("roles", [])
+        )
+        specs.extend(
+            m.Specification(catalog_id=id, people=person)
+            for id in validated_data.get("service_locations", [])
+        )
+        specs.extend(
+            m.Specification(catalog_id=type["id"], people=person)
+            for type in validated_data.get("types", [])
+        )
+        emergency_info = validated_data.get("emergency_info")
+        if emergency_info and emergency_info.get("relation"):
+            specs.append(emergency_info["relation"])
 
-        try:
-            with transaction.atomic():
-                person.save()
-                self.manipulate_obj.manipulate()
-                m.Specification.objects.filter(people=person).delete()
-                m.Specification.objects.bulk_create(specs)
-                person.roles.set(validated_data.get("roles", []))
-                person.service_locations.set(
-                    validated_data.get("service_locations", [])
-                )
-                person.types.set(
-                    [type["id"] for type in validated_data["types"]]
-                )
-        except IntegrityError:
-            pass
+        with transaction.atomic():
+            person.save()
+            self.manipulate_obj.manipulate()
+            self.addresses_obj.save()
+            m.Specification.objects.bulk_create(specs, ignore_conflicts=True)
 
         return person
+
+
+class CreatePersonnelSerializer(serializers.Serializer):
+    general_info = CreatePersonSerializer()
+    # emergency_info = EmergencyInfoSerializer()
+    card_number = CardNumberSerializer()
+    addresses = AddressSerializer(many=True)
+    roles = IntListField()
+    service_locations = IntListField()
+    tags = IntListField(required=False)
+    skills = CatalogSerializer(required=False)
+    minimum_salary = serializers.IntegerField(required=False)
+    # overall_rate = serializers.DecimalField(decimal_places=1)

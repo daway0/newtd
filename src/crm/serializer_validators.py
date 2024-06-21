@@ -37,3 +37,17 @@ def card_number(cn: str) -> str:
         raise ValidationError({"error": "invalid card number."})
 
     return cn
+
+
+def postal_code(pc: str) -> str:
+    if not pc.isdigit() or len(pc) != 10:
+        raise ValidationError({"error": "invalid postal code."})
+
+    return pc
+
+
+def sheba_number(value: str) -> str:
+    if not value.isdigit() or len() != 24:
+        raise ValidationError({"error": "invalid sheba number."})
+
+    return value
