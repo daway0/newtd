@@ -117,14 +117,12 @@ def people_section(request):
     clients = models.People.clients.all().order_by("-updated_at")
     personnel = models.People.personnels.all().order_by("-updated_at")
     cases = models.People.patients.all().order_by("-updated_at")
-    
+
     allowed_tabs = ("client", "personnel", "patient")
-    selected_tab = request.GET.get("tab") 
+    selected_tab = request.GET.get("tab")
     selected_tab = selected_tab if selected_tab in allowed_tabs else None
-    
+
     initiate_preview = request.GET.get("preview")
-    
-    
 
     data = {
         "tabs": [
@@ -972,17 +970,26 @@ def black_list(request, national_code):
     return Response({"isBlackList": is_black_listed})
 
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def catalog(request):
-    q = request.query_params.get("q")
+    if request.method == "GET":
+        q = request.query_params.get("q")
 
-    if q is None:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        if q is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
-    catalogs = models.Catalog.objects.filter(code__contains=q.upper())
-    serializer = s.CatalogSerializerAPI(catalogs, many=True).data
+        catalogs = models.Catalog.objects.filter(code__contains=q.upper())
+        serializer = s.CatalogSerializerAPI(catalogs, many=True).data
 
-    return Response(serializer)
+        return Response(serializer)
+
+    serializer = s.CreateCatalogSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(status=status.HTTP_201_CREATED)
+    
+    return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["POST", "GET"])

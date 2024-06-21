@@ -839,14 +839,7 @@ class CreatePersonSerializer(serializers.Serializer):
         return person
 
 
-class CreatePersonnelSerializer(serializers.Serializer):
-    general_info = CreatePersonSerializer()
-    # emergency_info = EmergencyInfoSerializer()
-    card_number = CardNumberSerializer()
-    addresses = AddressSerializer(many=True)
-    roles = IntListField()
-    service_locations = IntListField()
-    tags = IntListField(required=False)
-    skills = CatalogSerializer(required=False)
-    minimum_salary = serializers.IntegerField(required=False)
-    # overall_rate = serializers.DecimalField(decimal_places=1)
+class CreateCatalogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = m.Catalog
+        fields = ("title", "code")

@@ -162,24 +162,12 @@ class People(Log):
     )
     birthdate = models.CharField(max_length=10)
 
-    # types = models.ManyToManyField(
-    #     Catalog, related_name="people_types", through=Specification
-    # )
-
     # specific to personnel
     contract_date = models.CharField(max_length=10, null=True, blank=True)
     end_contract_date = models.CharField(max_length=10, null=True, blank=True)
     specifications = models.ManyToManyField(
         Catalog, related_name="people_specifications", through=Specification
     )
-    # roles = models.ManyToManyField(
-    #     Catalog, related_name="people_roles", through=Specification
-    # )
-    # service_locations = models.ManyToManyField(
-    #     Catalog,
-    #     related_name="people_service_locations",
-    #     through=Specification,
-    # )
     minimum_salary = models.BigIntegerField(default=0)
     overall_rate = models.DecimalField(decimal_places=1, max_digits=3)
     note = models.TextField(null=True, blank=True)
@@ -365,14 +353,6 @@ class People(Log):
         if specs:
             return " ,".join(specs)
         return ""
-
-    # def get_absolute_url(self, action_type: str):
-    #     assert action_type.lower() in ["create", "edit", "update", "delete"]
-
-    #     label = self.get_types()
-    #     path_name = f"crm:{action_type.lower()}_{label.lower()}"
-
-    #     return reverse(path_name, kwargs={"id": self.id})
 
     def get_absolute_url_api(self):
         types = self.get_types_title
